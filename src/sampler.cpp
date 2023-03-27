@@ -38,10 +38,17 @@ void Sampler::sample(bool acceptedStep, System *system)
     m_numberOfAcceptedSteps += acceptedStep;
 }
 
-void Sampler::printOutputToTerminal(System &system)
+void Sampler::printOutputToTerminal(System &system, bool verbose)
 {
     auto pa = system.getWaveFunctionParameters();
     auto p = pa.size();
+    if (!verbose)
+    {
+        for (const auto &x : pa)
+            cout << x << " ";
+        cout << m_energy << endl;
+        return;
+    }
 
     cout << endl;
     cout << "  -- System info -- " << endl;
