@@ -16,5 +16,6 @@ do
     for alpha in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0
     do
         ./$path_to_executable 1 $particles 1000000 $alpha >> "data/energy_vs_alpha_particles_$particles.csv"
+	echo "./$path_to_executable 1 $particles 1000000 ${alpha} >> \"data/energy_vs_alpha_particles_$particles.csv\""
     done
 done
