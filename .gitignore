@@ -37,4 +37,16 @@ build
 # Ignore default executable
 vmc
 
+# Configuration files
 .vscode
+
+# Text files
+*.txt
+*.csv
+
+# archive files
+*.zip
+*.rar
+
+# plots
+*.pdf

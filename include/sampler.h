@@ -11,7 +11,7 @@ public:
         size_t numberOfMetropolisSteps);
 
     void sample(bool acceptedStep, class System *system);
-    void printOutputToTerminal(class System &system);
+    void printOutputToTerminal(class System &system, bool verbose = false);
     void computeAverages();
     double getEnergy() { return m_energy; }
 

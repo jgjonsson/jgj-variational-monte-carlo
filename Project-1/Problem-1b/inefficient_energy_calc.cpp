@@ -3,7 +3,6 @@
 #include <memory>
 
 #include "../../include/system.h"
-#include "../../include/simplegaussian.h"
 #include "../../include/harmonicoscillator.h"
 #include "../../include/initialstate.h"
 #include "../../include/metropolis.h"
@@ -12,6 +11,44 @@
 #include "../../include/sampler.h"
 
 using namespace std;
+
+//Recreates SimpleGaussianInefficient class, but with minima reimplementations
+class SimpleGaussianInefficient : public WaveFunction {
+public:
+    /// @brief Constructor for the SimpleGaussianInefficient class.
+    /// @param alpha Variational parameter present in the exponent.
+    SimpleGaussianInefficient(double alpha)
+    {
+        //assert(alpha >= 0);
+        m_numberOfParameters = 1;
+        m_parameters.push_back(alpha);
+    }
+    /// @brief Evaluate the trial wave function.
+    /// @param particles Vector of particles.
+    /// @return The value of the trial wave function.
+    double evaluate(std::vector<std::unique_ptr<class Particle>> &particles)
+    {
+        double psi = 1.0;
+        double alpha = m_parameters[0]; // alpha is the first and only parameter for now.
+
+        for (size_t i = 0; i < particles.size(); i++)
+        {
+            // Let's support as many dimensions as we want.
+            double r2 = 0;
+            for (size_t j = 0; j < particles[i]->getPosition().size(); j++)
+                r2 += particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+            // spherical ansatz
+            double g = exp(-alpha * r2);
+
+            // Trial wave function is product of g for all particles.
+            // f ignored for now, due to considering non interacting particles.
+            psi = psi * g;
+        }
+        return psi;
+    }
+    // else implementations are taken default...
+};
+
 
 int main(int argc, char **argv)
 {
@@ -38,7 +75,7 @@ int main(int argc, char **argv)
         // Construct unique_ptr to Hamiltonian
         std::make_unique<HarmonicOscillator>(omega),
         // Construct unique_ptr to wave function
-        std::make_unique<SimpleGaussian>(alpha),
+        std::make_unique<SimpleGaussianInefficient>(alpha),
         // Construct unique_ptr to solver, and move rng
         std::make_unique<Metropolis>(std::move(rng)),
         // Move the vector of particles to system
