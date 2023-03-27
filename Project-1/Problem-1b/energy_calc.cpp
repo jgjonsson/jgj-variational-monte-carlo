@@ -15,6 +15,9 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
+    if (argc == 1) 
+        cout << "Usage: " << argv[0] << " <number of dimensions = 1> <number of particles = 1> <number of Metropolis steps = 1e6> <alpha=0.5>" << endl;
+
     // Seed for the random number generator
     int seed = 2023;
 
