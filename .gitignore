@@ -47,3 +47,6 @@ vmc
 # archive files
 *.zip
 *.rar
+
+# plots
+*.pdf
