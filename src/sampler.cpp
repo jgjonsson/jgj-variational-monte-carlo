@@ -23,6 +23,7 @@ Sampler::Sampler(
     m_numberOfDimensions = numberOfDimensions;
     m_energy = 0;
     m_cumulativeEnergy = 0;
+    m_cumulativeEnergySquare = 0;
     m_stepLength = stepLength;
     m_numberOfAcceptedSteps = 0;
 }
@@ -34,6 +35,7 @@ void Sampler::sample(bool acceptedStep, System *system)
      */
     auto localEnergy = system->computeLocalEnergy();
     m_cumulativeEnergy += localEnergy;
+    m_cumulativeEnergySquare += localEnergy*localEnergy;
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
 }
@@ -49,6 +51,8 @@ void Sampler::printOutputToTerminal(System &system, bool verbose)
         cout << m_energy << endl;
         return;
     }
+
+    double energy_standard_dev = sqrt(m_energySquare-m_energy*m_energy) / sqrt(m_numberOfMetropolisSteps);
 
     cout << endl;
     cout << "  -- System info -- " << endl;
@@ -67,6 +71,7 @@ void Sampler::printOutputToTerminal(System &system, bool verbose)
     cout << endl;
     cout << "  -- Results -- " << endl;
     cout << " Energy : " << m_energy << endl;
+    cout << " Standard deviation Energy : " << energy_standard_dev << endl;
     cout << endl;
 }
 
@@ -75,4 +80,5 @@ void Sampler::computeAverages()
     /* Compute the averages of the sampled quantities.
      */
     m_energy = m_cumulativeEnergy / m_numberOfMetropolisSteps;
+    m_energySquare = m_cumulativeEnergySquare / m_numberOfMetropolisSteps;
 }
