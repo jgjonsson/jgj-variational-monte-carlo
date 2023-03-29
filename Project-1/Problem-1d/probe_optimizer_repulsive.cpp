@@ -3,8 +3,8 @@
 #include <memory>
 
 #include "../../include/system.h"
-#include "../../include/simplegaussian.h"
-#include "../../include/harmonicoscillator.h"
+#include "../../include/gaussianjastrow.h"
+#include "../../include/hamiltonian_cyllindric_repulsive.h"
 #include "../../include/initialstate.h"
 #include "../../include/metropolis_hastings.h"
 #include "../../include/random.h"
@@ -23,6 +23,8 @@ int main(int argc, char **argv)
     size_t numberOfMetropolisSteps = argc > 3 ? stoi(argv[3]) : 1e6;
     size_t numberOfEquilibrationSteps = numberOfMetropolisSteps / 10;
     double omega = 1.0;                                         // Oscillator frequency.
+    double beta = 2.8;                                          // Frequency ratio
+    double hard_core_size = 0.0043 / sqrt(omega);               // Hard core size
     std::vector<double> params{argc > 4 ? stod(argv[4]) : 0.5}; // Variational parameter.
     double stepLength = 0.1;                                    // Metropolis step length.
     size_t MC_reduction = 100;                                  // Number of MC steps to reduce by at intermediate steps
@@ -46,14 +48,14 @@ int main(int argc, char **argv)
         auto particles = setupRandomUniformInitialState(stepLength, numberOfDimensions, numberOfParticles, *rng);
         // Construct a unique pointer to a new System
         system = std::make_unique<System>(
-            // Construct unique_ptr to Hamiltonian
-            std::make_unique<HarmonicOscillator>(omega),
-            // Construct unique_ptr to wave function
-            std::make_unique<SimpleGaussian>(params[0]),
-            // Construct unique_ptr to solver, and move rng
-            std::make_unique<MetropolisHastings>(std::move(rng)),
-            // Move the vector of particles to system
-            std::move(particles));
+        // Construct unique_ptr to Hamiltonian
+        std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta),
+        // Construct unique_ptr to wave function
+        std::make_unique<GaussianJastrow>(params[0], beta, hard_core_size),
+        // Construct unique_ptr to solver, and move rng
+        std::make_unique<MetropolisHastings>(std::move(rng)),
+        // Move the vector of particles to system
+        std::move(particles));
 
         // Run steps to equilibrate particles
         auto acceptedEquilibrationSteps = system->runEquilibrationSteps(

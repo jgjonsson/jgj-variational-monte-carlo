@@ -16,7 +16,6 @@ public:
     // Invoked automatically after sampling
     void computeObservables();
     const std::vector<double> &getObservables() const { return m_observables; }
-    void reset();
 
 private:
     size_t m_stepNumber = 0;
