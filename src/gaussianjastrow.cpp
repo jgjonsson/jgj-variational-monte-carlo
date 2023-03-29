@@ -154,3 +154,19 @@ std::vector<double> GaussianJastrow::computeQuantumForce(std::vector<std::unique
     }
     return quantumForce;
 }
+
+std::vector<double> GaussianJastrow::computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles)
+{
+    double alpha = m_parameters[0];
+    std::vector<double> logPsiDerivativeOverParameters = std::vector<double>();
+    double sum = 0.0;
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        double r2 = 0.0;
+        for (size_t j = 0; j < particles[i]->getPosition().size(); j++)
+            r2 += (j == 2 ? m_beta : 1.0) * particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+        sum += r2;
+    }
+    logPsiDerivativeOverParameters.push_back(-sum);
+    return logPsiDerivativeOverParameters;
+}

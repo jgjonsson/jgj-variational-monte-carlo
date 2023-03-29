@@ -37,10 +37,12 @@ void Sampler::sample(bool acceptedStep, System *system)
      * Note that there are (way) more than the single one here currently.
      */
     auto localEnergy = system->computeLocalEnergy();
-    auto particles = std::vector<std::unique_ptr<Particle>>{};
-    for (const auto &p : system->getParticles())
-        particles.push_back(std::make_unique<Particle>(*p));
+    //..
+    auto particles = std::move(system->getParticles());
     auto gradients = system->getWaveFunction()->computeLogPsiDerivativeOverParameters(particles);
+    // I am a terrible person
+    system->getParticles() = std::move(particles);
+    
     m_cumulatives[0] += localEnergy;
     m_cumulatives[1] += localEnergy * localEnergy;
     for (size_t i = 0; i < m_numberOfParameters; i++)
