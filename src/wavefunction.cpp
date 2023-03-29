@@ -1,6 +1,8 @@
 #include "../include/wavefunction.h"
 #include "../include/particle.h"
 
+#include <cmath>
+
 double WaveFunction::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     // Compute the local energy by numerical differentiation
@@ -45,5 +47,23 @@ std::vector<double> WaveFunction::computeQuantumForce(std::vector<std::unique_pt
         particles[particle_index]->adjustPosition(-h, i);
         quantum_force[i] = 2 * (plus_val/mid_val - 1) / h;
     }
+
     return quantum_force;
+}
+
+std::vector<double> WaveFunction::computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles)
+{
+    std::vector<double> log_psi_derivative_over_parameters(m_numberOfParameters);
+    double h = 1e-4; // as usual, never do this, but I assume dimensionless units, so fine
+
+    auto mid_val = log(evaluate(particles));
+
+    for (size_t i = 0; i < m_numberOfParameters; i++)
+    {
+        m_parameters[i] += h;
+        auto plus_val = log(evaluate(particles));
+        m_parameters[i] -= h;
+        log_psi_derivative_over_parameters[i] = (plus_val - mid_val) / h;
+    }
+    return log_psi_derivative_over_parameters;
 }

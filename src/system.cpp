@@ -45,6 +45,7 @@ std::unique_ptr<class Sampler> System::runMetropolisSteps(
     auto sampler = std::make_unique<Sampler>(
         m_numberOfParticles,
         m_numberOfDimensions,
+        m_waveFunction->getNumberOfParameters(),
         stepLength,
         numberOfMetropolisSteps);
 
@@ -62,7 +63,7 @@ std::unique_ptr<class Sampler> System::runMetropolisSteps(
         sampler->sample(acceptedStep, this);
     }
 
-    sampler->computeAverages();
+    sampler->computeObservables();
 
     return sampler;
 }
@@ -73,8 +74,3 @@ double System::computeLocalEnergy()
     return m_hamiltonian->computeLocalEnergy(*m_waveFunction, m_particles);
 }
 
-const std::vector<double> &System::getWaveFunctionParameters()
-{
-    // Helper function
-    return m_waveFunction->getParameters();
-}

@@ -7,23 +7,25 @@ public:
     Sampler(
         size_t numberOfParticles,
         size_t numberOfDimensions,
+        size_t numberOfParameters,
         double stepLength,
         size_t numberOfMetropolisSteps);
 
     void sample(bool acceptedStep, class System *system);
     void printOutputToTerminal(class System &system, bool verbose = false);
-    void computeAverages();
-    double getEnergy() { return m_energy; }
+    // Invoked automatically after sampling
+    void computeObservables();
+    const std::vector<double> &getObservables() const { return m_observables; }
+    void reset();
 
 private:
     size_t m_stepNumber = 0;
     size_t m_numberOfMetropolisSteps = 0;
+    size_t m_numberOfParameters = 0;
     size_t m_numberOfParticles = 0;
     size_t m_numberOfDimensions = 0;
     size_t m_numberOfAcceptedSteps = 0;
-    double m_energy = 0;
-    double m_energySquare = 0;
-    double m_cumulativeEnergy = 0;
-    double m_cumulativeEnergySquare = 0;
     double m_stepLength = 0;
+    std::vector<double> m_cumulatives;
+    std::vector<double> m_observables;
 };

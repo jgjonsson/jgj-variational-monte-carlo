@@ -27,7 +27,8 @@ public:
         size_t numberOfMetropolisSteps);
 
     double computeLocalEnergy();
-    const std::vector<double> &getWaveFunctionParameters();
+    std::unique_ptr<class WaveFunction> &getWaveFunction() { return m_waveFunction; }
+    std::vector<std::unique_ptr<class Particle>> &getParticles() { return m_particles; }
 
 private:
     size_t m_numberOfParticles = 0;
