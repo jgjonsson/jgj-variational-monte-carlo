@@ -26,14 +26,14 @@ int main(int argc, char **argv)
     double alpha = argc > 4 ? stod(argv[4]) : 0.5;      // Variational parameter.
     double stepLength = 0.1; // Metropolis step length.
 
-	// Random number setup in the way recommended for parallell computing, at https://github.com/anderkve/FYS3150/blob/master/code_examples/random_number_generation/main_rng_in_class_omp.cpp
-	//  Use the system clock to get a base seed
-	unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
+    // Random number setup in the way recommended for parallell computing, at https://github.com/anderkve/FYS3150/blob/master/code_examples/random_number_generation/main_rng_in_class_omp.cpp
+    //  Use the system clock to get a base seed
+    unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
 
     int numThreads = 4;
 
     omp_set_num_threads(numThreads);
-#pragma omp parallel // Start parallel region.
+    #pragma omp parallel // Start parallel region.
 	{
 		// Which thread is this?
 		int thread_id = omp_get_thread_num();
@@ -42,10 +42,10 @@ int main(int argc, char **argv)
             cout << "I am thread number " << thread_id << endl;
         }
 
-		// Seed the generator with a seed that is unique for this thread
-		unsigned int my_seed = base_seed + thread_id;
-		auto rng = std::make_unique<Random>(my_seed);
-		//generator.seed(my_seed);
+        // Seed the generator with a seed that is unique for this thread
+        unsigned int my_seed = base_seed + thread_id;
+        auto rng = std::make_unique<Random>(my_seed);
+        //generator.seed(my_seed);
 
         // Initialize particles
         auto particles = setupRandomUniformInitialState(stepLength, numberOfDimensions, numberOfParticles, *rng);
