@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     size_t numberOfMetropolisSteps = argc > 3 ? stoi(argv[3]) : 1e6;
     size_t numberOfEquilibrationSteps = numberOfMetropolisSteps / 10;
     double omega = 1.0;                                         // Oscillator frequency.
-    double beta = 2.8;                                          // Frequency ratio
+    double beta = 2.82843;                                          // Frequency ratio
     double hard_core_size = 0.0043 / sqrt(omega);               // Hard core size
     std::vector<double> params{argc > 4 ? stod(argv[4]) : 0.5}; // Variational parameter.
     double stepLength = 0.1;                                    // Metropolis step length.
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
         // The random engine can also be built without a seed
         auto rng = std::make_unique<Random>(seed);
         // Initialize particles
-        auto particles = setupRandomUniformInitialState(stepLength, numberOfDimensions, numberOfParticles, *rng);
+        auto particles = setupRandomUniformInitialStateWithRepulsion(stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
         // Construct a unique pointer to a new System
         system = std::make_unique<System>(
         // Construct unique_ptr to Hamiltonian
@@ -83,7 +83,10 @@ int main(int argc, char **argv)
             learning_rate = std::vector<double>(params.size());
             for (size_t param_num = 0; param_num < params.size(); ++param_num)
             {
-                learning_rate[param_num] = fabs(0.1 / gradient[param_num]);
+                if (fabs(gradient[param_num]) < 0.1)
+                    learning_rate[param_num] = 1;
+                else
+                    learning_rate[param_num] = fabs(0.1 / gradient[param_num]);
             }
         }
 
@@ -95,11 +98,8 @@ int main(int argc, char **argv)
         if (verbose)
         {
             cout << "Iteration " << count << endl;
-            cout << "Parameter predictions: ";
-            for (size_t param_num = 0; param_num < params.size(); ++param_num)
-            {
-                cout << params[param_num] << " ";
-            }
+            cout << "Predictions: ";
+            sampler->printOutputToTerminal(*system);
             cout << endl;
         }
 
