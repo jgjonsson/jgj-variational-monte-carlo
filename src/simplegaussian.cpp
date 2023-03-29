@@ -33,7 +33,6 @@ double SimpleGaussian::evaluate(std::vector<std::unique_ptr<class Particle>> &pa
     return psi;
 }
 
-
 double SimpleGaussian::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     // The expression I got for a single laplasian is, in invariant form, follows:
@@ -71,14 +70,31 @@ double SimpleGaussian::evaluateRatio(std::vector<std::unique_ptr<class Particle>
     return ratio;
 }
 
-
 std::vector<double> SimpleGaussian::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
 {
-     double alpha = m_parameters[0];
-     std::vector<double> quantumForce = std::vector<double>();
-     std::vector<double> position=particles[particle_index]->getPosition();
-     for (int j=0; j < position.size(); j++) {
-         quantumForce.push_back(-4*alpha*position[j]);
-     }
-     return quantumForce;
+    double alpha = m_parameters[0];
+    std::vector<double> quantumForce = std::vector<double>();
+    std::vector<double> position = particles[particle_index]->getPosition();
+    for (int j = 0; j < position.size(); j++)
+    {
+        quantumForce.push_back(-4 * alpha * position[j]);
+    }
+
+    return quantumForce;
+}
+
+std::vector<double> SimpleGaussian::computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles)
+{
+    double alpha = m_parameters[0];
+    std::vector<double> logPsiDerivativeOverParameters = std::vector<double>();
+    double sum = 0.0;
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        double r2 = 0.0;
+        for (size_t j = 0; j < particles[i]->getPosition().size(); j++)
+            r2 += particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+        sum += r2;
+    }
+    logPsiDerivativeOverParameters.push_back(-sum);
+    return logPsiDerivativeOverParameters;
 }

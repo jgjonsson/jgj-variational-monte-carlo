@@ -33,6 +33,7 @@ public:
                                  std::vector<std::unique_ptr<class Particle>> &particles_denominator);
 
     virtual std::vector<double> computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index);
+    virtual std::vector<double> computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles);
 
 protected:
     size_t m_numberOfParameters = 0;
