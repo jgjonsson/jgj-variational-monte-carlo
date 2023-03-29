@@ -18,9 +18,6 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-    // Seed for the random number generator
-    int seed = 2023;
-
     size_t numberOfDimensions = argc > 1 ? stoi(argv[1]) : 1;
     size_t numberOfParticles = argc > 2 ? stoi(argv[2]) : 1;
     size_t numberOfMetropolisSteps = argc > 3 ? stoi(argv[3]) : 1e6;
@@ -33,8 +30,10 @@ int main(int argc, char **argv)
 	//  Use the system clock to get a base seed
 	unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
 
+    int numThreads = 4;
+
+    omp_set_num_threads(numThreads);
 #pragma omp parallel // Start parallel region.
-//With no for loop this just makes a bunch of threads, e.g. 8 threads on a 8 core CPU.
 	{
 		// Which thread is this?
 		int thread_id = omp_get_thread_num();
@@ -42,11 +41,6 @@ int main(int argc, char **argv)
         {
             cout << "I am thread number " << thread_id << endl;
         }
-
-		// Create a <random> generator and distribution (uniform distribution [0,1) ).
-		// private to this thread
-		//mt19937 generator;
-		//uniform_real_distribution<double> uniform_dist = uniform_real_distribution<double>(0.0, 1.0);
 
 		// Seed the generator with a seed that is unique for this thread
 		unsigned int my_seed = base_seed + thread_id;
@@ -76,6 +70,8 @@ int main(int argc, char **argv)
             stepLength,
             numberOfMetropolisSteps);
 
+        //For now simply print the whole summary for each sampler. Using critical to avoid printouts mixing up.
+        //This could also be modified to accumulate every sampler into one, and make only one total result out of it.
         #pragma omp critical
         {
             // Output information from the simulation
