@@ -22,6 +22,8 @@ private:
     size_t m_numberOfDimensions = 0;
     size_t m_numberOfAcceptedSteps = 0;
     double m_energy = 0;
+    double m_energySquare = 0;
     double m_cumulativeEnergy = 0;
+    double m_cumulativeEnergySquare = 0;
     double m_stepLength = 0;
 };
