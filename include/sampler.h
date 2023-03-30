@@ -10,6 +10,7 @@ public:
         size_t numberOfParameters,
         double stepLength,
         size_t numberOfMetropolisSteps);
+    Sampler(std::unique_ptr<Sampler>* samplers, int numberSamplers);
 
     void sample(bool acceptedStep, class System *system);
     void printOutputToTerminal(class System &system, bool verbose = false);
