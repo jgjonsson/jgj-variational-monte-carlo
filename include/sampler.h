@@ -13,8 +13,10 @@ public:
 
     void sample(bool acceptedStep, class System *system);
     void printOutputToTerminal(class System &system, bool verbose = false);
+    void printOutputToTerminal(bool verbose = false);
     // Invoked automatically after sampling
     void computeObservables();
+    void storeSystemParameters(class System *system);
     const std::vector<double> &getObservables() const { return m_observables; }
 
 private:
@@ -27,4 +29,5 @@ private:
     double m_stepLength = 0;
     std::vector<double> m_cumulatives;
     std::vector<double> m_observables;
+    std::vector<double> m_wavefunction_parameters;
 };

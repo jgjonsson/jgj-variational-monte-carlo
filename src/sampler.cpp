@@ -54,13 +54,18 @@ void Sampler::sample(bool acceptedStep, System *system)
     m_numberOfAcceptedSteps += acceptedStep;
 }
 
+//Legacy printout method. It's not actually needed, but kept until we changed to printOutputToTerminal(bool verbose) in all the places it is used.
 void Sampler::printOutputToTerminal(System &system, bool verbose)
 {
-    auto pa = system.getWaveFunction()->getParameters();
-    auto p = pa.size();
+    //storeSystemParameters(&system); //This is also redundant since code in system.cpp ensures it's been called.
+    printOutputToTerminal(verbose);
+}
+void Sampler::printOutputToTerminal(bool verbose)
+{
+    auto p = m_wavefunction_parameters.size();
     if (!verbose)
     {
-        for (const auto &x : pa)
+        for (const auto &x : m_wavefunction_parameters)
             cout << x << " ";
         for (const auto &x : m_observables)
             cout << x << " ";
@@ -79,7 +84,7 @@ void Sampler::printOutputToTerminal(System &system, bool verbose)
     cout << " Number of parameters : " << p << endl;
     for (size_t i = 0; i < p; i++)
     {
-        cout << " Parameter " << i + 1 << " : " << pa.at(i) << endl;
+        cout << " Parameter " << i + 1 << " : " << m_wavefunction_parameters.at(i) << endl;
     }
     cout << endl;
     cout << "  -- Results -- " << endl;
@@ -99,4 +104,9 @@ void Sampler::computeObservables()
     {
         m_observables[2 + i] = 2 * (m_cumulatives[2 + m_numberOfParameters + i] / m_numberOfMetropolisSteps - m_observables[0] * m_cumulatives[2 + i] / m_numberOfMetropolisSteps);
     }
+}
+
+void Sampler::storeSystemParameters(class System *system)
+{
+    m_wavefunction_parameters = system->getWaveFunction()->getParameters();
 }
