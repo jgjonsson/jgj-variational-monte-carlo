@@ -46,6 +46,9 @@ int main(int argc, char **argv)
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads]={};
 
+    size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged ? MC_reduction : 1);
+    numberOfMetropolisStepsPerGradientIteration /= numThreads; //Split by number of threads.
+
     for (size_t count = 0; count < max_iterations; ++count)
     {
         // Random number setup in the way recommended for parallell computing, at https://github.com/anderkve/FYS3150/blob/master/code_examples/random_number_generation/main_rng_in_class_omp.cpp
@@ -79,12 +82,12 @@ int main(int argc, char **argv)
             // Run steps to equilibrate particles
             auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
                 stepLength,
-                numberOfEquilibrationSteps / MC_reduction * (converged ? MC_reduction : 1));
+                numberOfMetropolisStepsPerGradientIteration);
 
             // Run the Metropolis algorithm
             samplers[thread_id] = system->runMetropolisSteps(
                 stepLength,
-                numberOfMetropolisSteps / MC_reduction * (converged ? MC_reduction : 1));
+                numberOfMetropolisStepsPerGradientIteration);
         }
 
         if (converged)
