@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <chrono>
+#include "omp.h"
 
 #include "../../include/system.h"
 #include "../../include/gaussianjastrow.h"
@@ -38,36 +40,66 @@ int main(int argc, char **argv)
     size_t max_iterations = 1e2;
     bool converged = false;
 
-    std::unique_ptr<Sampler> sampler;
-    std::unique_ptr<System> system;
+    std::unique_ptr<Sampler> accumulatedSampler;
+    //std::vector<Sampler> samplers;
+
+    int numThreads = 1;
+    omp_set_num_threads(numThreads);
+    std::unique_ptr<Sampler> samplers[numThreads]={};
+    std::vector<Sampler*> samplers2 = std::vector<Sampler*>();
 
     for (size_t count = 0; count < max_iterations; ++count)
     {
-        // The random engine can also be built without a seed
-        auto rng = std::make_unique<Random>(seed);
-        // Initialize particles
-        auto particles = setupRandomUniformInitialStateWithRepulsion(stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
-        // Construct a unique pointer to a new System
-        system = std::make_unique<System>(
-            // Construct unique_ptr to Hamiltonian
-            std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta),
-            // Construct unique_ptr to wave function
-            std::make_unique<GaussianJastrow>(params[0], beta, hard_core_size),
-            // Construct unique_ptr to solver, and move rng
-            std::make_unique<Metropolis>(std::move(rng)),
-            // Move the vector of particles to system
-            std::move(particles));
+        // Random number setup in the way recommended for parallell computing, at https://github.com/anderkve/FYS3150/blob/master/code_examples/random_number_generation/main_rng_in_class_omp.cpp
+        //  Use the system clock to get a base seed
+        unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
+        #pragma omp parallel shared(samplers, count)// Start parallel region.
+        {
+            int thread_id = omp_get_thread_num();
+            #pragma omp critical
+            {
+                cout << "I am thread number " << thread_id << endl;
+            }
 
-        // Run steps to equilibrate particles
-        auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
-            stepLength,
-            numberOfEquilibrationSteps / MC_reduction * (converged ? MC_reduction : 1));
+            // Seed the generator with a seed that is unique for this thread
+            unsigned int my_seed = base_seed + thread_id;
+            auto rng = std::make_unique<Random>(my_seed);
 
-        // Run the Metropolis algorithm
-        sampler = system->runMetropolisSteps(
-            stepLength,
-            numberOfMetropolisSteps / MC_reduction * (converged ? MC_reduction : 1));
+            std::unique_ptr<Sampler> sampler;
+            std::unique_ptr<System> system;
 
+            // Initialize particles
+            auto particles = setupRandomUniformInitialStateWithRepulsion(stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
+
+            // Construct a unique pointer to a new System
+            system = std::make_unique<System>(
+                // Construct unique_ptr to Hamiltonian
+                std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta),
+                // Construct unique_ptr to wave function
+                std::make_unique<GaussianJastrow>(params[0], beta, hard_core_size),
+                // Construct unique_ptr to solver, and move rng
+                std::make_unique<Metropolis>(std::move(rng)),
+                // Move the vector of particles to system
+                std::move(particles));
+
+            // Run steps to equilibrate particles
+            auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
+                stepLength,
+                numberOfEquilibrationSteps / MC_reduction * (converged ? MC_reduction : 1));
+
+            // Run the Metropolis algorithm
+            samplers[thread_id] = system->runMetropolisSteps(
+                stepLength,
+                numberOfMetropolisSteps / MC_reduction * (converged ? MC_reduction : 1));
+
+            #pragma omp critical
+            {
+                //std::unique_ptr<class Sampler>sp = std::make_unique<Particle>(&sampler);
+                //sampler;
+                //samplers[thread_id] = std::make_unique<Sampler>(&sampler);//std::unique_ptr<Sampler>sampler;
+                //samplers2.push_back(sp);
+            }
+        }
         if (converged)
             break;
 
@@ -75,7 +107,7 @@ int main(int argc, char **argv)
         auto gradient = std::vector<double>(params.size());
         for (size_t param_num = 0; param_num < params.size(); ++param_num)
         {
-            gradient[param_num] = sampler->getObservables()[2 + param_num];
+            gradient[param_num] = samplers[0]->getObservables()[2 + param_num];
         }
 
         // At first iteration, choose reasonable learning rate
@@ -100,7 +132,7 @@ int main(int argc, char **argv)
         {
             cout << "Iteration " << count << endl;
             cout << "Predictions: ";
-            sampler->printOutputToTerminal(*system);
+            samplers[0]->printOutputToTerminal();
             cout << endl;
         }
 
@@ -120,7 +152,7 @@ int main(int argc, char **argv)
         }
     }
     // Output information from the simulation
-    sampler->printOutputToTerminal(*system, verbose);
+    samplers[0]->printOutputToTerminal(verbose);
 
     return 0;
 }
