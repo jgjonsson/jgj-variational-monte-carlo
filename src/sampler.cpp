@@ -26,35 +26,35 @@ Sampler::Sampler(
     m_stepLength = stepLength;
     m_numberOfAcceptedSteps = 0;
     // El, El^2, El*d ln psi/d alpha, d ln psi/d alpha
-    m_cumulatives = std::vector<double>(2 + 2*numberOfParameters, 0.0);
+    m_cumulatives = std::vector<double>(2 + 2 * numberOfParameters, 0.0);
     // <E>, <(E-<E>)^2>, <d E/d alpha>
     m_observables = std::vector<double>(2 + numberOfParameters, 0.0);
 }
 
 /**
- * Constructur that combines a number of other Sampler object, and creates a new one that is the average of all the others. 
-*/
-Sampler::Sampler(std::unique_ptr<Sampler>* samplers, int numberSamplers)
+ * Constructur that combines a number of other Sampler object, and creates a new one that is the average of all the others.
+ */
+Sampler::Sampler(std::unique_ptr<Sampler> *samplers, int numberSamplers)
 {
     m_stepNumber = samplers[0]->m_stepNumber;
-    m_numberOfMetropolisSteps = samplers[0]->m_numberOfMetropolisSteps;
+    m_numberOfMetropolisSteps = samplers[0]->m_numberOfMetropolisSteps * numberSamplers;
     m_numberOfParticles = samplers[0]->m_numberOfParticles;
     m_numberOfDimensions = samplers[0]->m_numberOfDimensions;
     m_numberOfParameters = samplers[0]->m_numberOfParameters;
     m_stepLength = samplers[0]->m_stepLength;
     m_numberOfAcceptedSteps = 0;
     // El, El^2, El*d ln psi/d alpha, d ln psi/d alpha
-    m_cumulatives = std::vector<double>(2 + 2*m_numberOfParameters, 0.0);
+    m_cumulatives = std::vector<double>(2 + 2 * m_numberOfParameters, 0.0);
     // <E>, <(E-<E>)^2>, <d E/d alpha>
     m_observables = std::vector<double>(2 + m_numberOfParameters, 0.0);
 
-    for(int i=0; i<numberSamplers; i++)
+    for (int i = 0; i < numberSamplers; i++)
     {
-        for(int j=0; j<2 + 2*m_numberOfParameters; j++)
+        for (int j = 0; j < 2 + 2 * m_numberOfParameters; j++)
         {
             m_cumulatives[j] += samplers[i]->m_cumulatives[j] / numberSamplers;
         }
-        for(int j=0; j<2 + m_numberOfParameters; j++)
+        for (int j = 0; j < 2 + m_numberOfParameters; j++)
         {
             m_observables[j] += samplers[i]->m_observables[j] / numberSamplers;
         }
@@ -67,7 +67,7 @@ Sampler::Sampler(std::unique_ptr<Sampler>* samplers, int numberSamplers)
             m_wavefunction_parameters[j] += samplers[i]->m_wavefunction_parameters[j] / numberSamplers;
         }
     }
-    //cout << "Previous two energies " << samplers[0]->m_observables[0] << " and " << samplers[1]->m_observables[0] << " avareged to  " << m_observables[0]  << endl;
+    // cout << "Previous two energies " << samplers[0]->m_observables[0] << " and " << samplers[1]->m_observables[0] << " avareged to  " << m_observables[0]  << endl;
 }
 
 void Sampler::sample(bool acceptedStep, System *system)
@@ -81,7 +81,7 @@ void Sampler::sample(bool acceptedStep, System *system)
     auto gradients = system->getWaveFunction()->computeLogPsiDerivativeOverParameters(particles);
     // I am a terrible person
     system->getParticles() = std::move(particles);
-    
+
     m_cumulatives[0] += localEnergy;
     m_cumulatives[1] += localEnergy * localEnergy;
     for (size_t i = 0; i < m_numberOfParameters; i++)
@@ -93,10 +93,10 @@ void Sampler::sample(bool acceptedStep, System *system)
     m_numberOfAcceptedSteps += acceptedStep;
 }
 
-//Legacy printout method. It's not actually needed, but kept until we changed to printOutputToTerminal(bool verbose) in all the places it is used.
+// Legacy printout method. It's not actually needed, but kept until we changed to printOutputToTerminal(bool verbose) in all the places it is used.
 void Sampler::printOutputToTerminal(System &system, bool verbose)
 {
-    //storeSystemParameters(&system); //This is also redundant since code in system.cpp ensures it's been called.
+    // storeSystemParameters(&system); //This is also redundant since code in system.cpp ensures it's been called.
     printOutputToTerminal(verbose);
 }
 void Sampler::printOutputToTerminal(bool verbose)
@@ -138,7 +138,7 @@ void Sampler::computeObservables()
     /* Compute the observables out of the sampled quantities.
      */
     m_observables[0] = m_cumulatives[0] / m_numberOfMetropolisSteps;
-    m_observables[1] = sqrt((m_cumulatives[1] / m_numberOfMetropolisSteps - m_observables[0] * m_observables[0])/m_numberOfMetropolisSteps);
+    m_observables[1] = sqrt((m_cumulatives[1] / m_numberOfMetropolisSteps - m_observables[0] * m_observables[0]) / m_numberOfMetropolisSteps);
     for (size_t i = 0; i < m_numberOfParameters; i++)
     {
         m_observables[2 + i] = 2 * (m_cumulatives[2 + m_numberOfParameters + i] / m_numberOfMetropolisSteps - m_observables[0] * m_cumulatives[2 + i] / m_numberOfMetropolisSteps);
