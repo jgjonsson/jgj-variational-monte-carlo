@@ -81,7 +81,10 @@ int main(int argc, char **argv)
             learning_rate = std::vector<double>(params.size());
             for (size_t param_num = 0; param_num < params.size(); ++param_num)
             {
-                learning_rate[param_num] = fabs(0.1 / gradient[param_num]);
+                if (fabs(gradient[param_num]) < 0.1)
+                    learning_rate[param_num] = 1;
+                else
+                    learning_rate[param_num] = fabs(0.1 / gradient[param_num]);
             }
         }
 
@@ -93,16 +96,13 @@ int main(int argc, char **argv)
         if (verbose)
         {
             cout << "Iteration " << count << endl;
-            cout << "Parameter predictions: ";
-            for (size_t param_num = 0; param_num < params.size(); ++param_num)
-            {
-                cout << params[param_num] << " ";
-            }
+            cout << "Predictions: ";
+            sampler->printOutputToTerminal(*system);
             cout << endl;
         }
 
         // Check if the parameter has converged (estimate as total parameter change < tolerance)
-        
+
         double total_change = 0;
         for (size_t param_num = 0; param_num < params.size(); ++param_num)
         {
