@@ -40,13 +40,11 @@ int main(int argc, char **argv)
     size_t max_iterations = 1e2;
     bool converged = false;
 
-    std::unique_ptr<Sampler> accumulatedSampler;
-    //std::vector<Sampler> samplers;
+    std::unique_ptr<Sampler> combinedSampler;
 
-    int numThreads = 1;
+    int numThreads = 8;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads]={};
-    std::vector<Sampler*> samplers2 = std::vector<Sampler*>();
 
     for (size_t count = 0; count < max_iterations; ++count)
     {
@@ -56,10 +54,6 @@ int main(int argc, char **argv)
         #pragma omp parallel shared(samplers, count)// Start parallel region.
         {
             int thread_id = omp_get_thread_num();
-            #pragma omp critical
-            {
-                cout << "I am thread number " << thread_id << endl;
-            }
 
             // Seed the generator with a seed that is unique for this thread
             unsigned int my_seed = base_seed + thread_id;
@@ -91,23 +85,19 @@ int main(int argc, char **argv)
             samplers[thread_id] = system->runMetropolisSteps(
                 stepLength,
                 numberOfMetropolisSteps / MC_reduction * (converged ? MC_reduction : 1));
-
-            #pragma omp critical
-            {
-                //std::unique_ptr<class Sampler>sp = std::make_unique<Particle>(&sampler);
-                //sampler;
-                //samplers[thread_id] = std::make_unique<Sampler>(&sampler);//std::unique_ptr<Sampler>sampler;
-                //samplers2.push_back(sp);
-            }
         }
+
         if (converged)
             break;
+
+        //Create a new Sampler object containing the average of all the others.
+        combinedSampler = std::unique_ptr<Sampler>(new Sampler(samplers, numThreads));
 
         // Extract the gradient
         auto gradient = std::vector<double>(params.size());
         for (size_t param_num = 0; param_num < params.size(); ++param_num)
         {
-            gradient[param_num] = samplers[0]->getObservables()[2 + param_num];
+            gradient[param_num] = combinedSampler->getObservables()[2 + param_num];
         }
 
         // At first iteration, choose reasonable learning rate
@@ -132,7 +122,7 @@ int main(int argc, char **argv)
         {
             cout << "Iteration " << count << endl;
             cout << "Predictions: ";
-            samplers[0]->printOutputToTerminal();
+            combinedSampler->printOutputToTerminal();
             cout << endl;
         }
 
@@ -152,7 +142,7 @@ int main(int argc, char **argv)
         }
     }
     // Output information from the simulation
-    samplers[0]->printOutputToTerminal(verbose);
+    combinedSampler->printOutputToTerminal(verbose);
 
     return 0;
 }
