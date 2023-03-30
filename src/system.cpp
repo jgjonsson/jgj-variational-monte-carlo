@@ -64,6 +64,7 @@ std::unique_ptr<class Sampler> System::runMetropolisSteps(
     }
 
     sampler->computeObservables();
+    sampler->storeSystemParameters(this);
 
     return sampler;
 }
