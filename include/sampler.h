@@ -19,6 +19,7 @@ public:
     void computeObservables();
     void storeSystemParameters(class System *system);
     const std::vector<double> &getObservables() const { return m_observables; }
+    const std::vector<double> &getEnergyArrayForBlocking() const { return energy_array_for_blocking; }
 
 private:
     size_t m_stepNumber = 0;
@@ -31,4 +32,5 @@ private:
     std::vector<double> m_cumulatives;
     std::vector<double> m_observables;
     std::vector<double> m_wavefunction_parameters;
+    std::vector<double> energy_array_for_blocking;
 };
