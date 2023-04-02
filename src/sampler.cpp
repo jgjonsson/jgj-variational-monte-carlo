@@ -11,6 +11,10 @@
 using std::cout;
 using std::endl;
 
+//This just needs to be a reasonable number to pick a fraction of samples for error analysis.
+//Making it a fixed parameter here. 100 was suggested in lecture.
+const size_t howOftenStoreSampleForBlocking = 100;
+
 Sampler::Sampler(
     size_t numberOfParticles,
     size_t numberOfDimensions,
@@ -48,6 +52,8 @@ Sampler::Sampler(std::unique_ptr<Sampler> *samplers, int numberSamplers)
     // <E>, <(E-<E>)^2>, <d E/d alpha>
     m_observables = std::vector<double>(2 + m_numberOfParameters, 0.0);
 
+    energy_array_for_blocking = std::vector<double>();
+
     for (int i = 0; i < numberSamplers; i++)
     {
         for (int j = 0; j < 2 + 2 * m_numberOfParameters; j++)
@@ -66,6 +72,9 @@ Sampler::Sampler(std::unique_ptr<Sampler> *samplers, int numberSamplers)
         {
             m_wavefunction_parameters[j] += samplers[i]->m_wavefunction_parameters[j] / numberSamplers;
         }
+
+        //Appending the vectors of energies from all the ohter samplers.
+        energy_array_for_blocking.insert(std::end(energy_array_for_blocking), std::begin(samplers[i]->energy_array_for_blocking), std::end(samplers[i]->energy_array_for_blocking));
     }
     // cout << "Previous two energies " << samplers[0]->m_observables[0] << " and " << samplers[1]->m_observables[0] << " avareged to  " << m_observables[0]  << endl;
 }
@@ -91,6 +100,11 @@ void Sampler::sample(bool acceptedStep, System *system)
     }
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
+
+    //Store every X:th energy value to array. This will later be stored to file for resampling by Python script.
+    if(m_stepNumber%howOftenStoreSampleForBlocking == 0){
+        energy_array_for_blocking.push_back(localEnergy);
+    }
 }
 
 // Legacy printout method. It's not actually needed, but kept until we changed to printOutputToTerminal(bool verbose) in all the places it is used.
