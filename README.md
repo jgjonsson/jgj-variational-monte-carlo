@@ -1,20 +1,15 @@
-# Variational Monte Carlo solver template for FYS4411
+# Variational Monte Carlo solver for FYS4411
 
-Example class structure for the first VMC project of [FYS4411 (spring 2023)](https://github.com/CompPhysics/ComputationalPhysics2). You may, if you wish, fork this repository and make it the basis of your project. If you choose to do this, you will have to implement a lot of the crucial functions yourself. The relevant functions you need to implement are spread throughout the project, but they are all commented with a note saying what each function should do.
-
-Please note that this is only a start, and when you have implemented all of these functions you will only have completed the first exercise. However, once this is done, you will have a very good basis for further work, and adding functionality will be easier with a good class structure.
-
-If you want to write your own code from scratch, you are of course welcome to do so, and feel free to use this code as inspiration for your own class structure.
-
-- If you choose to use this code as a basis for your work, the first thing you should do is fork it, pull it down to your computer, and make sure it compiles and runs. See the next section on how to compile and run the project. After this you should spend at least 10 minutes looking at the structure and familiarizing yourself with how the classes interact with eachother. 
-- A good way to do this may be to simply start at the top of the main.cpp file, and go through all the calls to the `System` class functions. Consider also the base classes `WaveFunction`, `Hamiltonian`, `MonteCarlo` and the function in `initialstate.h`, and see which functions are virtual (i.e., functions that NEED to be implemented by any sub-class).
-- You can skip over the output function in the `Sampler` class and the entire `Random` class in the beginning.
-
-
-## Compiling and running the project
-The recommend way to compile this project is by using CMake to create a Makefile that you can then run. You can install CMake through one of the Linux package managers, e.g., `apt install cmake`, `pacman -S cmake`, etc. For Mac you can install using `brew install cmake`. Other ways of installing are shown here: [https://cmake.org/install/](https://cmake.org/install/).
+This repo contains the code for Project 1 on course [FYS4411 (spring 2023)](https://github.com/CompPhysics/ComputationalPhysics2). 
+It's based on a fork of the initial code repo provided in that course, and further developed by Gabriel Jonsson and Pavlo Panasiuk. 
 
 ### Compiling the project using Make
+
+The Makefile is set up, such that each program is built separately. 
+Programs for various sub-tasks in the project are organized in subfolders under Project1, while common code files are placed under src/ and include/
+
+In general the build command is like follows where app_name_no_ext.cpp is some source code file containing main function. (Simple running make without parameter does not produce executables in the current setting).
+
 In a Linux/Mac terminal this can be done by the following commands
 ```bash
 make app=path_to_app/app_name_no_ext
@@ -24,15 +19,8 @@ and this can be executed with
 ./bin/path_to_app/app_name_no_ext.out
 ```
 
+See README.md file in respective subfolder of Project1 for instructions how to build and run, with parameters relevant for the project report.
+
 #### Cleaning the directory
 Run `make clean` in the top-directory to clean up generated object files. For cleaning program binaries as well, specify the `app`-argument, e.g., `make clean app=path_to_app/app_name_no_ext`.
-
-## Completing the missing parts ##
-Here follows a suggestion for how you can work to complete the missing parts of the code:
-- Start by implementing the `SimpleGaussian` wave function: Write the `evaluate` function. Assume for now that the number of particles is always one, and the number of dimensions is always one. Next, compute the Laplacian analytically, and implement the `computeDoubleDerivative` function.
-- Secondly, use the `Random` class (or your own favorite random number generator, should you have one) to implement the missing part of the `setupRandomUniformInitialState` function.
-- Next, implement the metropolisStep function in the System class. Implement also the small missing part of the runMetropolisSteps function.
-- Now, the last big thing needed is to implement the energy calculation. This is done by the `Hamiltonian` sub-class `HarmonicOscillator`. Here you will have to use the Laplacian you calculated for the wave function earlier.
-- Now the code should be functioning and you should see (somewhat) reasonable results. Try to set the oscillator frequency to 1 and calculate analytically the energy of the oscillator. Recall the form of the ground state wave function of the harmonic oscillator, and set the parameter `alpha` accordingly. What is the resulting energy?
-- If this energy is NOT correct, the last bit missing is to take a look at the `computeAverages` function in the `Sampler` class. What is missing here?
 
