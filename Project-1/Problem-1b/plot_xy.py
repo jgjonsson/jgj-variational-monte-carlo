@@ -11,10 +11,10 @@ parser.add_argument("--savefig", help="name of the figure to be saved",
 args = parser.parse_args()
 
 # Read data from csv file and assign names to columns
-df = pd.read_csv(args.datafile, names=['x', 'y'], sep=' ', header=None)
+df = pd.read_csv(args.datafile, sep=' ', header=None)
 
 # Plot data
-plt.plot(df['x'], df['y'], 'o')
-plt.xlabel('x')
-plt.ylabel('y')
+plt.plot(df[0], df[1], 'o')
+plt.xlabel('alpha par.')
+plt.ylabel('<E>, a.u.')
 plt.savefig(args.savefig)
