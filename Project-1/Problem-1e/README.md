@@ -1,4 +1,4 @@
-# Problem1g implementation
+# Problem1e implementation
 
 This section contains only a Python script for computing standard deviation via Blocking method. 
 The script was taken and reused from an article - see python/README for details. 
@@ -7,7 +7,10 @@ This README will however list several command lines, used to produce data for er
 
 # Results recreation
 
-This assumes the executables of 1g was built first. 
+This assumes the executables of 1g was built first. If not, build by
+```
+make app=Project-1/Problem-1g/repulsive_hamiltonian
+```
 
 Run the following chain of commands, from root directory of repo:
 
