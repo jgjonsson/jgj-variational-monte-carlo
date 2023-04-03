@@ -7,12 +7,14 @@ This README will however list several command lines, used to produce data for er
 
 # Results recreation
 
-This assumes the executables of 1g was built first. If not, build by
+All commands here assumes being run from the root of the Git repo. 
+
+The executable for 1g needs to have been built. If not done, build it by
 ```
 make app=Project-1/Problem-1g/repulsive_hamiltonian
 ```
 
-Run the following chain of commands, from root directory of repo:
+To produce data run the following chain of commands (be aware the last two takes 1 hour+, and 10 hour+ respectively !!!):
 
 ```
 time bin/Project-1/Problem-1g/repulsive_hamiltonian.out 3 5 1000000 0.6
@@ -24,8 +26,6 @@ python3 Project-1/Problem-1e/python/blocking.py
 time bin/Project-1/Problem-1g/repulsive_hamiltonian.out 3 50 1000000 0.6
 python3 Project-1/Problem-1e/python/blocking.py
 time bin/Project-1/Problem-1g/repulsive_hamiltonian.out 3 100 1000000 0.6
-python3 Project-1/Problem-1e/python/blocking.py
-time bin/Project-1/Problem-1g/repulsive_hamiltonian.out 3 50 1000000 0.6
 python3 Project-1/Problem-1e/python/blocking.py
 ```
 
