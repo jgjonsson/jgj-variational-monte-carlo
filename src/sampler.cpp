@@ -105,6 +105,16 @@ void Sampler::sample(bool acceptedStep, System *system)
     if(m_stepNumber%howOftenStoreSampleForBlocking == 0){
         energy_array_for_blocking.push_back(localEnergy);
     }
+
+    auto dist = [](Particle p)
+    {
+        auto pos = p.getPosition();
+        return sqrt(pos[0] * pos[0] + pos[1] * pos[1] + pos[2] * pos[2]);
+    };
+    for (auto &p : system->getParticles())
+    {
+        cout << dist(*p) << '\n';
+    }
 }
 
 // Legacy printout method. It's not actually needed, but kept until we changed to printOutputToTerminal(bool verbose) in all the places it is used.
