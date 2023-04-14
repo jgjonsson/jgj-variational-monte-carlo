@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     // Let's perform optimization here; Gradient descent to be used
 
     std::vector<double> learning_rate; // deduced automatically
-    double parameter_tolerance = 1e-4;
+    double parameter_tolerance = 1e-6;
     size_t max_iterations = 1e2;
     bool converged = false;
 
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
                 // Construct unique_ptr to wave function
                 std::make_unique<GaussianJastrow>(params[0], beta, hard_core_size),
                 // Construct unique_ptr to solver, and move rng
-                std::make_unique<Metropolis>(std::move(rng)),
+                std::make_unique<MetropolisHastings>(std::move(rng)),
                 // Move the vector of particles to system
                 std::move(particles));
 
