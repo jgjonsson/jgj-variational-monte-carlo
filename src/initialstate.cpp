@@ -47,6 +47,9 @@ std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialStateWithRepulsi
         return dist2;
     };
 
+    //Factor 4 because hardCoreSize is the radius, so for no overlap the distance must be 2 times that, and 4 when squared.
+    auto safeDistanceSquare = 4 * hardCoreSize * hardCoreSize;
+
     for (size_t i = 0; i < numberOfParticles; i++)
     {
         std::vector<double> position = std::vector<double>();
@@ -59,7 +62,7 @@ std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialStateWithRepulsi
         }
         for (size_t k = 0; k < i; k++)
         {
-            if (distance2(position, particles[k]->getPosition()) < hardCoreSize * hardCoreSize)
+            if (distance2(position, particles[k]->getPosition()) < safeDistanceSquare)
             {
                 i--;
                 overlap = true;
