@@ -76,7 +76,7 @@ int main(int argc, char **argv)
                 // Construct unique_ptr to wave function
                 std::make_unique<GaussianJastrow>(params[0], beta, hard_core_size),
                 // Construct unique_ptr to solver, and move rng
-                std::make_unique<Metropolis>(std::move(rng)),
+                std::make_unique<MetropolisHastings>(std::move(rng)),
                 // Move the vector of particles to system
                 std::move(particles));
 

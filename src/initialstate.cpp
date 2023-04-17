@@ -47,8 +47,14 @@ std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialStateWithRepulsi
         return dist2;
     };
 
-    //Factor 4 because hardCoreSize is the radius, so for no overlap the distance must be 2 times that, and 4 when squared.
-    auto safeDistanceSquare = 4 * hardCoreSize * hardCoreSize;
+    //Theoretically multiplying with a factor 4 below should be enough because hardCoreSize is the radius,
+    //so doubling that distance before taking square gives no overlap.
+    //However it's shown empirically that even up to distances near 4*hardCoreSize quantum force gets so big
+    //the suggested jumps are too improbably and we get stuck with too low change for acceptance.
+    //Therefore we multiply with 32 below (16 would be the border case).
+    //In the end this should not matter too much what we multiply with as the initial state matters less with large
+    //numbers of cycles.
+    auto safeDistanceSquare = 32 * hardCoreSize * hardCoreSize;
 
     for (size_t i = 0; i < numberOfParticles; i++)
     {
