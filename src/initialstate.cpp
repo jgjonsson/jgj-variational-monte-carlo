@@ -48,7 +48,7 @@ std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialStateWithRepulsi
     };
 
     //Theoretically multiplying with a factor 4 below should be enough because hardCoreSize is the radius,
-    //so doubling that distance before taking square gives no overlap.
+    //meaning distance is 2*hardCoreSize before taking square results in no overlap.
     //However it's shown empirically that even up to distances near 4*hardCoreSize quantum force gets so big
     //the suggested jumps are too improbably and we get stuck with too low change for acceptance.
     //Therefore we multiply with 32 below (16 would be the border case).
