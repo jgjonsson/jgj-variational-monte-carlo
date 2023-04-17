@@ -52,6 +52,7 @@ std::vector<std::unique_ptr<Particle>> setupRandomUniformInitialStateWithRepulsi
     //However it's shown empirically that even up to distances near 4*hardCoreSize quantum force gets so big
     //the suggested jumps are too improbably and we get stuck with too low change for acceptance.
     //Therefore we multiply with 32 below (16 would be the border case).
+    //Techically we disallow nearly overlapping initial state, rather than only disallowing truly overlapping states.
     //In the end this should not matter too much what we multiply with as the initial state matters less with large
     //numbers of cycles.
     auto safeDistanceSquare = 32 * hardCoreSize * hardCoreSize;

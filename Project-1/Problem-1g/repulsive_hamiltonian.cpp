@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     // Let's perform optimization here; Gradient descent to be used
 
     std::vector<double> learning_rate; // deduced automatically
-    double parameter_tolerance = 1e-4;
+    double parameter_tolerance = 1e-5;
     size_t max_iterations = 1e2;
     bool converged = false;
 
@@ -110,10 +110,13 @@ int main(int argc, char **argv)
             learning_rate = std::vector<double>(params.size());
             for (size_t param_num = 0; param_num < params.size(); ++param_num)
             {
+                /*
                 if (fabs(gradient[param_num]) < 0.1)
                     learning_rate[param_num] = 1;
                 else
                     learning_rate[param_num] = fabs(0.1 / gradient[param_num]);
+                */
+                learning_rate[param_num] = 0.05;  //Using hardcoded value like in lecture examples, rather than trying to calculate a more optimal one.
             }
         }
 
