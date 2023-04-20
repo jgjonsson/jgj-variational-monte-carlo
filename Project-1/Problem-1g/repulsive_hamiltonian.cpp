@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     // Let's perform optimization here; Gradient descent to be used
 
     std::vector<double> learning_rate; // deduced automatically
-    double parameter_tolerance = 1e-5;
+    double parameter_tolerance = 1e-4;
     size_t max_iterations = 1e2;
     bool converged = false;
 
