@@ -116,7 +116,9 @@ int main(int argc, char **argv)
                 else
                     learning_rate[param_num] = fabs(0.1 / gradient[param_num]);
                 */
-                learning_rate[param_num] = 0.001;  //Using hardcoded value like in lecture examples, rather than trying to calculate a more optimal one.
+                //learning_rate[param_num] = 0.01;  //Using hardcoded value like in lecture examples, rather than trying to calculate a more optimal one.
+                learning_rate[param_num] = 0.1/numberOfParticles;  //Purely on emprihical basis, we experience divergence problems with higher learning rate on large number of particles.
+                cout << "Learning rate: " << learning_rate[param_num] << endl;
             }
         }
 
