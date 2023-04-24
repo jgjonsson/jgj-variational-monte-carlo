@@ -76,7 +76,7 @@ int main(int argc, char **argv)
                 // Construct unique_ptr to wave function
                 std::make_unique<GaussianJastrow>(params[0], beta, hard_core_size),
                 // Construct unique_ptr to solver, and move rng
-                std::make_unique<Metropolis>(std::move(rng)),
+                std::make_unique<MetropolisHastings>(std::move(rng)),
                 // Move the vector of particles to system
                 std::move(particles));
 
@@ -110,10 +110,15 @@ int main(int argc, char **argv)
             learning_rate = std::vector<double>(params.size());
             for (size_t param_num = 0; param_num < params.size(); ++param_num)
             {
+                /*
                 if (fabs(gradient[param_num]) < 0.1)
                     learning_rate[param_num] = 1;
                 else
                     learning_rate[param_num] = fabs(0.1 / gradient[param_num]);
+                */
+                //learning_rate[param_num] = 0.01;  //Using hardcoded value like in lecture examples, rather than trying to calculate a more optimal one.
+                learning_rate[param_num] = 0.1/numberOfParticles;  //Purely on emprihical basis, we experience divergence problems with higher learning rate on large number of particles.
+                cout << "Learning rate: " << learning_rate[param_num] << endl;
             }
         }
 
