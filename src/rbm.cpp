@@ -71,18 +71,18 @@ vec flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particl
 
 double SimpleRBM::evaluate(std::vector<std::unique_ptr<class Particle>> &particles)
 {
-    double psi = 1.0;
-
     vec x = flattenParticleCoordinatesToVector(particles, m_M);
 
     vec xMinusA = x - m_a;
     double psi1 = exp(-1/(2*m_sigmaSquared)*dot(xMinusA, xMinusA));
 
-    vec psiFactors = 1 + exp(m_b + 1/m_sigmaSquared*(m_W.t()*x));
+    vec xTimesW = m_W.t()*x; //Transpose is necessary to get the matching dimensions.
+    vec psiFactors = 1 + exp(m_b + 1/m_sigmaSquared*(xTimesW));
     double psi2 = prod(psiFactors);
 
+    //cout << "Evaluated wave function to " << psi1 <<"*" << psi2 << "=" << (psi1*psi2) << endl;
+
     return psi1*psi2;
-    // f ignored for now, due to considering non interacting particles.
 }
 
 double SimpleRBM::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
