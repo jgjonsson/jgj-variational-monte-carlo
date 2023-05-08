@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
 	size_t rbs_M = numberOfParticles*numberOfDimensions;
-	size_t rbs_N = rbs_M; //This N is something to experiment with, but start by trying equal to M. 
+	size_t rbs_N = rbs_M; //This N is something to experiment with, but start by trying equal to M.
 	
     for (size_t count = 0; count < max_iterations; ++count)
     {
@@ -63,6 +63,9 @@ int main(int argc, char **argv)
             // Seed the generator with a seed that is unique for this thread
             unsigned int my_seed = base_seed + thread_id;
             auto rng = std::make_unique<Random>(my_seed);
+            auto rng2 = std::make_unique<Random>(my_seed+numThreads);  //Make a second generator, with +numThreads making this seed unique
+            //This is done so that SimpleRBM and MetropolisHastings below get their own rnd. std::move will make it only available to one
+            //TODO: See if std::move should be used for both. Maybe we'll keep using rng2 for stochastic gradient descent to. To be figured out.
 
             size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged ? MC_reduction : 1);
             numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
@@ -78,7 +81,7 @@ int main(int argc, char **argv)
                 // Construct unique_ptr to Hamiltonian
                 std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta),
                 // Construct unique_ptr to wave function
-                std::make_unique<SimpleRBM>(rbs_M, rbs_N, *rng),
+                std::make_unique<SimpleRBM>(rbs_M, rbs_N, *rng2 ),
                 // Construct unique_ptr to solver, and move rng
                 std::make_unique<MetropolisHastings>(std::move(rng)),
                 // Move the vector of particles to system
