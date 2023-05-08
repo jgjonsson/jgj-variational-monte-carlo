@@ -51,25 +51,38 @@ SimpleRBM::SimpleRBM(size_t rbs_M, size_t rbs_N, Random &randomEngine)
     */
 }
 
+/** Helper-function to turn the P particles times D dimensions coordinates into a M=P*D vector
+*/
+//vec flattenParticleCoordinatesToVector(std::vector<class Particle*> particles, size_t m_M)
+vec flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
+{
+    vec x(m_M);
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        auto position = particles[i]->getPosition();
+        auto numDimensions = position.size();
+        for (size_t j=0; j<numDimensions; j++)
+        {
+            x(i*numDimensions + j) = position[j];
+        }
+    }
+    return x;
+}
+
 double SimpleRBM::evaluate(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     double psi = 1.0;
-    double alpha = m_parameters[0]; // alpha is the first and only parameter for now.
 
-    for (size_t i = 0; i < particles.size(); i++)
-    {
-        // Let's support as many dimensions as we want.
-        double r2 = 0;
-        for (size_t j = 0; j < particles[i]->getPosition().size(); j++)
-            r2 += particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
-        // spherical ansatz
-        double g = exp(-alpha * r2);
+    vec x = flattenParticleCoordinatesToVector(particles, m_M);
 
-        // Trial wave function is product of g for all particles.
-        // f ignored for now, due to considering non interacting particles.
-        psi = psi * g;
-    }
-    return psi;
+    vec xMinusA = x - m_a;
+    double psi1 = exp(-1/(2*m_sigmaSquared)*dot(xMinusA, xMinusA));
+
+    vec psiFactors = 1 + exp(m_b + 1/m_sigmaSquared*(m_W.t()*x));
+    double psi2 = prod(psiFactors);
+
+    return psi1*psi2;
+    // f ignored for now, due to considering non interacting particles.
 }
 
 double SimpleRBM::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
