@@ -72,7 +72,7 @@ vec flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particl
 double SimpleRBM::evaluate(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     vec x = flattenParticleCoordinatesToVector(particles, m_M);
-
+cout << "Particle coordinates are " << x << endl;
     vec xMinusA = x - m_a;
     double psi1 = exp(-1/(2*m_sigmaSquared)*dot(xMinusA, xMinusA));
 
@@ -85,21 +85,40 @@ double SimpleRBM::evaluate(std::vector<std::unique_ptr<class Particle>> &particl
     return psi1*psi2;
 }
 
+double SimpleRBM::gradientSquaredOfLnWaveFunction(vec x)
+{
+    vec sigmoid(m_N);
+    vec gradientLnPsi(m_M);
+
+    sigmoid = 1/(1 + exp(-(m_b + 1/m_sigmaSquared*(m_W.t()*x))));
+
+    gradientLnPsi = 1/m_sigmaSquared*(m_a - x + m_W*sigmoid);
+
+    return dot(gradientLnPsi, gradientLnPsi);
+}
+
+double SimpleRBM::laplacianOfLnWaveFunction(vec x)
+{
+    vec sigmoidParameter = (m_b + 1/m_sigmaSquared*(m_W.t()*x));
+    vec sigmoid = 1/(1 + exp(-sigmoidParameter));
+    vec sigmoidNegative = 1/(1 + exp(sigmoidParameter));
+    vec sigmoidTimesSigmoidNegative = sigmoid%sigmoidNegative;  //Elementwise multiplication to obtain all S(bj+...)S(-bj-...) terms.
+    vec termsLaplacianLnPsi = 1/m_sigmaSquared + 1/(m_sigmaSquared*m_sigmaSquared)*(square(m_W)*sigmoidTimesSigmoidNegative);
+    return sum(termsLaplacianLnPsi);
+}
+
+/** Compute the double derivative of the trial wave function over trial wave function.
+ *  This is based on an analythical derivation using product rule showing that is equivalent
+ *  to the expression you see below.
+ *  Which is involving gradient and laplacian of the logarithm of that wave function.
+ *  @param particles Vector of particles.
+ *  @return The local value of Laplasian.
+ */
 double SimpleRBM::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
 {
-    // The expression I got for a single laplasian is, in invariant form, follows:
-    // (4 * alpha^2 * r_i^2 - 2 * alpha * NDIM)
-    // so it takes to sum over all particles.
-    double alpha = m_parameters[0];
-    double sum_laplasian = 0.0;
-    for (size_t i = 0; i < particles.size(); i++)
-    {
-        double r2 = 0.0;
-        for (size_t j = 0; j < particles[i]->getPosition().size(); ++j)
-            r2 += particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
-        sum_laplasian += 4 * alpha * alpha * r2 - 2 * alpha * particles[i]->getPosition().size();
-    }
-    return sum_laplasian;
+    vec x = flattenParticleCoordinatesToVector(particles, m_M);
+    cout << "Particle coordinates are " << x << endl;
+    return -0.5*( gradientSquaredOfLnWaveFunction(x) + laplacianOfLnWaveFunction(x) );
 }
 
 double SimpleRBM::evaluateRatio(std::vector<std::unique_ptr<class Particle>> &particles_numerator, std::vector<std::unique_ptr<class Particle>> &particles_denominator)

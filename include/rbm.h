@@ -35,6 +35,9 @@ public:
     std::vector<double> computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles);
 
 protected:
+    double gradientSquaredOfLnWaveFunction(vec x);
+    double laplacianOfLnWaveFunction(vec x);
+
     //Storing the physical contants for this model
     //From project specification, only look at case sigma=1
     //Not sure if omega was specified, but also set to 1.0 for now. TODO: Check this.
