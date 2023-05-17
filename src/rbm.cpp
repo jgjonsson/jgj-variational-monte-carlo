@@ -14,8 +14,9 @@ SimpleRBM::SimpleRBM(size_t rbs_M, size_t rbs_N, Random &randomEngine)
     assert(rbs_M > 0);
     assert(rbs_N > 0);
 
-    m_sigmaSquared = 0.0;
-    m_omega = 0.0;
+    //TODO: Consider parameterize these. However it might be enough to simulate only these values.
+    m_sigmaSquared = 1.0;
+    m_omega = 1.0;
 
     //Number of parameters, M and N
     this->m_M = rbs_M;
@@ -103,7 +104,7 @@ double SimpleRBM::laplacianOfLnWaveFunction(vec x)
     vec sigmoid = 1/(1 + exp(-sigmoidParameter));
     vec sigmoidNegative = 1/(1 + exp(sigmoidParameter));
     vec sigmoidTimesSigmoidNegative = sigmoid%sigmoidNegative;  //Elementwise multiplication to obtain all S(bj+...)S(-bj-...) terms.
-    vec termsLaplacianLnPsi = 1/m_sigmaSquared + 1/(m_sigmaSquared*m_sigmaSquared)*(square(m_W)*sigmoidTimesSigmoidNegative);
+    vec termsLaplacianLnPsi = -1/m_sigmaSquared + 1/(m_sigmaSquared*m_sigmaSquared)*(square(m_W)*sigmoidTimesSigmoidNegative);
     return sum(termsLaplacianLnPsi);
 }
 
@@ -117,8 +118,8 @@ double SimpleRBM::laplacianOfLnWaveFunction(vec x)
 double SimpleRBM::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     vec x = flattenParticleCoordinatesToVector(particles, m_M);
-    cout << "Particle coordinates are " << x << endl;
-    return -0.5*( gradientSquaredOfLnWaveFunction(x) + laplacianOfLnWaveFunction(x) );
+//    cout << "Particle coordinates are " << x << endl;
+    return gradientSquaredOfLnWaveFunction(x) + laplacianOfLnWaveFunction(x);
 }
 
 double SimpleRBM::evaluateRatio(std::vector<std::unique_ptr<class Particle>> &particles_numerator, std::vector<std::unique_ptr<class Particle>> &particles_denominator)
