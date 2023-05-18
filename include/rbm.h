@@ -38,6 +38,11 @@ protected:
     double gradientSquaredOfLnWaveFunction(vec x);
     double laplacianOfLnWaveFunction(vec x);
 
+    //Helper functions for computing gradient for gradient descent.
+    vec gradient_a_ln_psi(vec x);
+    vec gradient_b_ln_psi(vec x);
+    mat gradient_W_ln_psi(vec x);
+
     //Storing the physical contants for this model
     //From project specification, only look at case sigma=1
     //Not sure if omega was specified, but also set to 1.0 for now. TODO: Check this.
