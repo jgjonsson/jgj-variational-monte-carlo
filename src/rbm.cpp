@@ -55,7 +55,7 @@ SimpleRBM::SimpleRBM(size_t rbs_M, size_t rbs_N, Random &randomEngine)
 /** Helper-function to turn the P particles times D dimensions coordinates into a M=P*D vector
 */
 //vec flattenParticleCoordinatesToVector(std::vector<class Particle*> particles, size_t m_M)
-vec flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
+vec SimpleRBM::flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
 {
     vec x(m_M);
     for (size_t i = 0; i < particles.size(); i++)

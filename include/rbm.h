@@ -38,6 +38,9 @@ protected:
     double gradientSquaredOfLnWaveFunction(vec x);
     double laplacianOfLnWaveFunction(vec x);
 
+    //Helper-function to turn the P particles times D dimensions coordinates into a M=P*D vector
+    vec flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M);
+
     //Helper functions for computing gradient for gradient descent.
     vec gradient_a_ln_psi(vec x);
     vec gradient_b_ln_psi(vec x);
