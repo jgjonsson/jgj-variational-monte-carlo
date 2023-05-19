@@ -107,21 +107,11 @@ double SimpleRBM::computeLocalLaplasian(std::vector<std::unique_ptr<class Partic
 double SimpleRBM::evaluateRatio(std::vector<std::unique_ptr<class Particle>> &particles_numerator, std::vector<std::unique_ptr<class Particle>> &particles_denominator)
 {
     assert(particles_numerator.size() == particles_denominator.size());
-    double ratio = 1.0;
-    double alpha = m_parameters[0];
 
-    for (size_t i = 0; i < particles_numerator.size(); i++)
-    {
-        double r2_numerator = 0.0;
-        double r2_denominator = 0.0;
-        for (size_t j = 0; j < particles_numerator[i]->getPosition().size(); j++)
-        {
-            r2_numerator += particles_numerator[i]->getPosition()[j] * particles_numerator[i]->getPosition()[j];
-            r2_denominator += particles_denominator[i]->getPosition()[j] * particles_denominator[i]->getPosition()[j];
-        }
-        ratio *= exp(-alpha * (r2_numerator - r2_denominator));
-    }
-    return ratio;
+    double value1 = evaluate(particles_numerator);
+    double value2 = evaluate(particles_denominator);
+
+    return value1/value2;
 }
 
 /** Calculate the quantum force, defined by 2 * 1/Psi * grad(Psi)

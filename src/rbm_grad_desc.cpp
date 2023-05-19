@@ -44,14 +44,13 @@ std::vector<double> SimpleRBM::computeLogPsiDerivativeOverParameters(std::vector
     vec x = flattenParticleCoordinatesToVector(particles, m_M);
     vec grad_a = gradient_a_ln_psi(x);
     vec grad_b = gradient_b_ln_psi(x);
-    vec grad_W = gradient_W_ln_psi(x);
 
+    mat grad_W = gradient_W_ln_psi(x);
     std::vector<double> logPsiDerivativeOverParameters = std::vector<double>();
 
     for (size_t i = 0; i < m_M; i++){
         logPsiDerivativeOverParameters.push_back(grad_a(i));
     }
-
     for (size_t i = 0; i < m_N; i++){
         logPsiDerivativeOverParameters.push_back(grad_b(i));
     }
@@ -88,6 +87,9 @@ void SimpleRBM::insertParameters(std::vector<double> parameters)
             m_W(i,j) = parameters[index++];
         }
     }
+
+    m_parameters = parameters; //Lastly, also store the plain vector of parameters.
+    //This is double storing, but enables us to keep using the unmodified functions in Sampler for writing results to stdout.
 }
 
 /** Generate random numbers for all parameters. This is meant to be used before the first step of Gradient descent.
