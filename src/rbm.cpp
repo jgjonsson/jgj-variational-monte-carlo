@@ -22,25 +22,10 @@ SimpleRBM::SimpleRBM(size_t rbs_M, size_t rbs_N, Random &randomEngine)
     this->m_M = rbs_M;
     this->m_N = rbs_N;
 
-    //Parameters for the wave function, initialize as vectors and matrices
-    m_W.set_size(m_M, m_N);
-    m_a.set_size(m_M);
-    m_b.set_size(m_N);
-
     //Start with all parameters as random values
-    for (size_t i = 0; i < m_M; i++){
-        m_a(i) = randomEngine.nextDouble();
-    }
+    auto randomParameters = generateRandomParameterSet(rbs_M, rbs_N, randomEngine);
+    insertParameters(rbs_M, rbs_N, randomParameters);
 
-    for (size_t i = 0; i < m_N; i++){
-        m_b(i) = randomEngine.nextDouble();
-    }
-
-    for (size_t i = 0; i < m_M; i++){
-        for (size_t j = 0; j < m_N; j++){
-            m_W(i,j) = randomEngine.nextDouble();
-        }
-    }
     cout << "Initial a = " << m_a << endl;
     cout << "Initial b = " << m_b << endl;
     cout << "Initial W = " << m_W << endl;

@@ -34,6 +34,9 @@ public:
     std::vector<double> computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index);
     std::vector<double> computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles);
 
+    void insertParameters(size_t rbs_M, size_t rbs_N, std::vector<double> parameters);
+    std::vector<double> generateRandomParameterSet(size_t rbs_M, size_t rbs_N, Random &randomEngine);
+
 protected:
     double gradientSquaredOfLnWaveFunction(vec x);
     double laplacianOfLnWaveFunction(vec x);

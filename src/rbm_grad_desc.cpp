@@ -63,3 +63,46 @@ std::vector<double> SimpleRBM::computeLogPsiDerivativeOverParameters(std::vector
     }
     return logPsiDerivativeOverParameters;
 }
+
+/** Function for setting all the parameters. Takes one single array as input and populates a, b and W.
+    It's important to insert the values in the same order they where taken out in the function right above.
+    This function is meant to be called repeatedly during Gradient descent.
+    It's also to be used at first initialization together with function generateRandomParameterSet below.
+*/
+void SimpleRBM::insertParameters(size_t rbs_M, size_t rbs_N, std::vector<double> parameters)
+{
+    assert(parameters.size() == m_M+m_N+m_M*m_N);
+
+    size_t index = 0;
+
+    //Parameters for the wave function, initialize as vectors and matrices
+    m_W.set_size(m_M, m_N);
+    m_a.set_size(m_M);
+    m_b.set_size(m_N);
+
+    for (size_t i = 0; i < m_M; i++){
+        m_a(i) = parameters[index++];
+    }
+
+    for (size_t i = 0; i < m_N; i++){
+        m_b(i) = parameters[index++];
+    }
+
+    for (size_t i = 0; i < m_M; i++){
+        for (size_t j = 0; j < m_N; j++){
+            m_W(i,j) = parameters[index++];
+        }
+    }
+}
+
+/** Generate random numbers for all parameters. This is meant to be used before the first step of Gradient descent.
+*/
+std::vector<double> SimpleRBM::generateRandomParameterSet(size_t rbs_M, size_t rbs_N, Random &randomEngine)
+{
+    std::vector<double> parameters = std::vector<double>();
+    size_t numberParameters = m_M+m_N+m_M*m_N;
+    for (size_t i = 0; i < numberParameters; i++){
+        parameters.push_back(randomEngine.nextDouble());
+    }
+    return parameters;
+}
