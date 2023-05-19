@@ -24,3 +24,20 @@ mat SimpleRBM::gradient_W_ln_psi(vec x)
 {
     return x/m_sigmaSquared*(gradient_b_ln_psi(x).t());
 }
+
+
+std::vector<double> SimpleRBM::computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles)
+{
+    double alpha = m_parameters[0];
+    std::vector<double> logPsiDerivativeOverParameters = std::vector<double>();
+    double sum = 0.0;
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        double r2 = 0.0;
+        for (size_t j = 0; j < particles[i]->getPosition().size(); j++)
+            r2 += particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+        sum += r2;
+    }
+    logPsiDerivativeOverParameters.push_back(-sum);
+    return logPsiDerivativeOverParameters;
+}
