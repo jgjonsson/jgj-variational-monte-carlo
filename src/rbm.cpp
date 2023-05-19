@@ -142,15 +142,20 @@ double SimpleRBM::evaluateRatio(std::vector<std::unique_ptr<class Particle>> &pa
     return ratio;
 }
 
+/** Calculate the quantum force, defined by 2 * 1/Psi * grad(Psi)
+ */
+//TODO: Right now we compute quantum for for all particles, and ignore particle_index parameter. We'll take a closer look at what we want when continue with important sampling.
 std::vector<double> SimpleRBM::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
 {
-    double alpha = m_parameters[0];
-    std::vector<double> quantumForce = std::vector<double>();
-    std::vector<double> position = particles[particle_index]->getPosition();
-    for (int j = 0; j < position.size(); j++)
-    {
-        quantumForce.push_back(-4 * alpha * position[j]);
-    }
+    vec x = flattenParticleCoordinatesToVector(particles, m_M);
+    vec sigmoid(m_N);
+    vec gradientLnPsi(m_M);
+
+    sigmoid = 1/(1 + exp(-(m_b + 1/m_sigmaSquared*(m_W.t()*x))));
+
+    gradientLnPsi = 1/m_sigmaSquared*(m_a - x + m_W*sigmoid);
+    auto quantumForceVector = 2 * gradientLnPsi;
+    auto quantumForce = arma::conv_to < std::vector<double> >::from(quantumForceVector);
 
     return quantumForce;
 }
