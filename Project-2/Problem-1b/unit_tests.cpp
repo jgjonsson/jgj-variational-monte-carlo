@@ -2,21 +2,23 @@
 #include <vector>
 #include <memory>
 #include <chrono>
-#include "omp.h"
+#include <cassert>
 
 #include "../../include/system.h"
-#include "../../include/gaussianjastrow.h"
 #include "../../include/hamiltonian_cyllindric_repulsive.h"
 #include "../../include/initialstate.h"
-#include "../../include/metropolis_hastings.h"
-#include "../../include/metropolis.h"
 #include "../../include/random.h"
 #include "../../include/particle.h"
 #include "../../include/sampler.h"
-#include "../../include/file_io.h"
 #include "../../include/rbm.h"
 
 using namespace std;
+
+const double closeEnoughTolerance = 0.001;
+bool closeEnough(double x, double y)
+{
+    return fabs(x-y) < closeEnoughTolerance;
+}
 
 int main(int argc, char **argv)
 {
@@ -37,27 +39,30 @@ int main(int argc, char **argv)
 
 
 	size_t rbs_M = numberOfParticles*numberOfDimensions;
-	size_t rbs_N = rbs_M; //This N is something to experiment with, but start by trying equal to M.
 
-	cout << " ------------------------------ 0" << endl;
+	size_t rbs_N = 1; //Only one hidden node is on the extreme small side in practical scenarios. rbs_N = rbs_M would have been more realistic.
+	//However in a unit test setting it gives a nice small set of values for unit testing.
+	//Also since M != N, we get non square matrix, and might uncover bugs related to matrix dimensionalities in matrix multiplications and such.
+
+	cout << " ------------------------------ " << endl;
 	
 	auto rng = std::make_unique<Random>(seed);
 	// Initialize particles
 	auto particles = setupRandomUniformInitialStateWithRepulsion(stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
 
-	cout << " ------------------------------ 1" << endl;
+	cout << " ------------------------------ " << endl;
 	
 	auto hamiltonian = std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta);
 	auto waveFunction = std::make_unique<SimpleRBM>(rbs_M, rbs_N, *rng);
-	
-	cout << " ------------------------------ 2" << endl;
+
 	double lap = waveFunction->computeLocalLaplasian(particles);
-	cout << " ------------------------------ 3" << endl;
+	cout << " ------------------------------ " << endl;
+
 	
 	for (size_t i = 0; i < particles.size(); i++)
     {
         auto position = particles[i]->getPosition();
-		cout << "Position " ;
+		cout << "Position particle " << i << ": " ;
 		auto numDimensions = position.size();
         for (size_t j=0; j<numDimensions; j++)
         {
@@ -67,12 +72,38 @@ int main(int argc, char **argv)
 	}
 	//cout << "First particle coordinates " << (particles[0]->getPosition()) << endl;
 	double value = waveFunction->evaluate(particles);
-	cout << " ------------------------------ 4" << endl;
-	
 	cout << " ------------------------------ " << endl;
+
 	cout << "Wave function value " << value << endl;
-	cout << "Wave function Laplaian " << lap << endl;
+	cout << "Wave function Laplacian " << lap << endl;
+
 	cout << " ------------------------------ " << endl;
-	
+
+	auto qForce = waveFunction->computeQuantumForce(particles, 0);
+    cout << "Quantum-force (size M*D=" << qForce.size() << "): ";
+    for(int i=0; i<qForce.size(); i++){
+      cout << qForce[i] << " " ;
+    }
+    cout << endl;
+	cout << " ------------------------------ " << endl;
+
+	auto logPsiDerivatives = waveFunction->computeLogPsiDerivativeOverParameters(particles);
+    cout << "All derivatives w.r.t parameters, of ln psi (size M+N+M*N=" << logPsiDerivatives.size() << "): ";
+    for(int i=0; i<logPsiDerivatives.size(); i++){
+      cout << logPsiDerivatives[i] << " " ;
+    }
+    cout << endl;
+	cout << " ------------------------------ " << endl;
+
+    //Now run assert on some selected values. If failed, the program will print out which row in this source code file it happened.
+    assert(closeEnough(value, 3.19117));
+    assert(closeEnough(lap, -2.63589));
+    assert(closeEnough(qForce[0], 0.211418));
+    assert(closeEnough(logPsiDerivatives[0], -0.0903906));  //One derivative related to a
+    assert(closeEnough(logPsiDerivatives[rbs_M], 0.717861)); //One derivative related to b
+    assert(closeEnough(logPsiDerivatives[logPsiDerivatives.size()-1], 0.199938)); //One derivative related to Wq
+
+	cout << "All tests passed!" << endl;  //If we reach this line, no assert failed.
+
     return 0;
 }

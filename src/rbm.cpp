@@ -73,7 +73,6 @@ vec SimpleRBM::flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<cl
 double SimpleRBM::evaluate(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     vec x = flattenParticleCoordinatesToVector(particles, m_M);
-cout << "Particle coordinates are " << x << endl;
     vec xMinusA = x - m_a;
     double psi1 = exp(-1/(2*m_sigmaSquared)*dot(xMinusA, xMinusA));
 
@@ -118,7 +117,6 @@ double SimpleRBM::laplacianOfLnWaveFunction(vec x)
 double SimpleRBM::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     vec x = flattenParticleCoordinatesToVector(particles, m_M);
-//    cout << "Particle coordinates are " << x << endl;
     return gradientSquaredOfLnWaveFunction(x) + laplacianOfLnWaveFunction(x);
 }
 
