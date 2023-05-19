@@ -9,7 +9,7 @@
 using namespace std;
 using namespace arma;
 
-SimpleRBM::SimpleRBM(size_t rbs_M, size_t rbs_N, Random &randomEngine)
+SimpleRBM::SimpleRBM(size_t rbs_M, size_t rbs_N, std::vector<double> parameters)
 {
     assert(rbs_M > 0);
     assert(rbs_N > 0);
@@ -22,19 +22,18 @@ SimpleRBM::SimpleRBM(size_t rbs_M, size_t rbs_N, Random &randomEngine)
     this->m_M = rbs_M;
     this->m_N = rbs_N;
 
-    //Start with all parameters as random values
-    auto randomParameters = generateRandomParameterSet(rbs_M, rbs_N, randomEngine);
-    insertParameters(rbs_M, rbs_N, randomParameters);
+    //Parameters for the wave function, initialize as vectors and matrices
+    m_W.set_size(m_M, m_N);
+    m_a.set_size(m_M);
+    m_b.set_size(m_N);
+
+    insertParameters(parameters);
 
     cout << "Initial a = " << m_a << endl;
     cout << "Initial b = " << m_b << endl;
     cout << "Initial W = " << m_W << endl;
 
-    /*
-    Don't actually use the normal parameter array from WaveFunction, so maybe we want to rethink this inheritence structure.
-    m_numberOfParameters = 1;
-    m_parameters.push_back(alpha);
-    */
+    m_numberOfParameters = parameters.size();
 }
 
 /** Helper-function to turn the P particles times D dimensions coordinates into a M=P*D vector

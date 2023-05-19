@@ -16,7 +16,7 @@ class SimpleRBM : public WaveFunction
 public:
     /// @brief Constructor for the SimpleRBM class.
     /// @param TODO: document
-    SimpleRBM(size_t rbs_M, size_t rbs_N, Random &randomEngine);
+    SimpleRBM(size_t rbs_M, size_t rbs_N, std::vector<double> parameters);
     /// @brief Evaluate the trial wave function.
     /// @param particles Vector of particles.
     /// @return The value of the trial wave function.
@@ -34,8 +34,8 @@ public:
     std::vector<double> computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index);
     std::vector<double> computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles);
 
-    void insertParameters(size_t rbs_M, size_t rbs_N, std::vector<double> parameters);
-    std::vector<double> generateRandomParameterSet(size_t rbs_M, size_t rbs_N, Random &randomEngine);
+    void insertParameters(std::vector<double> parameters);
+    static std::vector<double> generateRandomParameterSet(size_t rbs_M, size_t rbs_N, Random &randomEngine);
 
 protected:
     double gradientSquaredOfLnWaveFunction(vec x);

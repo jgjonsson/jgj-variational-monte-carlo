@@ -53,7 +53,11 @@ int main(int argc, char **argv)
 	cout << " ------------------------------ " << endl;
 	
 	auto hamiltonian = std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta);
-	auto waveFunction = std::make_unique<SimpleRBM>(rbs_M, rbs_N, *rng);
+
+
+    //Start with all parameters as random values
+    auto randomParameters = SimpleRBM::generateRandomParameterSet(rbs_M, rbs_N, *rng);
+	auto waveFunction = std::make_unique<SimpleRBM>(rbs_M, rbs_N, randomParameters);
 
 	double lap = waveFunction->computeLocalLaplasian(particles);
 	cout << " ------------------------------ " << endl;
@@ -101,7 +105,7 @@ int main(int argc, char **argv)
     assert(closeEnough(qForce[0], 0.211418));
     assert(closeEnough(logPsiDerivatives[0], -0.0903906));  //One derivative related to a
     assert(closeEnough(logPsiDerivatives[rbs_M], 0.717861)); //One derivative related to b
-    assert(closeEnough(logPsiDerivatives[logPsiDerivatives.size()-1], 0.199938)); //One derivative related to Wq
+    assert(closeEnough(logPsiDerivatives[logPsiDerivatives.size()-1], 0.199938)); //One derivative related to W
 
 	cout << "All tests passed!" << endl;  //If we reach this line, no assert failed.
 
