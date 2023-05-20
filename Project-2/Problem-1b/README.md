@@ -22,4 +22,14 @@ No parameter needed. It runs some tests, print various output, and if everything
 
 # Running simulations
 
-TDB
+Example for single particle (in 3D), 6 hidden nodes, 100 iterations for optmization, 0.01 learning rate, 10^7 MCMC cycles. 
+Results in energy pretty cloes to 1.5 as expected. 
+```
+bin/Project-2/Problem-1b/single_particle.out 6 100 0.01 10000000
+```
+
+Example for simulating 2 dimensions, 2 Particles, 2 10^7, MCMC cycles. Rest of parameters hardcoded so check source code.
+Should give a result of energy cloes to 2. 
+```
+bin/Project-2/Problem-1b/large_simulation.out 2 2 10000000
+```
