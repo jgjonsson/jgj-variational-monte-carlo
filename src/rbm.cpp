@@ -116,7 +116,6 @@ double SimpleRBM::evaluateRatio(std::vector<std::unique_ptr<class Particle>> &pa
 
 /** Calculate the quantum force, defined by 2 * 1/Psi * grad(Psi)
  */
-//TODO: Right now we compute quantum for for all particles, and ignore particle_index parameter. We'll take a closer look at what we want when continue with important sampling.
 std::vector<double> SimpleRBM::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
 {
     vec x = flattenParticleCoordinatesToVector(particles, m_M);
@@ -126,8 +125,14 @@ std::vector<double> SimpleRBM::computeQuantumForce(std::vector<std::unique_ptr<c
     sigmoid = 1/(1 + exp(-(m_b + 1/m_sigmaSquared*(m_W.t()*x))));
 
     gradientLnPsi = 1/m_sigmaSquared*(m_a - x + m_W*sigmoid);
-    auto quantumForceVector = 2 * gradientLnPsi;
-    auto quantumForce = arma::conv_to < std::vector<double> >::from(quantumForceVector);
+    vec quantumForceVector = 2 * gradientLnPsi;
+    std::vector<double> quantumForce = arma::conv_to < std::vector<double> >::from(quantumForceVector);
 
-    return quantumForce;
+    //Pick out the quantum force for only the particle of requested index. From subset of the total quantum force vector,
+    size_t dimensions = particles[0]->getNumberOfDimensions();
+    size_t firstIndex = particle_index*dimensions;
+    size_t lastIndex = firstIndex + dimensions;// - 1;
+    std::vector<double> quantumForceOneSingleParticle(quantumForce.begin()+firstIndex, quantumForce.begin()+lastIndex);
+
+    return quantumForceOneSingleParticle;
 }

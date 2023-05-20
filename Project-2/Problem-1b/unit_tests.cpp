@@ -85,9 +85,15 @@ int main(int argc, char **argv)
 	cout << " ------------------------------ " << endl;
 
 	auto qForce = waveFunction->computeQuantumForce(particles, 0);
-    cout << "Quantum-force (size M*D=" << qForce.size() << "): ";
+	auto qForce2 = waveFunction->computeQuantumForce(particles, 1);
+    cout << "Quantum-force particle 1 (size M*D=" << qForce.size() << "): ";
     for(int i=0; i<qForce.size(); i++){
       cout << qForce[i] << " " ;
+    }
+    cout << endl;
+    cout << "Quantum-force particle 2 (size M*D=" << qForce2.size() << "): ";
+    for(int i=0; i<qForce2.size(); i++){
+      cout << qForce2[i] << " " ;
     }
     cout << endl;
 	cout << " ------------------------------ " << endl;
@@ -104,6 +110,9 @@ int main(int argc, char **argv)
     assert(closeEnough(value, 1.86413));
     assert(closeEnough(lap, -3.84772));
     assert(closeEnough(qForce[0], 0.100514));
+    assert(closeEnough(qForce[1], -0.376823));
+    assert(closeEnough(qForce2[0], -0.419817));
+    assert(closeEnough(qForce2[1], -0.456047));
     assert(closeEnough(logPsiDerivatives[0], -0.106325));  //One derivative related to a
     assert(closeEnough(logPsiDerivatives[rbs_M], 0.487879)); //One derivative related to b
     assert(closeEnough(logPsiDerivatives[logPsiDerivatives.size()-1], 0.135884)); //One derivative related to W
