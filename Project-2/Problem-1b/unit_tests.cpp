@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 
 	size_t rbs_M = numberOfParticles*numberOfDimensions;
 
-	size_t rbs_N = 1; //Only one hidden node is on the extreme small side in practical scenarios. rbs_N = rbs_M would have been more realistic.
+	size_t rbs_N = 1;//rbs_M;//1; //Only one hidden node is on the extreme small side in practical scenarios. rbs_N = rbs_M would have been more realistic.
 	//However in a unit test setting it gives a nice small set of values for unit testing.
 	//Also since M != N, we get non square matrix, and might uncover bugs related to matrix dimensionalities in matrix multiplications and such.
 
