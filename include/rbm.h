@@ -35,7 +35,7 @@ public:
     std::vector<double> computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles);
 
     void insertParameters(std::vector<double> parameters);
-    static std::vector<double> generateRandomParameterSet(size_t rbs_M, size_t rbs_N, Random &randomEngine);
+    static std::vector<double> generateRandomParameterSet(size_t rbs_M, size_t rbs_N, int randomSeed, double spread);
 
 protected:
     double gradientSquaredOfLnWaveFunction(vec x);

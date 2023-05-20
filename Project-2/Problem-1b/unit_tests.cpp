@@ -25,6 +25,7 @@ int main(int argc, char **argv)
     // Seed for the random number generator. 
 	//By having same seed every time we can get known values to directly check for correctness in tests. 
     int seed = 2023;
+    double parameterGuessSpread = 0.1;  //Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
     size_t numberOfDimensions = 2;
     size_t numberOfParticles = 2;
@@ -56,7 +57,7 @@ int main(int argc, char **argv)
 
 
     //Start with all parameters as random values
-    auto randomParameters = SimpleRBM::generateRandomParameterSet(rbs_M, rbs_N, *rng);
+    auto randomParameters = SimpleRBM::generateRandomParameterSet(rbs_M, rbs_N, seed, parameterGuessSpread);
 	auto waveFunction = std::make_unique<SimpleRBM>(rbs_M, rbs_N, randomParameters);
 
 	double lap = waveFunction->computeLocalLaplasian(particles);
@@ -100,12 +101,12 @@ int main(int argc, char **argv)
 	cout << " ------------------------------ " << endl;
 
     //Now run assert on some selected values. If failed, the program will print out which row in this source code file it happened.
-    assert(closeEnough(value, 3.19117));
-    assert(closeEnough(lap, -2.63589));
-    assert(closeEnough(qForce[0], 0.211418));
-    assert(closeEnough(logPsiDerivatives[0], -0.0903906));  //One derivative related to a
-    assert(closeEnough(logPsiDerivatives[rbs_M], 0.717861)); //One derivative related to b
-    assert(closeEnough(logPsiDerivatives[logPsiDerivatives.size()-1], 0.199938)); //One derivative related to W
+    assert(closeEnough(value, 1.86413));
+    assert(closeEnough(lap, -3.84772));
+    assert(closeEnough(qForce[0], 0.100514));
+    assert(closeEnough(logPsiDerivatives[0], -0.106325));  //One derivative related to a
+    assert(closeEnough(logPsiDerivatives[rbs_M], 0.487879)); //One derivative related to b
+    assert(closeEnough(logPsiDerivatives[logPsiDerivatives.size()-1], 0.135884)); //One derivative related to W
 
 	cout << "All tests passed!" << endl;  //If we reach this line, no assert failed.
 

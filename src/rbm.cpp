@@ -28,11 +28,11 @@ SimpleRBM::SimpleRBM(size_t rbs_M, size_t rbs_N, std::vector<double> parameters)
     m_b.set_size(m_N);
 
     insertParameters(parameters);
-
+/*
     cout << "Initial a = " << m_a << endl;
     cout << "Initial b = " << m_b << endl;
     cout << "Initial W = " << m_W << endl;
-
+*/
     m_numberOfParameters = parameters.size();
 }
 

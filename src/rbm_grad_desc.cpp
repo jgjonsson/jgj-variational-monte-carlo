@@ -94,12 +94,19 @@ void SimpleRBM::insertParameters(std::vector<double> parameters)
 
 /** Generate random numbers for all parameters. This is meant to be used before the first step of Gradient descent.
 */
-std::vector<double> SimpleRBM::generateRandomParameterSet(size_t rbs_M, size_t rbs_N, Random &randomEngine)
+std::vector<double> SimpleRBM::generateRandomParameterSet(size_t rbs_M, size_t rbs_N, int randomSeed, double spread)
 {
+    //Using a normal distribution for initial guess.
+    //Based on code in https://github.com/CompPhysics/ComputationalPhysics2/blob/gh-pages/doc/pub/week13/ipynb/week13.ipynb
+    //although the spread is parameterized for us to investigate different values. In code example it was 0.001.
+    mt19937_64 generator;
+    generator.seed(randomSeed);
+    normal_distribution<double> distribution(0, spread);
+
     std::vector<double> parameters = std::vector<double>();
     size_t numberParameters = rbs_M+rbs_N+rbs_M*rbs_N;
     for (size_t i = 0; i < numberParameters; i++){
-        parameters.push_back(randomEngine.nextDouble());
+        parameters.push_back(distribution(generator));
     }
     return parameters;
 }

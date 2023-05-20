@@ -41,8 +41,9 @@ int main(int argc, char **argv)
 	
 	//Start with all parameters as random values
 	int parameter_seed = 2023;   //For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
-	params = SimpleRBM::generateRandomParameterSet(rbs_M, rbs_N, * std::make_unique<Random>(parameter_seed));
-	//params = SimpleRBM::generateRandomParameterSet(rbs_M, rbs_N, new Random(parameter_seed));
+	double parameterGuessSpread = 0.1;  //Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.^M
+
+	params = SimpleRBM::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
    
     // We're experimenting with what learning rate works best.
     double fixed_learning_rate = argc > 3 ? stod(argv[3]) : 0.05;
@@ -71,7 +72,7 @@ int main(int argc, char **argv)
 
     std::unique_ptr<Sampler> combinedSampler;
 
-    int numThreads = 8; //Wait a bit with parallellization
+    int numThreads = 8;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
@@ -90,9 +91,6 @@ int main(int argc, char **argv)
             // Seed the generator with a seed that is unique for this thread
             unsigned int my_seed = base_seed + thread_id;
             auto rng = std::make_unique<Random>(my_seed);
-            //auto rng2 = std::make_unique<Random>(my_seed+numThreads);  //Make a second generator, with +numThreads making this seed unique
-            //This is done so that SimpleRBM and MetropolisHastings below get their own rnd. std::move will make it only available to one
-            //TODO: See if std::move should be used for both. Maybe we'll keep using rng2 for stochastic gradient descent to. To be figured out.
 
             size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged ? MC_reduction : 1);
             numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
@@ -112,6 +110,7 @@ int main(int argc, char **argv)
                 std::make_unique<SimpleRBM>(rbs_M, rbs_N, params),
                 // Construct unique_ptr to solver, and move rng
                 std::make_unique<Metropolis>(std::move(rng)),
+                //std::make_unique<MetropolisHastings>(std::move(rng)),
                 // Move the vector of particles to system
                 std::move(particles));
 
