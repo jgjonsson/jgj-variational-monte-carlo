@@ -44,8 +44,8 @@ int main(int argc, char **argv)
 	params = SimpleRBM::generateRandomParameterSet(rbs_M, rbs_N, * std::make_unique<Random>(parameter_seed));
 	//params = SimpleRBM::generateRandomParameterSet(rbs_M, rbs_N, new Random(parameter_seed));
    
-    // We're experimenting with what learning rate works best. 
-    size_t fixed_learning_rate = argc > 3 ? stoi(argv[3]) : 0.05;
+    // We're experimenting with what learning rate works best.
+    double fixed_learning_rate = argc > 3 ? stod(argv[3]) : 0.05;
 	
 	//Number of MCMC cycles for the large calculation after optimization
     size_t numberOfMetropolisSteps = argc > 4 ? stoi(argv[4]) : 1e6;
