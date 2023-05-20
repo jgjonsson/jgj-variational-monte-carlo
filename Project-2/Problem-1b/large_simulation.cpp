@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     // Let's perform optimization here; Gradient descent to be used
 
     std::vector<double> learning_rate; // deduced automatically
-    double parameter_tolerance = 1e-2;
+    double parameter_tolerance = 1e-3;
     size_t max_iterations = 1e2;
     bool converged = false;
 
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
                 */
                 //learning_rate[param_num] = 0.01;  //Using hardcoded value like in lecture examples, rather than trying to calculate a more optimal one.
                 //learning_rate[param_num] = 0.1/numberOfParticles;  //Purely on emprihical basis, we experience divergence problems with higher learning rate on large number of particles.
-                learning_rate[param_num] = 0.01;
+                learning_rate[param_num] = 0.05;
                 cout << "Learning rate: " << learning_rate[param_num] << endl;
             }
         }
