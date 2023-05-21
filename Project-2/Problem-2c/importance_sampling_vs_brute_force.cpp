@@ -198,8 +198,8 @@ int main(int argc, char **argv)
         if (verbose)
         {
             cout << "Iteration " << count << endl;
-            cout << "Predictions: ";
-            combinedSampler->printOutputToTerminal();
+            //cout << "Predictions: ";
+            //combinedSampler->printOutputToTerminal();
             cout << endl;
         }
 
