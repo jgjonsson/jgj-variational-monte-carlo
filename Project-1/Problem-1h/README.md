@@ -20,8 +20,13 @@ One first needs to change the sampler. Within `sample` function, add following
         cout << dist(*p) << '\n';
     }
 ```
-and recompile (not elegant, but we do not aim for it). Then build and run `sample_distance.cpp` with various hard core radii (for example 0.0043 and 0.0000043), and save the output to files.
+and recompile. Alternatively to editing this yourself, you can also checkout the git branch project1h where this code change is already made.
+(Not elegant, but we do not aim for it. Ideally we could have parameterized this behavior somehow.)
+
+Then build and run `sample_distance.cpp` with various hard core radii (for example 0.0043 and 0.0000043), and save the output to files.
 
 ## Plotting
 
-One has to have ROOT installed to continue. Build and run `density_superimpose.cpp` with `root-config --cflags --glibs` as compiler flag.
+One has to have ROOT installed to continue. As installation is very operative system dependent we don't have a step-by-step instruction for that here, but refer to https://root.cern/install/ for how to obtain it.
+
+Build and run `density_superimpose.cpp` with `root-config --cflags --glibs` as compiler flag.
