@@ -107,7 +107,7 @@ int main(int argc, char **argv)
                 // Construct unique_ptr to Hamiltonian
                 std::make_unique<HarmonicOscillator>(omega), // Again no, repulsion for now std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta),
                 // Construct unique_ptr to wave function
-                std::make_unique<SimpleRBM>(rbs_M, rbs_N, params),
+                std::make_unique<SimpleRBM>(rbs_M, rbs_N, params, omega),
                 // Construct unique_ptr to solver, and move rng
                 std::make_unique<Metropolis>(std::move(rng)),
                 //std::make_unique<MetropolisHastings>(std::move(rng)),

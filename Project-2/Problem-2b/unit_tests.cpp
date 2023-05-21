@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
     //Start with all parameters as random values
     auto randomParameters = SimpleRBM::generateRandomParameterSet(rbs_M, rbs_N, seed, parameterGuessSpread);
-	auto waveFunction = std::make_unique<SimpleRBM>(rbs_M, rbs_N, randomParameters);
+	auto waveFunction = std::make_unique<SimpleRBM>(rbs_M, rbs_N, randomParameters, omega);
 
 	double lap = waveFunction->computeLocalLaplasian(particles);
 	cout << " ------------------------------ " << endl;

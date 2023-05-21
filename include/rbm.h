@@ -16,7 +16,7 @@ class SimpleRBM : public WaveFunction
 public:
     /// @brief Constructor for the SimpleRBM class.
     /// @param TODO: document
-    SimpleRBM(size_t rbs_M, size_t rbs_N, std::vector<double> parameters);
+    SimpleRBM(size_t rbs_M, size_t rbs_N, std::vector<double> parameters, double omega);
     /// @brief Evaluate the trial wave function.
     /// @param particles Vector of particles.
     /// @return The value of the trial wave function.
@@ -49,11 +49,9 @@ protected:
     vec gradient_b_ln_psi(vec x);
     mat gradient_W_ln_psi(vec x);
 
-    //Storing the physical contants for this model
-    //From project specification, only look at case sigma=1
-    //Not sure if omega was specified, but also set to 1.0 for now. TODO: Check this.
-    double m_sigmaSquared = 1.0;
-    double m_omega = 1.0;
+    //Storing the physical contants for this model. Values are set in constructur.
+    double m_sigmaSquared;
+    double m_omega;
 
     //Parameters for the wave function
     vec m_a;  //M parameters. The bias for visible layers.

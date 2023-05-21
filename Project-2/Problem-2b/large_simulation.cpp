@@ -90,7 +90,7 @@ int main(int argc, char **argv)
                 //std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta),
                 std::make_unique<HarmonicOscillator>(omega),
                 // Construct unique_ptr to wave function
-                std::make_unique<SimpleRBM>(rbs_M, rbs_N, params),
+                std::make_unique<SimpleRBM>(rbs_M, rbs_N, params, omega),
                 // Construct unique_ptr to solver, and move rng
                 std::make_unique<Metropolis>(std::move(rng)),
                 // Move the vector of particles to system

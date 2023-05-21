@@ -9,14 +9,15 @@
 using namespace std;
 using namespace arma;
 
-SimpleRBM::SimpleRBM(size_t rbs_M, size_t rbs_N, std::vector<double> parameters)
+SimpleRBM::SimpleRBM(size_t rbs_M, size_t rbs_N, std::vector<double> parameters, double omega)
 {
     assert(rbs_M > 0);
     assert(rbs_N > 0);
 
-    //TODO: Consider parameterize these. However it might be enough to simulate only these values.
+    m_omega = omega;
+
+    //TODO: Consider parameterizing this. However project spec says only look at sigma=1.0 so this is perhaps ok.
     m_sigmaSquared = 1.0;
-    m_omega = 1.0;
 
     //Number of parameters, M and N
     this->m_M = rbs_M;

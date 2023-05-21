@@ -139,7 +139,7 @@ int main(int argc, char **argv)
                 // Construct unique_ptr to Hamiltonian
 				createHamiltonianFromArgument(hamiltonianChoice, omega, beta),
                 // Construct unique_ptr to wave function
-                std::make_unique<SimpleRBM>(rbs_M, rbs_N, params),
+                std::make_unique<SimpleRBM>(rbs_M, rbs_N, params, omega),
                 // Construct unique_ptr to solver, and move rng
 				createSolverFromArgument(algoritmChoice, std::move(rng)),
                 // Move the vector of particles to system
