@@ -25,17 +25,23 @@ Metropolis algorithm (brute-force)
 ```
 time bin/Project-2/Problem-2c/importance_sampling_vs_brute_force.out 2 2 6 100 0.01 10000000 HARMONIC METROPOLIS
 ```
-Should result in 34 parameters, and energy very close to 2.0. ~93% accepted steps. Run takes about 2.5 minutes.
+Should result in 34 parameters, and energy very close to 2.0. ~93% accepted steps. Run takes about 1.5 minutes.
+
+
+Since we still have the Blocking script from Project 1, it's also possible to run that directly after if you like:
+(Do it after every run of the C++ program, as it relies on energies.csv which is overwritten each time.)
+```
+python3 Project-1/Problem-1e/python/blocking.py
+```
 
 Switching to importance sampling:
 ```
 time bin/Project-2/Problem-2c/importance_sampling_vs_brute_force.out 2 2 6 100 0.01 10000000 HARMONIC METROPOLIS_HASTINGS
 ```
-Should result in 34 parameters, and energy very close to 2.0. ~98.9% accepted steps. Run takes about 1.5 minutes.
+Should result in 34 parameters, and energy very close to 2.0. ~98.9% accepted steps. Run takes about 2.5 minutes.
 
-Another example, 3 dimensions, 10 particles, Importance sampling
-
-Since we still have the Blocking script from Project 1, it's also possible to run that directly after if you like:
+If we wanna go bigger - another example, 3 dimensions, 10 particles, Importance sampling
 ```
-python3 Project-1/Problem-1e/python/blocking.py
+time bin/Project-2/Problem-2c/importance_sampling_vs_brute_force.out 3 10 12 100 0.01 16000000 HARMONIC METROPOLIS_HASTINGS
 ```
+Runs 11 minutes, energy close to 15 as expected (0.5 * 10*3) 
