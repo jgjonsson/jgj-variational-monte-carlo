@@ -19,20 +19,30 @@
 
 using namespace std;
 
-std::unique_ptr<class Hamiltonian> createHamiltonianFromArgument(string type, double omega, double beta)
-{
-if (type=="HARMONIC") return std::make_unique<HarmonicOscillator>(omega);
-if (type=="HARMONIC_CYLINDRIC_INTERACTION") return std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta);
-cout << "Invalid type of Hamiltonian, valid types are HARMONIC and HARMONIC_CYLINDRIC_INTERACTION " << endl;
-exit(-1);
-}
 
 std::unique_ptr<class MonteCarlo> createSolverFromArgument(string algoritm, std::unique_ptr<class Random> rng)
 {
-if (algoritm=="METROPOLIS") return std::make_unique<MetropolisHastings>(std::move(rng));
-if (algoritm=="METROPOLIS_HASTINGS") return std::make_unique<MetropolisHastings>(std::move(rng));
-cout << "Invalid type of algoritm for Monte Carlo, valid types are METROPOLIS and METROPOLIS_HASTINGS " << endl;
-exit(-1);
+    if (algoritm=="METROPOLIS") return std::make_unique<Metropolis>(std::move(rng));
+    if (algoritm=="METROPOLIS_HASTINGS") return std::make_unique<MetropolisHastings>(std::move(rng));
+    cout << "Invalid type of algoritm for Monte Carlo, valid types are METROPOLIS and METROPOLIS_HASTINGS " << endl;
+    exit(-1);
+}
+
+std::unique_ptr<class Hamiltonian> createHamiltonianFromArgument(string type, double omega, double beta)
+{
+    if (type=="HARMONIC") return std::make_unique<HarmonicOscillator>(omega);
+    if (type=="HARMONIC_CYLINDRIC_INTERACTION") return std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta);
+    cout << "Invalid type of Hamiltonian, valid types are HARMONIC and HARMONIC_CYLINDRIC_INTERACTION " << endl;
+    exit(-1);
+}
+
+std::vector<std::unique_ptr<Particle>> createParticlesFromArgument(string type, double stepLength, double hardCoreSize, size_t numberOfDimensions, size_t numberOfParticles, Random &randomEngine)
+{
+    //Don't know if it's the prettiest choice to reuse parameter for Hamiltonian, but it makes sense considering how we tended to use it in Project 1.
+    if (type=="HARMONIC") return setupRandomUniformInitialState(stepLength, numberOfDimensions, numberOfParticles, randomEngine);
+    if (type=="HARMONIC_CYLINDRIC_INTERACTION") return setupRandomUniformInitialStateWithRepulsion(stepLength, hardCoreSize, numberOfDimensions, numberOfParticles, randomEngine);
+    cout << "Invalid type of Hamiltonian, valid types are HARMONIC and HARMONIC_CYLINDRIC_INTERACTION " << endl;
+    exit(-1);
 }
 
 int main(int argc, char **argv)
@@ -122,9 +132,7 @@ int main(int argc, char **argv)
             std::unique_ptr<System> system;
 
             // Initialize particles
-            //No replulsion for now //
-            auto particles = setupRandomUniformInitialStateWithRepulsion(stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
-			//auto particles = setupRandomUniformInitialState(stepLength, numberOfDimensions, numberOfParticles, *rng);
+            auto particles = createParticlesFromArgument(hamiltonianChoice, stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
 
             // Construct a unique pointer to a new System
             system = std::make_unique<System>(
@@ -207,16 +215,6 @@ int main(int argc, char **argv)
             total_change += fabs(learning_rate[param_num] * gradient[param_num]);
         }
         cout << "Tolerance " << parameter_tolerance << " Total change: " << total_change << endl;
-        //if (total_change < parameter_tolerance)
-			/*
-		//TODO: hack for converge condition on set number of iterations
-        if (everyCloseEnough)
-        {
-            if (verbose)
-                cout << "Parameters converged after " << count << " iterations." << endl;
-            converged = true;
-            continue;
-        }*/
     }
     // Output information from the simulation
     combinedSampler->printOutputToTerminal(verbose);
