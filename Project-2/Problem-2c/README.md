@@ -1,35 +1,41 @@
-# Problem2b implementation
+# Problem2c implementation
 
-Problem 2b was about implementing the necessary classes for the Restricted Boltzmann Machine type of wave function, plus updating the gradient descent and start experimenting with learning rate. 
+Problem 2c was about implementing importance samling (Metropolis-Hastings)and compare with brute force (Metropolis).
 
 # Building the code
 If run from the root directory of the Git-repo, the build commands are:
 
 ```
-make app=Project-2/Problem-1b/unit_tests
-make app=Project-2/Problem-1b/single_particle 
-make app=Project-2/Problem-1b/large_simulation
+make app=Project-2/Problem-2c/importance_sampling_vs_brute_force
 ```
-
-# Running tests
-
-To run the unit tests, run this program:
-```
-bin/Project-2/Problem-1b/unit_tests.out
-```
-
-No parameter needed. It runs some tests, print various output, and if everything is ok ends with the line: All tests passed!
 
 # Running simulations
 
-Example for single particle (in 3D), 6 hidden nodes, 100 iterations for optmization, 0.01 learning rate, 10^7 MCMC cycles. 
-Results in energy pretty cloes to 1.5 as expected. 
-```
-bin/Project-2/Problem-1b/single_particle.out 6 100 0.01 10000000
-```
+We added 4 more parameters as compared to Problem 1b, enabling chosing number of particles and dimensions, and type of Hamiltonian and Montecarlo algorithm.
 
-Example for simulating 2 dimensions, 2 Particles, 2 10^7, MCMC cycles. Rest of parameters hardcoded so check source code.
-Should give a result of energy cloes to 2. 
+Example with the parameters in order specifying:
+2 dimensions
+2 particles
+6 hidden layer nodes
+100 iterations set for optmization run (always, regardless of tolerance)
+0.01 learning rate
+10^7 MCMC cycles for the final large calculation
+Harmonic oscilator (no interaction repulsive force)
+Metropolis algorithm (brute-force)
 ```
-bin/Project-2/Problem-1b/large_simulation.out 2 2 10000000
+time bin/Project-2/Problem-2c/importance_sampling_vs_brute_force.out 2 2 6 100 0.01 10000000 HARMONIC METROPOLIS
+```
+Should result in 34 parameters, and energy very close to 2.0. Run takes about 2.5 minutes.
+
+Switching to importance sampling:
+```
+time bin/Project-2/Problem-2c/importance_sampling_vs_brute_force.out 2 2 6 100 0.01 10000000 HARMONIC METROPOLIS_HASTINGS
+```
+Should also result in 34 parameters, and energy very close to 2.0. Run takes about 2.5 minutes.
+
+Another example, 3 dimensions, 10 particles, Importance sampling
+
+Since we still have the Blocking script from Project 1, it's also possible to run that directly after if you like:
+```
+python3 Project-1/Problem-1e/python/blocking.py
 ```
