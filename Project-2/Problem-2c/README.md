@@ -25,13 +25,13 @@ Metropolis algorithm (brute-force)
 ```
 time bin/Project-2/Problem-2c/importance_sampling_vs_brute_force.out 2 2 6 100 0.01 10000000 HARMONIC METROPOLIS
 ```
-Should result in 34 parameters, and energy very close to 2.0. Run takes about 2.5 minutes.
+Should result in 34 parameters, and energy very close to 2.0. ~93% accepted steps. Run takes about 2.5 minutes.
 
 Switching to importance sampling:
 ```
 time bin/Project-2/Problem-2c/importance_sampling_vs_brute_force.out 2 2 6 100 0.01 10000000 HARMONIC METROPOLIS_HASTINGS
 ```
-Should also result in 34 parameters, and energy very close to 2.0. Run takes about 2.5 minutes.
+Should result in 34 parameters, and energy very close to 2.0. ~98.9% accepted steps. Run takes about 1.5 minutes.
 
 Another example, 3 dimensions, 10 particles, Importance sampling
 
