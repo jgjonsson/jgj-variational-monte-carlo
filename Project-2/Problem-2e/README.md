@@ -13,6 +13,6 @@ make app=Project-2/Problem-2e/probe_nqs_repulsive
 
 Sample invokation
 ```
-./bin/Project-2/Problem-2c/importance_sampling_vs_brute_force.out 2 2 50 100
+./bin/Project-2/Problem-2e/importance_sampling_vs_brute_force.out 2 2 50 100
 ```
 results in a WF with 254 parameters for 2D, and gives best energy of 3.11 (compared to 3.0 from analytics)
