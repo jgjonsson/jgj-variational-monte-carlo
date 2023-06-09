@@ -93,7 +93,7 @@ int main(int argc, char **argv)
             unsigned int my_seed = base_seed + thread_id;
             auto rng = std::make_unique<Random>(my_seed);
 
-            size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged ? MC_reduction : 1);
+            size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged | count == max_iterations - 1 ? MC_reduction : 1);
             numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
 
             std::unique_ptr<Sampler> sampler;
@@ -191,6 +191,9 @@ int main(int argc, char **argv)
     }
     // Output information from the simulation
     combinedSampler->printOutputToTerminal(verbose);
+
+    //Write energies to file, to be used by blocking method script.
+    one_columns_to_csv("energies.csv", combinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
 
     return 0;
 }

@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
 	size_t rbs_M = numberOfParticles*numberOfDimensions;
-	size_t rbs_N = 2;//rbs_M; //This N is something to experiment with, but start by trying equal to M.
+	size_t rbs_N = 10;//rbs_M; //This N is something to experiment with, but start by trying equal to M.
 	//size_t rbs_N = 1; //Temporary test
 
     bool firstLoop = true;
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
             unsigned int my_seed = base_seed + thread_id;
             auto rng = std::make_unique<Random>(my_seed);
 
-            size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged ? MC_reduction : 1);
+            size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged || count == max_iterations - 1 ? MC_reduction : 1);
             numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
 
             std::unique_ptr<Sampler> sampler;
@@ -87,8 +87,7 @@ int main(int argc, char **argv)
             // Construct a unique pointer to a new System
             system = std::make_unique<System>(
                 // Construct unique_ptr to Hamiltonian
-                //std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta),
-                std::make_unique<HarmonicOscillator>(omega),
+                std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta),
                 // Construct unique_ptr to wave function
                 std::make_unique<SimpleRBM>(rbs_M, rbs_N, params, omega),
                 // Construct unique_ptr to solver, and move rng
