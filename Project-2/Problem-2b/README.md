@@ -33,3 +33,8 @@ Should give a result of energy cloes to 2.
 ```
 bin/Project-2/Problem-2b/large_simulation.out 2 2 10000000
 ```
+
+#For table 1 in report
+```
+time bin/Project-2/Problem-2b/large_simulation.out 1 1 1000000
+```
