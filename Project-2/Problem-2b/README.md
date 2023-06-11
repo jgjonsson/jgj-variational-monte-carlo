@@ -34,7 +34,40 @@ Should give a result of energy cloes to 2.
 bin/Project-2/Problem-2b/large_simulation.out 2 2 10000000
 ```
 
-#For table 1 in report
+# Commands useful for reproducing report results 
+## For table 1 in report
 ```
 time bin/Project-2/Problem-2b/large_simulation.out 1 1 1000000
 ```
+
+## Single particle initial investigation different learning rates and number of hidden nodes
+Comparing different learning rates:
+```
+time bin/Project-2/Problem-2b/single_particle.out 6 100 1 10000000
+time bin/Project-2/Problem-2b/single_particle.out 6 100 0.1 10000000
+time bin/Project-2/Problem-2b/single_particle.out 6 100 0.05 10000000
+time bin/Project-2/Problem-2b/single_particle.out 6 100 0.01 10000000
+```
+giving the below results per learning rate:
+1: Results just diverging - learning rate too high
+0.1: E=1.50011 sigma=1.52223e-05, parameterdelta=0.00252424
+0.05: E=1.50009 sigma=1.59472e-05, parameterdelta=0.000423908
+0.01: E=1.5005 sigma=2.13325e-05, parameterdelta=0.00150819
+
+Sigma being MCMC standard deviation, and parameterdelta being "Total change" - sum of absolut change in parameter values at last step.
+So in this case learning rate 0.05 was best since it was closest to 1.5 as well as resulting in the lowest change in parameter value by last optmization step. 
+At the same time it has decent standard deviation on energy (pratically tied with 0.1).
+For all cases, the simulation run the full 100 optmization loops that we set as a fixed maximum. For a different number of loops, the best learning rate could well have been different. 
+Increasing number of MCMC cycles from 10^6 to 10^7 however did not seem significant for this conclusion.
+
+Comparing different number of hidden nodes:
+```
+time bin/Project-2/Problem-2b/single_particle.out 6 100 0.05 10000000
+time bin/Project-2/Problem-2b/single_particle.out 8 100 0.05 10000000
+time bin/Project-2/Problem-2b/single_particle.out 10 100 0.05 10000000
+time bin/Project-2/Problem-2b/single_particle.out 12 100 0.05 10000000
+```
+
+Here 6 hidden nodes gave E=1.50014 which was the value closest to 1.5. 
+The number 6 was initially a heuristic guess when studying 1 particle in 3D assuming at least two hidden nodes per degree of freedom seemed reasonable. 
+In retrospect we should have started all the way from 1 node because some lower number could potentially actually have given a better value. 
