@@ -44,12 +44,16 @@ cout << " +------------ parametersDual: " << parametersDual.size()  <<  " first=
 cout << "A" <<  endl;
     VectorXdual hiddenOutputs(inputSize);
     // Reshape inputLayerWeights into a matrix
-    Eigen::Map<MatrixXdual> inputLayerWeightsMatrix(inputLayerWeights.data(), inputSize, hiddenSize);
+    cout << "Setting up matrix with inputSize=" << inputSize << " hiddenSize=" << hiddenSize << endl;
+    Eigen::Map<MatrixXdual> inputLayerWeightsMatrix(inputLayerWeights.data(), hiddenSize, inputSize);
     cout << "A1" <<  endl;
     std::cout << "Dimensions of inputLayerWeightsMatrix: " << inputLayerWeightsMatrix.rows() << " x " << inputLayerWeightsMatrix.cols() << std::endl;
     std::cout << "Dimensions of inputsDual: " << inputsDual.rows() << " x " << inputsDual.cols() << std::endl;
     std::cout << "Dimensions of inputLayerBiases: " << inputLayerBiases.rows() << " x " << inputLayerBiases.cols() << std::endl;
-    auto hiddenOutputsBeforeActivation = inputLayerWeightsMatrix * inputsDual + inputLayerBiases;
+    std::cout << "Dimensions of hiddenLayerBiases: " << hiddenLayerBiases.rows() << " x " << hiddenLayerBiases.cols() << std::endl;
+    auto vectorHej = inputLayerWeightsMatrix * inputsDual;
+    std::cout << "Dimensions of vectorHej: " << vectorHej.rows() << " x " << vectorHej.cols() << std::endl;
+    auto hiddenOutputsBeforeActivation = inputLayerWeightsMatrix * inputsDual + hiddenLayerBiases;
 
 cout << "B" <<  endl;
     for(int i = 0; i < hiddenOutputs.size(); i++) {
