@@ -2,15 +2,20 @@
 #include <cmath>
 #include <cassert>
 
+//#include <autodiff/forward/dual.hpp>
+//#include <autodiff/forward/dual/eigen.hpp>
+
 #include "../include/nn_wave.h"
 #include "../include/particle.h"
 #include "../include/random.h"
 
 using namespace std;
-using namespace arma;
+using namespace autodiff;
+using namespace Eigen;
+//using namespace arma;
 
 //The following 3 functions are taken from formulas (82), (83), (84) at https://github.com/CompPhysics/ComputationalPhysics2/blob/gh-pages/doc/pub/week13/ipynb/week13.ipynb
-vec NeuralNetworkWavefunction::gradient_a_ln_psi(vec x)
+/*vec NeuralNetworkWavefunction::gradient_a_ln_psi(vec x)
 {
     return (x - m_a)/m_sigmaSquared;
 }
@@ -24,7 +29,7 @@ mat NeuralNetworkWavefunction::gradient_W_ln_psi(vec x)
 {
     return x/m_sigmaSquared*(gradient_b_ln_psi(x).t());
 }
-
+*/
 /** Calculate derivative of ln(psi) with respect to every parameter
     This is the same as calculating 1/psi * delta psi / delta alpha_i term of eq (80) in
     https://github.com/CompPhysics/ComputationalPhysics2/blob/gh-pages/doc/pub/week13/ipynb/week13.ipynb
@@ -41,7 +46,33 @@ mat NeuralNetworkWavefunction::gradient_W_ln_psi(vec x)
 */
 std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles)
 {
-    vec x = flattenParticleCoordinatesToVector(particles, m_M);
+    cout << "Trying to compute log psi derivative over parameters" << endl;
+//#include "../include/neural.h"
+
+    VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
+
+    std::vector<double> inputs = flattenParticleCoordinatesToVector(particles, m_M);
+
+
+    auto x1 = m_neuralNetwork.feedForward(inputs);
+    cout << "Input.length = " << inputs.size() << endl;
+    cout << "x1 = " << x1 << endl;
+    VectorXdual inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
+
+    cout << "inputsDual.length = " << inputsDual.size() << endl;
+    auto x2 = m_neuralNetwork.feedForwardDual2(inputsDual);
+    cout << "x2 = " << x2 << endl;
+    inputsDual = inputsDual.transpose();
+
+    cout << "Trying deivative 1 " << endl;
+//    VectorXd gradienten = m_neuralNetwork.getGradient(x);
+    auto gradientFunction = m_neuralNetwork.getGradientFunction();
+        cout << "Trying deivative 2 " << endl;
+        cout << "m_neuralNetwork.parametersDual = " << m_neuralNetwork.parametersDual << endl;
+        cout << "inputsDual = " << inputsDual << endl;
+    auto theGradient = gradientFunction(m_neuralNetwork.parametersDual, inputsDual);
+        cout << "Trying deivative 3 " << endl;
+/*
     vec grad_a = gradient_a_ln_psi(x);
     vec grad_b = gradient_b_ln_psi(x);
 
@@ -59,7 +90,17 @@ std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParame
         for (size_t j = 0; j < m_N; j++){
             logPsiDerivativeOverParameters.push_back(grad_W(i,j));
         }
+    }*/
+    cout << "Cuccedded to compute log psi derivative over parameters" << endl;
+    std::vector<double> logPsiDerivativeOverParameters;
+
+    for(int i = 0; i < theGradient.size(); i++) {
+        dual d = theGradient[i];
+        std::cout << "d = " << d << std::endl;
+        double d2 = 0.0;//d.val();
+        logPsiDerivativeOverParameters.push_back(d2); // .val() is used to get the value of the dual number
     }
+
     return logPsiDerivativeOverParameters;
 }
 
@@ -70,6 +111,7 @@ std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParame
 */
 void NeuralNetworkWavefunction::insertParameters(std::vector<double> parameters)
 {
+    cout << "Trying to insert parameters" << endl;
     assert(parameters.size() == m_M+m_N+m_M*m_N);
 
     size_t index = 0;

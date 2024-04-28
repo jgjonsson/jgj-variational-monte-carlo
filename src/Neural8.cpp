@@ -31,19 +31,27 @@ NeuralNetwork(std::vector<double> randNumbers, int inputSize, int hiddenSize)
 dual feedForwardDual2(VectorXdual inputsDual) {
     int weightsSize = inputSize * hiddenSize + hiddenSize;
     int biasesSize = inputSize + hiddenSize;
-
+cout << "inputSize: " << inputSize << endl;
+cout << "hiddenSize: " << hiddenSize << endl;
+cout << " +------------ parameters: " << parameters.size() <<  " first=" << parameters[0] << endl;
+cout << " +------------ parametersDual: " << parametersDual.size()  <<  " first=" << parametersDual[0] << endl;
     VectorXdual inputLayerWeights = parametersDual.segment(0, inputSize * hiddenSize);
     VectorXdual hiddenLayerWeights = parametersDual.segment(inputSize * hiddenSize, hiddenSize);
     VectorXdual inputLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize, inputSize);
     VectorXdual hiddenLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize + inputSize, hiddenSize);
     dual outputNeuronWeight = parametersDual[weightsSize + biasesSize];
     dual outputNeuronBias = parametersDual[weightsSize + biasesSize + 1];
-
+cout << "A" <<  endl;
     VectorXdual hiddenOutputs(inputSize);
     // Reshape inputLayerWeights into a matrix
     Eigen::Map<MatrixXdual> inputLayerWeightsMatrix(inputLayerWeights.data(), inputSize, hiddenSize);
+    cout << "A1" <<  endl;
+    std::cout << "Dimensions of inputLayerWeightsMatrix: " << inputLayerWeightsMatrix.rows() << " x " << inputLayerWeightsMatrix.cols() << std::endl;
+    std::cout << "Dimensions of inputsDual: " << inputsDual.rows() << " x " << inputsDual.cols() << std::endl;
+    std::cout << "Dimensions of inputLayerBiases: " << inputLayerBiases.rows() << " x " << inputLayerBiases.cols() << std::endl;
     auto hiddenOutputsBeforeActivation = inputLayerWeightsMatrix * inputsDual + inputLayerBiases;
 
+cout << "B" <<  endl;
     for(int i = 0; i < hiddenOutputs.size(); i++) {
         hiddenOutputs[i] = tanh(hiddenOutputsBeforeActivation[i]);
     }
@@ -71,12 +79,14 @@ dual feedForwardDual2(VectorXdual inputsDual) {
         outputLayerInputs[i] = tanh(output);
     }
 
+cout << "C" <<  endl;
     dual finalOutput = 0.0;
     for(int i = 0; i < hiddenSize; i++) {
         finalOutput += outputNeuronWeight * outputLayerInputs[i];
     }
     finalOutput += outputNeuronBias;
 
+cout << "D" <<  endl;
     return tanh(finalOutput);
 }
 
@@ -131,7 +141,7 @@ dual feedForwardDual2(VectorXdual inputsDual) {
         };
     }
 
-    auto getGradient(VectorXdual inputsDual) {
+    VectorXd getGradient(VectorXdual inputsDual) {
         dual u;
 
         auto feedForwardDual2Wrapper = [&](VectorXdual parametersDual) {
@@ -143,7 +153,7 @@ dual feedForwardDual2(VectorXdual inputsDual) {
         //VectorXd g = gradient(feedForwardDual2, wrt(parametersDual), at(inputsDual), u); // evaluate the function value u and its gradient vector g = du/dx
         std::cout << "u = " << u << std::endl;      // print the evaluated output u
         //std::cout << "g = \n" << g << std::endl;    // print the evaluated gradient vector g = du/dx
-        return u;
+        return g;
     }
 /*
     auto getGradientFunction() {

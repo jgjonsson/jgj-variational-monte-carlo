@@ -32,6 +32,8 @@ dual feedForwardDual2(VectorXdual inputsDual) {
     int weightsSize = inputSize * hiddenSize + hiddenSize;
     int biasesSize = inputSize + hiddenSize;
 
+cout << " +------------- parameters: " << parameters << endl;
+cout << " +------------- parametersDual: " << parametersDual << endl;
     VectorXdual inputLayerWeights = parametersDual.segment(0, inputSize * hiddenSize);
     VectorXdual hiddenLayerWeights = parametersDual.segment(inputSize * hiddenSize, hiddenSize);
     VectorXdual inputLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize, inputSize);
@@ -83,7 +85,8 @@ dual feedForwardDual2(VectorXdual inputsDual) {
     double feedForward(std::vector<double> inputs) {
         int weightsSize = inputSize * hiddenSize + hiddenSize;
         int biasesSize = inputSize + hiddenSize;
-
+cout << " ------------- parameters: " << parameters << endl;
+cout << " ------------- parametersDual: " << parametersDual << endl;
         std::vector<double> inputLayerWeights(parameters.begin(), parameters.begin() + inputSize * hiddenSize);
         std::vector<double> hiddenLayerWeights(parameters.begin() + inputSize * hiddenSize, parameters.begin() + weightsSize);
         std::vector<double> inputLayerBiases(parameters.begin() + weightsSize, parameters.begin() + weightsSize + inputSize);
@@ -131,7 +134,7 @@ dual feedForwardDual2(VectorXdual inputsDual) {
         };
     }
 
-    auto getGradient(VectorXdual inputsDual) {
+    VectorXd getGradient(VectorXdual inputsDual) {
         dual u;
 
         auto feedForwardDual2Wrapper = [&](VectorXdual parametersDual) {
@@ -143,7 +146,7 @@ dual feedForwardDual2(VectorXdual inputsDual) {
         //VectorXd g = gradient(feedForwardDual2, wrt(parametersDual), at(inputsDual), u); // evaluate the function value u and its gradient vector g = du/dx
         std::cout << "u = " << u << std::endl;      // print the evaluated output u
         //std::cout << "g = \n" << g << std::endl;    // print the evaluated gradient vector g = du/dx
-        return u;
+        return g;
     }
 /*
     auto getGradientFunction() {

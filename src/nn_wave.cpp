@@ -52,7 +52,7 @@ cout << "Satte upp et neural network med " << rbs_M << " och " << rbs_N << " nod
 /** Helper-function to turn the P particles times D dimensions coordinates into a M=P*D vector
 */
 //vec flattenParticleCoordinatesToVector(std::vector<class Particle*> particles, size_t m_M)
-vec NeuralNetworkWavefunction::flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
+/*vec NeuralNetworkWavefunction::flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
 {
     vec x(m_M);
     for (size_t i = 0; i < particles.size(); i++)
@@ -66,20 +66,54 @@ vec NeuralNetworkWavefunction::flattenParticleCoordinatesToVector(std::vector<st
     }
     return x;
 }
+*/
+std::vector<double> NeuralNetworkWavefunction::flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
+{
+    std::vector<double> x(m_M);
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        auto position = particles[i]->getPosition();
+        auto numDimensions = position.size();
+        for (size_t j=0; j<numDimensions; j++)
+        {
+            x[i*numDimensions + j] = position[j];
+        }
+    }
+    return x;
+}
+
+VectorXdual NeuralNetworkWavefunction::flattenParticleCoordinatesToVectorAutoDiffFormat(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
+//VectorXdual flattenParticleCoordinatesToVectorAutoDiffFormat(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
+{
+    VectorXdual x(m_M);
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        auto position = particles[i]->getPosition();
+        auto numDimensions = position.size();
+        for (size_t j=0; j<numDimensions; j++)
+        {
+            x[i*numDimensions + j] = position[j];
+        }
+    }
+    return x;
+}
 
 double NeuralNetworkWavefunction::evaluate(std::vector<std::unique_ptr<class Particle>> &particles)
 {
-    vec x = flattenParticleCoordinatesToVector(particles, m_M);
+    auto x = flattenParticleCoordinatesToVector(particles, m_M);
+
+    double psi = m_neuralNetwork.feedForward(x);
+/*
     vec xMinusA = x - m_a;
     double psi1 = exp(-1/(2*m_sigmaSquared)*dot(xMinusA, xMinusA));
 
     vec xTimesW = m_W.t()*x; //Transpose is necessary to get the matching dimensions.
     vec psiFactors = 1 + exp(m_b + 1/m_sigmaSquared*(xTimesW));
     double psi2 = prod(psiFactors);
-
+*/
     //cout << "Evaluated wave function to " << psi1 <<"*" << psi2 << "=" << (psi1*psi2) << endl;
 
-    return psi1*psi2;
+    return psi;//1*psi2;
 }
 
 double NeuralNetworkWavefunction::gradientSquaredOfLnWaveFunction(vec x)
@@ -96,6 +130,7 @@ double NeuralNetworkWavefunction::gradientSquaredOfLnWaveFunction(vec x)
 
 double NeuralNetworkWavefunction::laplacianOfLnWaveFunction(vec x)
 {
+    cout << "Trying to compute the LAPLACIAN" << endl;
     vec sigmoidParameter = (m_b + 1/m_sigmaSquared*(m_W.t()*x));
     vec sigmoid = 1/(1 + exp(-sigmoidParameter));
     vec sigmoidNegative = 1/(1 + exp(sigmoidParameter));
@@ -113,8 +148,12 @@ double NeuralNetworkWavefunction::laplacianOfLnWaveFunction(vec x)
  */
 double NeuralNetworkWavefunction::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
 {
-    vec x = flattenParticleCoordinatesToVector(particles, m_M);
+    //TODO: return symbolic derivative of ln(psi) after we have joined the neural network with gaussian trial wave function.
+    //Alternatively try to compute the laplacian of the wave function by autodiff.
+    return 0.0;
+    /*vec x = flattenParticleCoordinatesToVector(particles, m_M);
     return gradientSquaredOfLnWaveFunction(x) + laplacianOfLnWaveFunction(x);
+    */
 }
 
 double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<class Particle>> &particles_numerator, std::vector<std::unique_ptr<class Particle>> &particles_denominator)
@@ -131,6 +170,7 @@ double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<clas
  */
 std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
 {
+    cout << "Trying to compute the QUANTUM FORCE" << endl;
     vec x = flattenParticleCoordinatesToVector(particles, m_M);
     vec sigmoid(m_N);
     vec gradientLnPsi(m_M);

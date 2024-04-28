@@ -258,7 +258,7 @@ int main3() {
     double output = neuralNetwork.feedForward(inputs);
     std::cout << "Output: " << output << std::endl;
 
-VectorXdual inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
+    VectorXdual inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
 
 
     dual outputDual = neuralNetwork.feedForwardDual2(inputsDual);
