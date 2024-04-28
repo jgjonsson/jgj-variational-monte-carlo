@@ -32,8 +32,8 @@ dual feedForwardDual2(VectorXdual inputsDual) {
     int weightsSize = inputSize * hiddenSize + hiddenSize;
     int biasesSize = inputSize + hiddenSize;
 
-cout << " +------------- parameters: " << parameters << endl;
-cout << " +------------- parametersDual: " << parametersDual << endl;
+//cout << " +------------- parameters: " << parameters << endl;
+//cout << " +------------- parametersDual: " << parametersDual << endl;
     VectorXdual inputLayerWeights = parametersDual.segment(0, inputSize * hiddenSize);
     VectorXdual hiddenLayerWeights = parametersDual.segment(inputSize * hiddenSize, hiddenSize);
     VectorXdual inputLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize, inputSize);
