@@ -25,6 +25,7 @@
 #include "../../include/file_io.h"
 #include "../../include/rbm.h"
 #include "../../include/neural.h"
+#include "../../include/nn_wave.h"
 
 using namespace std;
 using namespace autodiff;
@@ -56,7 +57,7 @@ int main(int argc, char **argv)
     int parameter_seed = 2023;         // For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
     double parameterGuessSpread = 0.1; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
-    params = SimpleRBM::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
+    params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
 
     // We're experimenting with what learning rate works best.
     double fixed_learning_rate = argc > 5 ? stod(argv[5]) : 0.05;
@@ -85,7 +86,7 @@ int main(int argc, char **argv)
 
     std::unique_ptr<Sampler> combinedSampler;
 
-    int numThreads = 8;
+    int numThreads = 1;//14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
@@ -123,9 +124,10 @@ int main(int argc, char **argv)
                 // Construct unique_ptr to Hamiltonian
                 std::make_unique<CoulombHamiltonian>(omega, inter_strength),
                 // Construct unique_ptr to wave function
-                std::make_unique<SimpleRBM>(rbs_M, rbs_N, params, omega),
+                std::make_unique<NeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega),
                 // Construct unique_ptr to solver, and move rng
-                std::make_unique<MetropolisHastings>(std::move(rng)),
+                //std::make_unique<MetropolisHastings>(std::move(rng)),
+                std::make_unique<Metropolis>(std::move(rng)),
                 // Move the vector of particles to system
                 std::move(particles));
 
@@ -139,10 +141,15 @@ int main(int argc, char **argv)
                 stepLength,
                 numberOfMetropolisStepsPerGradientIteration);
         }
-
+cout << "Finished parallel region" << endl;
         // Create a new Sampler object containing the average of all the others.
+        //combinedSampler = std::unique_ptr<Sampler>(samplers[0]);//
         combinedSampler = std::unique_ptr<Sampler>(new Sampler(samplers, numThreads));
-
+/*if (!samplers.empty()) {
+    combinedSampler = samplers[0];
+} else {
+    // Handle the case where samplers is empty
+}*/
         // TODO: Code below contains a mess with commented out code, from tolerance test previously used.
         // As it stands right now it will always run the set number of optimization, and
         if (converged)

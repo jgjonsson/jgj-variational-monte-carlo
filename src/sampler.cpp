@@ -155,7 +155,10 @@ void Sampler::computeObservables()
     m_observables[1] = sqrt((m_cumulatives[1] / m_numberOfMetropolisSteps - m_observables[0] * m_observables[0]) / m_numberOfMetropolisSteps);
     for (size_t i = 0; i < m_numberOfParameters; i++)
     {
-        m_observables[2 + i] = 2 * (m_cumulatives[2 + m_numberOfParameters + i] / m_numberOfMetropolisSteps - m_observables[0] * m_cumulatives[2 + i] / m_numberOfMetropolisSteps);
+        m_observables[2 + i] = 2 *
+        (  m_cumulatives[2 + m_numberOfParameters + i]          / m_numberOfMetropolisSteps
+        -
+           m_observables[0] * m_cumulatives[2 + i]              / m_numberOfMetropolisSteps);
     }
 }
 

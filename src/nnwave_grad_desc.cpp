@@ -2,7 +2,7 @@
 #include <cmath>
 #include <cassert>
 
-#include "../include/nnwave.h"
+#include "../include/nn_wave.h"
 #include "../include/particle.h"
 #include "../include/random.h"
 
@@ -104,7 +104,11 @@ std::vector<double> NeuralNetworkWavefunction::generateRandomParameterSet(size_t
     normal_distribution<double> distribution(0, spread);
 
     std::vector<double> parameters = std::vector<double>();
-    size_t numberParameters = rbs_M+rbs_N+rbs_M*rbs_N;
+    //size_t numberParameters = rbs_M+rbs_N+rbs_M*rbs_N;
+    int inputNodes = rbs_M;
+    int hiddenNodes = rbs_N;
+    //TODO: To many parameters, because we should not have weights and bias for all three layers. Let it be for now.
+    int numberParameters = inputNodes * hiddenNodes + hiddenNodes + 1 + inputNodes + hiddenNodes * inputNodes + 1;
     for (size_t i = 0; i < numberParameters; i++){
         parameters.push_back(distribution(generator));
     }

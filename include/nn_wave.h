@@ -6,6 +6,7 @@
 #include "wavefunction.h"
 #include "particle.h"
 #include "random.h"
+#include "neural.h"
 
 using namespace arma;
 
@@ -52,6 +53,8 @@ protected:
     //Storing the physical contants for this model. Values are set in constructur.
     double m_sigmaSquared;
     double m_omega;
+
+    NeuralNetwork m_neuralNetwork;
 
     //Parameters for the wave function
     vec m_a;  //M parameters. The bias for visible layers.

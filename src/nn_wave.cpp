@@ -2,14 +2,16 @@
 #include <cmath>
 #include <cassert>
 
-#include "../include/nnwave.h"
+#include "../include/nn_wave.h"
 #include "../include/particle.h"
 #include "../include/random.h"
+#include "../include/neural.h"
 
 using namespace std;
 using namespace arma;
 
 NeuralNetworkWavefunction::NeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N, std::vector<double> parameters, double omega)
+: m_neuralNetwork(parameters, rbs_M, rbs_N)
 {
     assert(rbs_M > 0);
     assert(rbs_N > 0);
@@ -19,16 +21,26 @@ NeuralNetworkWavefunction::NeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N,
     //TODO: Consider parameterizing this. However project spec says only look at sigma=1.0 so this is perhaps ok.
     m_sigmaSquared = 1.0;
 
+    //NeuralNetwork neuralNetwork(parameters, inputNodes, hiddenNodes);
+    //NeuralNetwork neuralNetwork(parameters, rbs_M, rbs_N);
+    // Initialize m_neuralNetwork here after the assertions
+    //m_neuralNetwork = NeuralNetwork(parameters, rbs_M, rbs_N);
+
+    m_numberOfParameters = parameters.size();
+
+
+cout << "Satte upp et neural network med " << rbs_M << " och " << rbs_N << " noder, " << m_numberOfParameters << " params." << endl;
+
     //Number of parameters, M and N
     this->m_M = rbs_M;
     this->m_N = rbs_N;
-
+/*
     //Parameters for the wave function, initialize as vectors and matrices
     m_W.set_size(m_M, m_N);
     m_a.set_size(m_M);
     m_b.set_size(m_N);
 
-    insertParameters(parameters);
+    insertParameters(parameters);*/
 /*
     cout << "Initial a = " << m_a << endl;
     cout << "Initial b = " << m_b << endl;

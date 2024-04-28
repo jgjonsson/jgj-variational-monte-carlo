@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
     std::unique_ptr<Sampler> combinedSampler;
 
-    int numThreads = 8;
+    int numThreads = 14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
