@@ -32,18 +32,21 @@ NeuralNetwork(std::vector<double> randNumbers, int inputSize, int hiddenSize)
 dual feedForwardDual2(VectorXdual inputsDual) {
     int weightsSize = inputSize * hiddenSize + hiddenSize;
     int biasesSize = inputSize + hiddenSize;
-//cout << "inputSize: " << inputSize << endl;
-//cout << "hiddenSize: " << hiddenSize << endl;
-//cout << " +------------ parameters: " << parameters.size() <<  " first=" << parameters[0] << endl;
-//cout << " +------------ parametersDual: " << parametersDual.size()  <<  " first=" << parametersDual[0] << endl;
+cout << "inputSize: " << inputSize << endl;
+cout << "hiddenSize: " << hiddenSize << endl;
+cout << " +------------ parameters: " << parameters.size() <<  " first=" << parameters[0] << endl;
+cout << " +------------ parametersDual: " << parametersDual.size()  <<  " first=" << parametersDual[0] << endl;
     VectorXdual inputLayerWeights = parametersDual.segment(0, inputSize * hiddenSize);
     VectorXdual hiddenLayerWeights = parametersDual.segment(inputSize * hiddenSize, hiddenSize);
     //VectorXdual inputLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize, inputSize);
+    cout << "A1" <<  endl;
     VectorXdual hiddenLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize, hiddenSize);
+        cout << "A2" <<  endl;
     //VectorXdual hiddenLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize + inputSize, hiddenSize);
-    dual outputNeuronWeight = parametersDual[weightsSize + biasesSize];
-    dual outputNeuronBias = parametersDual[weightsSize + biasesSize + 1];
-//cout << "A" <<  endl;
+    //dual outputNeuronWeight = parametersDual[weightsSize + biasesSize];
+        cout << "A3" <<  endl;
+    //dual outputNeuronBias = parametersDual[weightsSize + biasesSize + 1];
+cout << "A" <<  endl;
     VectorXdual hiddenOutputs(hiddenSize);
 
     // Reshape inputLayerWeights into a matrix
@@ -54,6 +57,13 @@ dual feedForwardDual2(VectorXdual inputsDual) {
     for(int i = 0; i < hiddenOutputs.size(); i++) {
         hiddenOutputs[i] = tanh(hiddenOutputsBeforeActivation[i]);
     }
+
+
+cout << "DUAL hiddenOutputs: ";
+for(const auto& value : hiddenOutputs) {
+    cout << value << " ";
+}
+cout << endl;
 //cout << "C" <<  endl;
 //    std::cout << "Dimensions of hiddenOutputs: " << hiddenOutputs.rows() << " x " << hiddenOutputs.cols() << std::endl;
 //    std::cout << "Dimensions of hiddenLayerWeights: " << hiddenLayerWeights.rows() << " x " << hiddenLayerWeights.cols() << std::endl;
@@ -119,11 +129,18 @@ cout << "D" <<  endl;
         for(int i = 0; i < hiddenLayerBiases.size(); i++) {
             double output = 0.0;
             for(int j = 0; j < inputs.size(); j++) {
-                output += inputLayerWeights[i * inputs.size() + j] * inputs[j];
+                //output += inputLayerWeights[i * inputs.size() + j] * inputs[j];
+                output += inputLayerWeights[j * hiddenLayerBiases.size() + i] * inputs[j];
             }
             output += hiddenLayerBiases[i];
             hiddenOutputs.push_back(tanh(output));
         }
+
+cout << "DOUBLE hiddenOutputs: ";
+for(const auto& value : hiddenOutputs) {
+    cout << value << " ";
+}
+cout << endl;
 
 /*
         std::vector<double> outputLayerInputs;
@@ -138,7 +155,7 @@ cout << "D" <<  endl;
 */
         double finalOutput = 0.0;
         for(int i = 0; i < hiddenOutputs.size(); i++) {
-            finalOutput += hiddenOutputs[i] * hiddenOutputs[i];
+            finalOutput += hiddenLayerWeights[i] * hiddenOutputs[i];
         }
         //cout << "H" <<  endl;
         //finalOutput += outputNeuronBias;
