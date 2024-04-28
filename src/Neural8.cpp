@@ -32,21 +32,13 @@ NeuralNetwork(std::vector<double> randNumbers, int inputSize, int hiddenSize)
 dual feedForwardDual2(VectorXdual inputsDual) {
     int weightsSize = inputSize * hiddenSize + hiddenSize;
     int biasesSize = inputSize + hiddenSize;
-cout << "inputSize: " << inputSize << endl;
-cout << "hiddenSize: " << hiddenSize << endl;
-cout << " +------------ parameters: " << parameters.size() <<  " first=" << parameters[0] << endl;
-cout << " +------------ parametersDual: " << parametersDual.size()  <<  " first=" << parametersDual[0] << endl;
     VectorXdual inputLayerWeights = parametersDual.segment(0, inputSize * hiddenSize);
     VectorXdual hiddenLayerWeights = parametersDual.segment(inputSize * hiddenSize, hiddenSize);
     //VectorXdual inputLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize, inputSize);
-    cout << "A1" <<  endl;
     VectorXdual hiddenLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize, hiddenSize);
-        cout << "A2" <<  endl;
     //VectorXdual hiddenLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize + inputSize, hiddenSize);
     //dual outputNeuronWeight = parametersDual[weightsSize + biasesSize];
-        cout << "A3" <<  endl;
     //dual outputNeuronBias = parametersDual[weightsSize + biasesSize + 1];
-cout << "A" <<  endl;
     VectorXdual hiddenOutputs(hiddenSize);
 
     // Reshape inputLayerWeights into a matrix
@@ -59,11 +51,11 @@ cout << "A" <<  endl;
     }
 
 
-cout << "DUAL hiddenOutputs: ";
+/*cout << "DUAL hiddenOutputs: ";
 for(const auto& value : hiddenOutputs) {
     cout << value << " ";
 }
-cout << endl;
+cout << endl;*/
 //cout << "C" <<  endl;
 //    std::cout << "Dimensions of hiddenOutputs: " << hiddenOutputs.rows() << " x " << hiddenOutputs.cols() << std::endl;
 //    std::cout << "Dimensions of hiddenLayerWeights: " << hiddenLayerWeights.rows() << " x " << hiddenLayerWeights.cols() << std::endl;
@@ -135,13 +127,13 @@ cout << "D" <<  endl;
             output += hiddenLayerBiases[i];
             hiddenOutputs.push_back(tanh(output));
         }
-
+/*
 cout << "DOUBLE hiddenOutputs: ";
 for(const auto& value : hiddenOutputs) {
     cout << value << " ";
 }
 cout << endl;
-
+*/
 /*
         std::vector<double> outputLayerInputs;
         for(int i = 0; i < hiddenLayerBiases.size(); i++) {
@@ -162,6 +154,17 @@ cout << endl;
         return finalOutput;
 //        return tanh(finalOutput);
     }
+/*
+    std::function<VectorXdual(VectorXdual, VectorXdual)> getGradientFunction(){
+        return [&](VectorXdual parametersDual, VectorXdual inputsDual) {
+          auto feedForwardDual2Wrapper = [&](VectorXdual parametersDual) {
+              this->parametersDual = parametersDual;
+              return this->feedForwardDual2(inputsDual);
+          };
+          dual u;
+          return gradient(feedForwardDual2Wrapper, wrt(parametersDual), at(parametersDual), u);
+        };
+    }*/
 
     std::function<VectorXdual(VectorXdual, VectorXdual)> getGradientFunction() {
         return [&](VectorXdual parametersDual, VectorXdual inputsDual) {
@@ -188,8 +191,10 @@ cout << endl;
         //std::cout << "g = \n" << g << std::endl;    // print the evaluated gradient vector g = du/dx
         return g;
     }
+
+
 /*
-    auto getGradientFunction() {
+    std::function<VectorXdual(VectorXdual, VectorXdual)> getGradientFunction() {
         return [&](VectorXdual parametersDual) {
             this->parametersDual = parametersDual;
             return autodiff::grad([this](VectorXdual params) {

@@ -22,6 +22,59 @@ bool closeEnough(double x, double y)
     return fabs(x-y) < closeEnoughTolerance;
 }
 
+std::vector<double> calculateNumericalGradientParameters(std::unique_ptr<NeuralNetwork>& looseNeuralNetwork, std::vector<double>& inputs) {
+    double epsilon = 1e-6; // small number for finite difference
+    std::vector<double> gradient(looseNeuralNetwork->parameters.size());
+
+    for (size_t i = 0; i < looseNeuralNetwork->parameters.size(); ++i) {
+        // Store the original value so we can reset it later
+        double originalValue = looseNeuralNetwork->parameters[i];
+
+        // Evaluate function at p+h
+        looseNeuralNetwork->parameters[i] += epsilon;
+        double plusEpsilon = looseNeuralNetwork->feedForward(inputs);
+
+        // Evaluate function at p-h
+        looseNeuralNetwork->parameters[i] = originalValue - epsilon;
+        double minusEpsilon = looseNeuralNetwork->feedForward(inputs);
+
+        // Compute the gradient
+        gradient[i] = (plusEpsilon - minusEpsilon) / (2.0 * epsilon);
+
+        // Reset the parameter to its original value
+        looseNeuralNetwork->parameters[i] = originalValue;
+    }
+
+    return gradient;
+}
+
+/*
+std::vector<double> calculateNumericalGradient(std::unique_ptr<NeuralNetwork>& looseNeuralNetwork, std::vector<double>& inputs) {
+    double epsilon = 1e-6; // small number for finite difference
+    std::vector<double> gradient(inputs.size());
+
+    for (size_t i = 0; i < inputs.size(); ++i) {
+        // Store the original value so we can reset it later
+        double originalValue = inputs[i];
+
+        // Evaluate function at x+h
+        inputs[i] += epsilon;
+        double plusEpsilon = looseNeuralNetwork->feedForward(inputs);
+
+        // Evaluate function at x-h
+        inputs[i] = originalValue - epsilon;
+        double minusEpsilon = looseNeuralNetwork->feedForward(inputs);
+
+        // Compute the gradient
+        gradient[i] = (plusEpsilon - minusEpsilon) / (2.0 * epsilon);
+
+        // Reset the input to its original value
+        inputs[i] = originalValue;
+    }
+
+    return gradient;
+}*/
+
 int main(int argc, char **argv)
 {
     // Seed for the random number generator. 
@@ -84,6 +137,25 @@ cout << "junit 1" << endl;
     } else {
         std::cout << "The values are not the same." << std::endl;
     }
+
+
+    auto gradientFunction = looseNeuralNetwork->getGradientFunction();
+    auto gradientSymbolic = gradientFunction(looseNeuralNetwork->parametersDual, inputsDual);
+
+    //VectorXd gradientSymbolic = looseNeuralNetwork->getGradient(inputsDual);
+    cout << "Gradient calculated with automatic differentiation: ";
+    for(const auto& value : gradientSymbolic) {
+        cout << value << " ";
+    }
+    cout << endl;
+
+    std::vector<double> gradientNumeric = calculateNumericalGradientParameters(looseNeuralNetwork, inputs);
+
+    cout << "Gradient calculated with numerical methods: ";
+    for(const auto& value : gradientNumeric) {
+        cout << value << " ";
+    }
+    cout << endl;
 /*
 	double lap = looseNeuralNetwork->computeLocalLaplasian(particles);
 	cout << " ------------------------------ " << endl;
