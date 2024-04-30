@@ -2,7 +2,7 @@ CXX:=g++
 
 CXX_FLAGS_RELEASE:=-O3 
 CXX_FLAGS_DEBUG:=-Wall -Wextra -g
-CXX_FLAGS_EXTRALIBS:=-fopenmp -larmadillo
+CXX_FLAGS_EXTRALIBS:=-fopenmp -larmadillo -L/usr/local/lib/cmake/autodiff
 
 HEADERS:=$(wildcard include/*.h)
 
