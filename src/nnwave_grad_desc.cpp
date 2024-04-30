@@ -64,14 +64,8 @@ std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParame
 //    cout << "x2 = " << x2 << endl;
     inputsDual = inputsDual.transpose();
 
-//    cout << "Trying deivative 1 " << endl;
-//    VectorXd gradienten = m_neuralNetwork.getGradient(x);
-    auto gradientFunction = m_neuralNetwork.getGradientFunction();
-//        cout << "Trying deivative 2 " << endl;
-//        cout << "m_neuralNetwork.parametersDual = " << m_neuralNetwork.parametersDual << endl;
-//        cout << "inputsDual = " << inputsDual << endl;
-    auto theGradient = gradientFunction(m_neuralNetwork.parametersDual, inputsDual);
-//        cout << "Trying deivative 3 " << endl;
+    auto theGradient = m_neuralNetwork.getTheGradient(inputsDual);
+
 /*
     vec grad_a = gradient_a_ln_psi(x);
     vec grad_b = gradient_b_ln_psi(x);

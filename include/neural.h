@@ -35,11 +35,13 @@ public:
     NeuralNetworkSimple(std::vector<double> randNumbers, int inputSize, int hiddenSize);
     dual feedForwardDual2(VectorXdual inputsDual);
     double feedForward(std::vector<double> inputs);
-    std::function<VectorXdual(VectorXdual, VectorXdual)> getGradientFunction();
+
     VectorXdual getTheGradient(VectorXdual inputsDual);
     void backpropagate(std::vector<double> inputs, double targetOutput, double learningRate);
     void printParameters();
     void printParameters2();
+private:
+    std::function<VectorXdual(VectorXdual, VectorXdual)> getGradientFunction();
 };
 
 #endif // NEURALNETWORK_H

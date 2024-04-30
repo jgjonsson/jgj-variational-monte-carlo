@@ -138,19 +138,8 @@ cout << "junit 1" << endl;
         std::cout << "The values are not the same." << std::endl;
     }
 
-
-    auto gradientFunction = looseNeuralNetwork->getGradientFunction();
-    auto gradientSymbolic = gradientFunction(looseNeuralNetwork->parametersDual, inputsDual);
-
-    //VectorXd gradientSymbolic = looseNeuralNetwork->getGradient(inputsDual);
-    cout << "Gradient calculated with automatic differentiation: ";
-    for(const auto& value : gradientSymbolic) {
-        cout << value << " ";
-    }
-    cout << endl;
-
     auto gradientSymbolicCachedFunction = looseNeuralNetwork->getTheGradient(inputsDual);
-    cout << "Gradient calculated with automatic differentiation cached function: ";
+    cout << "Gradient calculated with automatic diff cached func:    ";
     for(const auto& value : gradientSymbolicCachedFunction) {
         cout << value << " ";
     }
@@ -158,11 +147,12 @@ cout << "junit 1" << endl;
 
     std::vector<double> gradientNumeric = calculateNumericalGradientParameters(looseNeuralNetwork, inputs);
 
-    cout << "Gradient calculated with numerical methods: ";
+    cout << "Gradient calculated with numerical methods:             ";
     for(const auto& value : gradientNumeric) {
         cout << value << " ";
     }
     cout << endl;
+
 /*
 	double lap = looseNeuralNetwork->computeLocalLaplasian(particles);
 	cout << " ------------------------------ " << endl;

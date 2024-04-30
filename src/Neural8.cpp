@@ -78,6 +78,11 @@ NeuralNetworkSimple::NeuralNetworkSimple(std::vector<double> randNumbers, int in
     }
 
     std::function<VectorXdual(VectorXdual, VectorXdual)> NeuralNetworkSimple::getGradientFunction() {
+        /*cout << "Differentiating with parameters being: ";
+        for(const auto& value : parametersDual) {
+            cout << value << " ";
+        }*/
+        cout << endl;
         return [&](VectorXdual parametersDual, VectorXdual inputsDual) {
             auto feedForwardDual2Wrapper = [&](VectorXdual parametersDual) {
                 this->parametersDual = parametersDual;
