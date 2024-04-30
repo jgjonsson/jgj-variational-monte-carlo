@@ -39,8 +39,18 @@ NeuralNetworkSimple::NeuralNetworkSimple(std::vector<double> randNumbers, int in
         VectorXdual hiddenLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize, hiddenSize);
 
         // Reshape inputLayerWeights into a matrix
+//        std::cout << "Size of inputLayerWeights: " << inputLayerWeights.size() << std::endl;
+//        std::cout << "Value of hiddenSize: " << hiddenSize << std::endl;
+
         Eigen::Map<MatrixXdual> inputLayerWeightsMatrix(inputLayerWeights.data(), hiddenSize, inputSize);
+
+        // Print dimensions
+//        std::cout << "Dimensions of inputLayerWeightsMatrix: " << inputLayerWeightsMatrix.rows() << " x " << inputLayerWeightsMatrix.cols() << std::endl;
+//        std::cout << "Size of inputsDual: " << inputsDual.size() << std::endl;
+//        std::cout << "Size of hiddenLayerBiases: " << hiddenLayerBiases.size() << std::endl;
+
         auto hiddenOutputsBeforeActivation = inputLayerWeightsMatrix * inputsDual + hiddenLayerBiases;
+//        std::cout << "Size of hiddenOutputsBeforeActivation: " << hiddenOutputsBeforeActivation.size() << std::endl;
 
         VectorXdual hiddenOutputs(hiddenSize);
         for(int i = 0; i < hiddenOutputs.size(); i++) {

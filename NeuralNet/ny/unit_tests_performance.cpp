@@ -82,8 +82,8 @@ int main(int argc, char **argv)
     int seed = 2023;
     double parameterGuessSpread = 0.1;  //Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
-    size_t numberOfDimensions = 3;
-    size_t numberOfParticles = 8;
+    //size_t numberOfDimensions = 3;
+    //size_t numberOfParticles = 8;
 	
     double omega = 1.0;                                         // Oscillator frequency.
     double beta = 2.82843;                                      // Frequency ratio
@@ -94,29 +94,31 @@ int main(int argc, char **argv)
     bool verbose = true;                                        // Verbosity of output
 
 
-	size_t rbs_M = numberOfParticles*numberOfDimensions;
+    size_t rbs_M = argc > 1 ? stoi(argv[1]) : 4;
+    size_t rbs_N = argc > 2 ? stoi(argv[2]) : 8;
+	//size_t rbs_M = numberOfParticles*numberOfDimensions;
 
-	size_t rbs_N = 10;//rbs_M;//1; //Only one hidden node is on the extreme small side in practical scenarios. rbs_N = rbs_M would have been more realistic.
+	//size_t rbs_N = 10;//rbs_M;//1; //Only one hidden node is on the extreme small side in practical scenarios. rbs_N = rbs_M would have been more realistic.
 	//However in a unit test setting it gives a nice small set of values for unit testing.
 	//Also since M != N, we get non square matrix, and might uncover bugs related to matrix dimensionalities in matrix multiplications and such.
 
-	cout << " ------------------------------ " << endl;
-    cout << "Number of particles: " << numberOfParticles << endl;
+	//cout << " ------------------------------ " << endl;
+    //cout << "Number of particles: " << numberOfParticles << endl;
 	auto rng = std::make_unique<Random>(seed);
 	// Initialize particles
-	auto particles = setupRandomUniformInitialStateWithRepulsion(stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
+	//auto particles = setupRandomUniformInitialStateWithRepulsion(stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
 
 	cout << " ------------------------------ " << endl;
 	
-	auto hamiltonian = std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta);
+	//auto hamiltonian = std::make_unique<RepulsiveHamiltonianCyllindric>(omega, beta);
 
 
     //Start with all parameters as random values
     auto randomParameters = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, seed, parameterGuessSpread);
 	//auto looseNeuralNetwork = std::make_unique<SimpleRBM>(rbs_M, rbs_N, randomParameters, omega);
-
+    auto start = std::chrono::high_resolution_clock::now();
 	auto looseNeuralNetwork = std::make_unique<NeuralNetworkSimple>(randomParameters, rbs_M, rbs_N);
-	
+	auto elapsedAutodiff =  std::chrono::high_resolution_clock::now() - start;
 	// Construct an input vector of doubles
     //std::vector<double> inputs = {0.1, 0.2, 0.3, 0.4};
     std::vector<double> inputs(rbs_M);
@@ -142,20 +144,29 @@ cout << "junit 1" << endl;
         std::cout << "The values are not the same." << std::endl;
     }
 
+    start = std::chrono::high_resolution_clock::now();
+
     auto gradientSymbolicCachedFunction = looseNeuralNetwork->getTheGradient(inputsDual);
+    auto elapsedAutoPerform =  std::chrono::high_resolution_clock::now() - start;
+
     cout << "Gradient calculated with automatic diff cached func:    ";
     for(const auto& value : gradientSymbolicCachedFunction) {
         cout << value << " ";
     }
     cout << endl;
 
+    start = std::chrono::high_resolution_clock::now();
     std::vector<double> gradientNumeric = calculateNumericalGradientParameters(looseNeuralNetwork, inputs);
-
+    auto elapsedNumeric =  std::chrono::high_resolution_clock::now() - start;
     cout << "Gradient calculated with numerical methods:             ";
     for(const auto& value : gradientNumeric) {
         cout << value << " ";
     }
     cout << endl;
+
+    cout << "Automatic differentiation took " << elapsedAutodiff.count() << " milliseconds to execute." << endl;
+    cout << "Evaluate derivative took       " << elapsedAutoPerform.count() << " milliseconds to execute." << endl;
+    cout << "Numeric derivative took        " << elapsedNumeric.count() << " milliseconds to execute." << endl;
 
 /*
 	double lap = looseNeuralNetwork->computeLocalLaplasian(particles);
