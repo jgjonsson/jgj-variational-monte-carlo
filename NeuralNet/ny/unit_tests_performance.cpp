@@ -122,13 +122,19 @@ int main(int argc, char **argv)
 	// Construct an input vector of doubles
     //std::vector<double> inputs = {0.1, 0.2, 0.3, 0.4};
     std::vector<double> inputs(rbs_M);
+    std::vector<double> inputs2(rbs_M);
+    std::vector<double> inputs3(rbs_M);
     for (size_t i = 0; i < rbs_M; ++i) {
         inputs[i] = 0.01 * (i + 1);
+        inputs2[i] = -0.01 * (i + 1);
+        inputs3[i] = 0.1 * (i + 1);
     }
     cout << "Automatic differentiation took " << elapsedAutodiff.count() << " milliseconds to execute." << endl;
 
     // Convert the vector of doubles to VectorXdual
     VectorXdual inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
+    VectorXdual inputsDual2 = Eigen::Map<VectorXd>(inputs2.data(), inputs.size()).cast<dual>();
+    VectorXdual inputsDual3 = Eigen::Map<VectorXd>(inputs3.data(), inputs.size()).cast<dual>();
 cout << "junit 1" << endl;
     // Call the feedForwardDual2 function
     dual outputDual = looseNeuralNetwork->feedForwardDual2(inputsDual);
@@ -144,29 +150,49 @@ cout << "junit 1" << endl;
     } else {
         std::cout << "The values are not the same." << std::endl;
     }
-for(int q=0; q<2;q++){
+
+for(int q=0; q<4;q++){
+
+    inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
+    inputsDual2 = Eigen::Map<VectorXd>(inputs2.data(), inputs.size()).cast<dual>();
+    inputsDual3 = Eigen::Map<VectorXd>(inputs3.data(), inputs.size()).cast<dual>();
+
     auto start2 = std::chrono::high_resolution_clock::now();
 
     auto gradientSymbolicCachedFunction = looseNeuralNetwork->getTheGradient(inputsDual);
+    auto gradientSymbolicCachedFunction2 = looseNeuralNetwork->getTheGradient(inputsDual2);
+    auto gradientSymbolicCachedFunction3 = looseNeuralNetwork->getTheGradient(inputsDual3);
     auto elapsedAutoPerform =  std::chrono::high_resolution_clock::now() - start2;
 
     cout << "Evaluate derivative took       " << elapsedAutoPerform.count() << " milliseconds to execute." << endl;
-        
-/*
+
+if(verbose){
     cout << "Gradient calculated with automatic diff cached func:    ";
+        cout << endl;
     for(const auto& value : gradientSymbolicCachedFunction) {
         cout << value << " ";
-    }
-    cout << endl;*/
+    }      cout << endl;  for(const auto& value : gradientSymbolicCachedFunction2) {
+             cout << value << " ";
+         }
+    cout << endl;}
 
     auto start3 = std::chrono::high_resolution_clock::now();
     std::vector<double> gradientNumeric = calculateNumericalGradientParameters(looseNeuralNetwork, inputs);
+    std::vector<double> gradientNumeric2 = calculateNumericalGradientParameters(looseNeuralNetwork, inputs2);
+    std::vector<double> gradientNumeric3 = calculateNumericalGradientParameters(looseNeuralNetwork, inputs3);
+
     auto elapsedNumeric =  std::chrono::high_resolution_clock::now() - start3;
-    /*cout << "Gradient calculated with numerical methods:             ";
+    if(verbose){
+    cout << "Gradient calculated with numerical methods:             ";
+    cout << endl;
     for(const auto& value : gradientNumeric) {
         cout << value << " ";
-    }
-    cout << endl;*/
+    }      cout << endl;
+
+      for(const auto& value : gradientNumeric2) {
+             cout << value << " ";
+         }
+    cout << endl;}
 
     cout << "Numeric derivative took        " << elapsedNumeric.count() << " milliseconds to execute." << endl;
 }
