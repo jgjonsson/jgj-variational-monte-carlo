@@ -15,12 +15,13 @@
 using namespace autodiff;
 using namespace Eigen;
 
-class NeuralNetwork {
+class NeuralNetworkSimple {
 public:
     VectorXdual parametersDual;
     std::vector<double> parameters;
     int inputSize;
     int hiddenSize;
+    std::function<VectorXdual(VectorXdual, VectorXdual)> gradientFunction;
 /*
     NeuralNetwork(std::vector<double> randNumbers, int inputSize, int hiddenSize);
     dual feedForwardDual2(VectorXdual inputsDual);
@@ -31,11 +32,11 @@ public:
     void printParameters();
     void printParameters2();
     */
-    NeuralNetwork(std::vector<double> randNumbers, int inputSize, int hiddenSize);
+    NeuralNetworkSimple(std::vector<double> randNumbers, int inputSize, int hiddenSize);
     dual feedForwardDual2(VectorXdual inputsDual);
     double feedForward(std::vector<double> inputs);
     std::function<VectorXdual(VectorXdual, VectorXdual)> getGradientFunction();
-    VectorXdual getGradient(VectorXdual inputsDual);
+    VectorXdual getTheGradient(VectorXdual inputsDual);
     void backpropagate(std::vector<double> inputs, double targetOutput, double learningRate);
     void printParameters();
     void printParameters2();

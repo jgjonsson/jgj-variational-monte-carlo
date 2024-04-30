@@ -55,7 +55,7 @@ protected:
     double m_sigmaSquared;
     double m_omega;
 
-    NeuralNetwork m_neuralNetwork;
+    NeuralNetworkSimple m_neuralNetwork;
 
     //Parameters for the wave function
     vec m_a;  //M parameters. The bias for visible layers.

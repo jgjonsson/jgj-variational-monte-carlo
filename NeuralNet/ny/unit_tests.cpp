@@ -22,7 +22,7 @@ bool closeEnough(double x, double y)
     return fabs(x-y) < closeEnoughTolerance;
 }
 
-std::vector<double> calculateNumericalGradientParameters(std::unique_ptr<NeuralNetwork>& looseNeuralNetwork, std::vector<double>& inputs) {
+std::vector<double> calculateNumericalGradientParameters(std::unique_ptr<NeuralNetworkSimple>& looseNeuralNetwork, std::vector<double>& inputs) {
     double epsilon = 1e-6; // small number for finite difference
     std::vector<double> gradient(looseNeuralNetwork->parameters.size());
 
@@ -49,7 +49,7 @@ std::vector<double> calculateNumericalGradientParameters(std::unique_ptr<NeuralN
 }
 
 /*
-std::vector<double> calculateNumericalGradient(std::unique_ptr<NeuralNetwork>& looseNeuralNetwork, std::vector<double>& inputs) {
+std::vector<double> calculateNumericalGradient(std::unique_ptr<NeuralNetworkSimple>& looseNeuralNetwork, std::vector<double>& inputs) {
     double epsilon = 1e-6; // small number for finite difference
     std::vector<double> gradient(inputs.size());
 
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
     auto randomParameters = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, seed, parameterGuessSpread);
 	//auto looseNeuralNetwork = std::make_unique<SimpleRBM>(rbs_M, rbs_N, randomParameters, omega);
 
-	auto looseNeuralNetwork = std::make_unique<NeuralNetwork>(randomParameters, rbs_M, rbs_N);
+	auto looseNeuralNetwork = std::make_unique<NeuralNetworkSimple>(randomParameters, rbs_M, rbs_N);
 	
 	// Construct an input vector of doubles
     std::vector<double> inputs = {0.1, 0.2, 0.3, 0.4};
@@ -145,6 +145,13 @@ cout << "junit 1" << endl;
     //VectorXd gradientSymbolic = looseNeuralNetwork->getGradient(inputsDual);
     cout << "Gradient calculated with automatic differentiation: ";
     for(const auto& value : gradientSymbolic) {
+        cout << value << " ";
+    }
+    cout << endl;
+
+    auto gradientSymbolicCachedFunction = looseNeuralNetwork->getTheGradient(inputsDual);
+    cout << "Gradient calculated with automatic differentiation cached function: ";
+    for(const auto& value : gradientSymbolicCachedFunction) {
         cout << value << " ";
     }
     cout << endl;
