@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     std::vector<double> params{argc > 4 ? stod(argv[4]) : 0.5}; // Variational parameter.
     double stepLength = 0.1;                                    // Metropolis step length.
     size_t MC_reduction = 100;                                  // Number of MC steps to reduce by at intermediate steps
-    bool verbose = true;                                        // Verbosity of output
+    bool verbose = false;                                        // Verbosity of output
 
 
     size_t rbs_M = argc > 1 ? stoi(argv[1]) : 4;

@@ -136,17 +136,36 @@ NeuralNetworkSimple::NeuralNetworkSimple(std::vector<double> randNumbers, int in
     VectorXdual NeuralNetworkSimple::getTheGradient(VectorXdual inputsDual)
         //VectorXdual getGradient(VectorXdual inputsDual)
     {
-    auto feedForwardWrapper = [&](VectorXdual kalle) {
-        return feedForwardDual(kalle, inputsDual, inputSize, hiddenSize);
-    };
+        auto feedForwardWrapper = [&](VectorXdual kalle) {
+            return feedForwardDual(kalle, inputsDual, inputSize, hiddenSize);
+        };
 
-    VectorXdual grad = gradient(feedForwardWrapper, wrt(parametersDual), at(parametersDual));
+        VectorXdual gradde = gradient(feedForwardWrapper, wrt(parametersDual), at(parametersDual));
     /*
         cout << "hej" << endl;
         VectorXdual gradientSymbolic = gradientFunction(parametersDual, inputsDual);
         return gradientSymbolic;*/
-        return grad;
+
+        return gradde;
     }
+
+    std::vector<double> NeuralNetworkSimple::getTheGradientVector(std::vector<double> inputs)
+    {
+        // Convert std::vector<double> to VectorXdual
+        VectorXdual inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
+
+        auto feedForwardWrapper = [&](VectorXdual kalle) {
+            return feedForwardDual(kalle, inputsDual, inputSize, hiddenSize);
+        };
+
+        VectorXdual gradde = gradient(feedForwardWrapper, wrt(parametersDual), at(parametersDual));
+
+        // Convert VectorXdual back to std::vector<double>
+        std::vector<double> graddeVec(gradde.data(), gradde.data() + gradde.size());
+
+        return graddeVec;
+    }
+
 
     void NeuralNetworkSimple::printParameters() {
         int weightsSize = inputSize * hiddenSize + hiddenSize;
