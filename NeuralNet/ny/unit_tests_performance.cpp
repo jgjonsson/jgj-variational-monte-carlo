@@ -125,7 +125,8 @@ int main(int argc, char **argv)
     for (size_t i = 0; i < rbs_M; ++i) {
         inputs[i] = 0.01 * (i + 1);
     }
-    
+    cout << "Automatic differentiation took " << elapsedAutodiff.count() << " milliseconds to execute." << endl;
+
     // Convert the vector of doubles to VectorXdual
     VectorXdual inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
 cout << "junit 1" << endl;
@@ -143,31 +144,32 @@ cout << "junit 1" << endl;
     } else {
         std::cout << "The values are not the same." << std::endl;
     }
-
-    start = std::chrono::high_resolution_clock::now();
+for(int q=0; q<2;q++){
+    auto start2 = std::chrono::high_resolution_clock::now();
 
     auto gradientSymbolicCachedFunction = looseNeuralNetwork->getTheGradient(inputsDual);
-    auto elapsedAutoPerform =  std::chrono::high_resolution_clock::now() - start;
+    auto elapsedAutoPerform =  std::chrono::high_resolution_clock::now() - start2;
 
+    cout << "Evaluate derivative took       " << elapsedAutoPerform.count() << " milliseconds to execute." << endl;
+        
+/*
     cout << "Gradient calculated with automatic diff cached func:    ";
     for(const auto& value : gradientSymbolicCachedFunction) {
         cout << value << " ";
     }
-    cout << endl;
+    cout << endl;*/
 
-    start = std::chrono::high_resolution_clock::now();
+    auto start3 = std::chrono::high_resolution_clock::now();
     std::vector<double> gradientNumeric = calculateNumericalGradientParameters(looseNeuralNetwork, inputs);
-    auto elapsedNumeric =  std::chrono::high_resolution_clock::now() - start;
-    cout << "Gradient calculated with numerical methods:             ";
+    auto elapsedNumeric =  std::chrono::high_resolution_clock::now() - start3;
+    /*cout << "Gradient calculated with numerical methods:             ";
     for(const auto& value : gradientNumeric) {
         cout << value << " ";
     }
-    cout << endl;
+    cout << endl;*/
 
-    cout << "Automatic differentiation took " << elapsedAutodiff.count() << " milliseconds to execute." << endl;
-    cout << "Evaluate derivative took       " << elapsedAutoPerform.count() << " milliseconds to execute." << endl;
     cout << "Numeric derivative took        " << elapsedNumeric.count() << " milliseconds to execute." << endl;
-
+}
 /*
 	double lap = looseNeuralNetwork->computeLocalLaplasian(particles);
 	cout << " ------------------------------ " << endl;
