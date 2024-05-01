@@ -50,7 +50,7 @@ std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParame
 //#include "../include/neural.h"
 
     VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
-
+/*
     std::vector<double> inputs = flattenParticleCoordinatesToVector(particles, m_M);
 
 
@@ -63,8 +63,8 @@ std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParame
     auto x2 = m_neuralNetwork.feedForwardDual2(inputsDual);
 //    cout << "x2 = " << x2 << endl;
     inputsDual = inputsDual.transpose();
-
-    auto theGradient = m_neuralNetwork.getTheGradient(inputsDual);
+*/
+    auto theGradient = m_neuralNetwork.getTheGradient(xDual);
 
 /*
     vec grad_a = gradient_a_ln_psi(x);
@@ -86,7 +86,7 @@ std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParame
         }
     }*/
 //    cout << "Cuccedded to compute log psi derivative over parameters" << endl;
-    std::vector<double> logPsiDerivativeOverParameters;
+    /*std::vector<double> logPsiDerivativeOverParameters;
 
     for(int i = 0; i < theGradient.size(); i++) {
         dual d = theGradient[i];
@@ -94,7 +94,9 @@ std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParame
         double d2 = d.val;
         //.val();
         logPsiDerivativeOverParameters.push_back(d2); // .val() is used to get the value of the dual number
-    }
+    }*/
+    std::vector<double> logPsiDerivativeOverParameters(theGradient.size());
+    std::transform(theGradient.begin(), theGradient.end(), logPsiDerivativeOverParameters.begin(), [](const dual& d) { return d.val; });
 
     return logPsiDerivativeOverParameters;
 }

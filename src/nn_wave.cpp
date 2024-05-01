@@ -10,6 +10,10 @@
 using namespace std;
 using namespace arma;
 
+//TODO: 0.5 is nearly optimal, maybe exactly optimal for case 2 part 2D? However we should parametrize this as well later.
+double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
+double m_beta = 2.82843; // beta is the second parameter for now.
+
 NeuralNetworkWavefunction::NeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N, std::vector<double> parameters, double omega)
 : m_neuralNetwork(parameters, rbs_M, rbs_N)
 {
@@ -100,9 +104,24 @@ VectorXdual NeuralNetworkWavefunction::flattenParticleCoordinatesToVectorAutoDif
 
 double NeuralNetworkWavefunction::evaluate(std::vector<std::unique_ptr<class Particle>> &particles)
 {
-    auto x = flattenParticleCoordinatesToVector(particles, m_M);
 
-    double psi = m_neuralNetwork.feedForward(x);
+    double psi = 1.0;
+
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        // Let's support as many dimensions as we want.
+        double r2 = 0;
+        for (size_t j = 0; j < particles[i]->getPosition().size(); j++)
+            r2 += (j == 2 ? m_beta : 1.0) * particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+        // spherical ansatz
+        double g = exp(-alpha * r2);
+
+        // Trial wave function is product of g for all particles.
+        psi = psi * g;
+    }
+
+    auto x = flattenParticleCoordinatesToVector(particles, m_M);
+    double psiInteractionJastrow = m_neuralNetwork.feedForward(x);
 /*
     vec xMinusA = x - m_a;
     double psi1 = exp(-1/(2*m_sigmaSquared)*dot(xMinusA, xMinusA));
@@ -113,7 +132,7 @@ double NeuralNetworkWavefunction::evaluate(std::vector<std::unique_ptr<class Par
 */
     //cout << "Evaluated wave function to " << psi1 <<"*" << psi2 << "=" << (psi1*psi2) << endl;
 
-    return psi;//1*psi2;
+    return psi * psiInteractionJastrow;//1*psi2;
 }
 
 double NeuralNetworkWavefunction::gradientSquaredOfLnWaveFunction(vec x)
@@ -146,15 +165,34 @@ double NeuralNetworkWavefunction::laplacianOfLnWaveFunction(vec x)
  *  @param particles Vector of particles.
  *  @return The local value of Laplasian.
  */
+ //Ok, we try the exact same laplacian as in the gaussian wave function.
 double NeuralNetworkWavefunction::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
 {
+    // The expression I got for a single laplasian is, in invariant form, follows:
+    // (4 * alpha^2 * r_i^2 - 2 * alpha * NDIM)
+    // so it takes to sum over all particles.
+    //double alpha = m_parameters[0];
+    double sum_laplasian = 0.0;
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        double r2 = 0.0;
+        for (size_t j = 0; j < particles[i]->getPosition().size(); ++j)
+            r2 += particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+        sum_laplasian += 4 * alpha * alpha * r2 - 2 * alpha * particles[i]->getPosition().size();
+    }
+    return sum_laplasian;
+}
+ /*
+double NeuralNetworkWavefunction::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
+{
+
     //TODO: return symbolic derivative of ln(psi) after we have joined the neural network with gaussian trial wave function.
     //Alternatively try to compute the laplacian of the wave function by autodiff.
     return 0.0;
-    /*vec x = flattenParticleCoordinatesToVector(particles, m_M);
+    / *vec x = flattenParticleCoordinatesToVector(particles, m_M);
     return gradientSquaredOfLnWaveFunction(x) + laplacianOfLnWaveFunction(x);
-    */
-}
+    * /
+}*/
 
 double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<class Particle>> &particles_numerator, std::vector<std::unique_ptr<class Particle>> &particles_denominator)
 {
@@ -163,7 +201,9 @@ double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<clas
     double value1 = evaluate(particles_numerator);
     double value2 = evaluate(particles_denominator);
 
-    return value1/value2;
+    //TODO: Shall we really square this?
+    double jastrowRatio = (value1/value2)*(value1/value2);
+    return jastrowRatio;
 }
 
 /** Calculate the quantum force, defined by 2 * 1/Psi * grad(Psi)
