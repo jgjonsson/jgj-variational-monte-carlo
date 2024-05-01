@@ -106,6 +106,7 @@ std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParame
     This function is meant to be called repeatedly during Gradient descent.
     It's also to be used at first initialization together with function generateRandomParameterSet below.
 */
+/*
 void NeuralNetworkWavefunction::insertParameters(std::vector<double> parameters)
 {
     cout << "Trying to insert parameters" << endl;
@@ -130,7 +131,7 @@ void NeuralNetworkWavefunction::insertParameters(std::vector<double> parameters)
     m_parameters = parameters; //Lastly, also store the plain vector of parameters.
     //This is double storing, but enables us to keep using the unmodified functions in Sampler for writing results to stdout.
 }
-
+*/
 /** Generate random numbers for all parameters. This is meant to be used before the first step of Gradient descent.
 */
 std::vector<double> NeuralNetworkWavefunction::generateRandomParameterSet(size_t rbs_M, size_t rbs_N, int randomSeed, double spread)

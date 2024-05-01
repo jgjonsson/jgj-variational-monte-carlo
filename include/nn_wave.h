@@ -17,7 +17,8 @@ class NeuralNetworkWavefunction : public WaveFunction
 public:
     /// @brief Constructor for the NeuralNetworkWavefunction class.
     /// @param TODO: document
-    NeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N, std::vector<double> parameters, double omega);
+    //NeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N, std::vector<double> parameters, double omega);
+    NeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N, std::vector<double> parameters, double omega, double alpha, double beta, double adiabaticFactor);
     /// @brief Evaluate the trial wave function.
     /// @param particles Vector of particles.
     /// @return The value of the trial wave function.
@@ -54,14 +55,16 @@ protected:
     //Storing the physical contants for this model. Values are set in constructur.
     double m_sigmaSquared;
     double m_omega;
-
+    double m_alpha;
+    double m_beta;
+    double m_adiabaticFactor;
     NeuralNetworkSimple m_neuralNetwork;
-
+/*
     //Parameters for the wave function
     vec m_a;  //M parameters. The bias for visible layers.
     vec m_b;  //N parameters. The bias for hidden layers.
     mat m_W;  //M*N parameters. All weights connecting visible and hidden layers.
-
+*/
     //For storing number of parameters, M and N
     size_t m_M = 0;
     size_t m_N = 0;

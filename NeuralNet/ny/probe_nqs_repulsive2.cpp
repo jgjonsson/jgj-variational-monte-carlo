@@ -119,12 +119,16 @@ int main(int argc, char **argv)
                 numberOfParticles,
                 *rng);
 
+double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
+double beta = 2.82843; // beta is the second parameter for now.
+double adiabaticFactor = (double)(count+1)/ (double)fixed_number_optimization_runs;
+cout << "Adiabatic factor: " << adiabaticFactor << endl;
             // Construct a unique pointer to a new System
             system = std::make_unique<System>(
                 // Construct unique_ptr to Hamiltonian
                 std::make_unique<CoulombHamiltonian>(omega, inter_strength),
                 // Construct unique_ptr to wave function
-                std::make_unique<NeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega),
+                std::make_unique<NeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega, alpha, beta, adiabaticFactor),
                 // Construct unique_ptr to solver, and move rng
                 //std::make_unique<MetropolisHastings>(std::move(rng)),
                 std::make_unique<Metropolis>(std::move(rng)),
@@ -207,6 +211,7 @@ cout << "Finished parallel region" << endl;
             total_change += fabs(learning_rate[param_num] * gradient[param_num]);
         }
         cout << "Tolerance " << parameter_tolerance << " Total change: " << total_change << endl;
+        cout << "Energy estimate: " << combinedSampler->getObservables()[0] << endl;
     }
     // Output information from the simulation
     combinedSampler->printOutputToTerminal(verbose);

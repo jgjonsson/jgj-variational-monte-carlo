@@ -11,15 +11,18 @@ using namespace std;
 using namespace arma;
 
 //TODO: 0.5 is nearly optimal, maybe exactly optimal for case 2 part 2D? However we should parametrize this as well later.
-double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
-double m_beta = 2.82843; // beta is the second parameter for now.
+//double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
+//double m_beta = 2.82843; // beta is the second parameter for now.
 
-NeuralNetworkWavefunction::NeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N, std::vector<double> parameters, double omega)
+NeuralNetworkWavefunction::NeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N, std::vector<double> parameters, double omega, double alpha, double beta, double adiabaticFactor)
 : m_neuralNetwork(parameters, rbs_M, rbs_N)
 {
     assert(rbs_M > 0);
     assert(rbs_N > 0);
 
+    m_alpha = alpha;
+    m_beta = beta;
+    m_adiabaticFactor = adiabaticFactor;
     m_omega = omega;
 
     //TODO: Consider parameterizing this. However project spec says only look at sigma=1.0 so this is perhaps ok.
@@ -114,14 +117,15 @@ double NeuralNetworkWavefunction::evaluate(std::vector<std::unique_ptr<class Par
         for (size_t j = 0; j < particles[i]->getPosition().size(); j++)
             r2 += (j == 2 ? m_beta : 1.0) * particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
         // spherical ansatz
-        double g = exp(-alpha * r2);
-
+        double g = exp(-m_alpha * r2);
+//cout << "g for particle " << i << " is " << g << endl;
         // Trial wave function is product of g for all particles.
         psi = psi * g;
     }
 
     auto x = flattenParticleCoordinatesToVector(particles, m_M);
     double psiInteractionJastrow = m_neuralNetwork.feedForward(x);
+//    cout <<"Psi interaction jastrow is " << psiInteractionJastrow << endl;
 /*
     vec xMinusA = x - m_a;
     double psi1 = exp(-1/(2*m_sigmaSquared)*dot(xMinusA, xMinusA));
@@ -132,9 +136,10 @@ double NeuralNetworkWavefunction::evaluate(std::vector<std::unique_ptr<class Par
 */
     //cout << "Evaluated wave function to " << psi1 <<"*" << psi2 << "=" << (psi1*psi2) << endl;
 
-    return psi * psiInteractionJastrow;//1*psi2;
+//cout << "Returning " << psi * m_adiabaticFactor*psiInteractionJastrow << endl;
+    return psi * m_adiabaticFactor*psiInteractionJastrow;//1*psi2;
 }
-
+/*
 double NeuralNetworkWavefunction::gradientSquaredOfLnWaveFunction(vec x)
 {
     vec sigmoid(m_N);
@@ -157,7 +162,7 @@ double NeuralNetworkWavefunction::laplacianOfLnWaveFunction(vec x)
     vec termsLaplacianLnPsi = -1/m_sigmaSquared + 1/(m_sigmaSquared*m_sigmaSquared)*(square(m_W)*sigmoidTimesSigmoidNegative);
     return sum(termsLaplacianLnPsi);
 }
-
+*/
 /** Compute the double derivative of the trial wave function over trial wave function.
  *  This is based on an analythical derivation using product rule showing that is equivalent
  *  to the expression you see below.
@@ -169,16 +174,16 @@ double NeuralNetworkWavefunction::laplacianOfLnWaveFunction(vec x)
 double NeuralNetworkWavefunction::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     // The expression I got for a single laplasian is, in invariant form, follows:
-    // (4 * alpha^2 * r_i^2 - 2 * alpha * NDIM)
+    // (4 * m_alpha^2 * r_i^2 - 2 * m_alpha * NDIM)
     // so it takes to sum over all particles.
-    //double alpha = m_parameters[0];
+    //double m_alpha = m_parameters[0];
     double sum_laplasian = 0.0;
     for (size_t i = 0; i < particles.size(); i++)
     {
         double r2 = 0.0;
         for (size_t j = 0; j < particles[i]->getPosition().size(); ++j)
             r2 += particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
-        sum_laplasian += 4 * alpha * alpha * r2 - 2 * alpha * particles[i]->getPosition().size();
+        sum_laplasian += 4 * m_alpha * m_alpha * r2 - 2 * m_alpha * particles[i]->getPosition().size();
     }
     return sum_laplasian;
 }
@@ -200,9 +205,12 @@ double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<clas
 
     double value1 = evaluate(particles_numerator);
     double value2 = evaluate(particles_denominator);
-
+//    cout << "Values are " << value1 << " and " << value2 << endl;
     //TODO: Shall we really square this?
     double jastrowRatio = (value1/value2)*(value1/value2);
+
+//cout << "ratio is " << jastrowRatio << endl;
+//exit(0);
     return jastrowRatio;
 }
 
@@ -212,6 +220,7 @@ std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<s
 {
     cout << "Trying to compute the QUANTUM FORCE" << endl;
     vec x = flattenParticleCoordinatesToVector(particles, m_M);
+    /*
     vec sigmoid(m_N);
     vec gradientLnPsi(m_M);
 
@@ -226,6 +235,8 @@ std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<s
     size_t firstIndex = particle_index*dimensions;
     size_t lastIndex = firstIndex + dimensions;// - 1;
     std::vector<double> quantumForceOneSingleParticle(quantumForce.begin()+firstIndex, quantumForce.begin()+lastIndex);
-
-    return quantumForceOneSingleParticle;
+*/
+    //return quantumForceOneSingleParticle;
+        std::vector<double> dummyValue = {0.0, 0.0, 0.0};
+        return dummyValue;
 }
