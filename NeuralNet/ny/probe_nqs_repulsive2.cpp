@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
 
     // We're experimenting with what learning rate works best.
-    double fixed_learning_rate = argc > 5 ? stod(argv[5]) : 0.05;
+    double fixed_learning_rate = argc > 5 ? stod(argv[5]) : 0.01;
 
     // Number of MCMC cycles for the large calculation after optimization
     size_t numberOfMetropolisSteps = argc > 6 ? stoi(argv[6]) : 1e6;
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 
     std::unique_ptr<Sampler> combinedSampler;
 
-    int numThreads = 1;//14;
+    int numThreads = 14;//14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
@@ -97,6 +97,12 @@ int main(int argc, char **argv)
         // Random number setup in the way recommended for parallell computing, at https://github.com/anderkve/FYS3150/blob/master/code_examples/random_number_generation/main_rng_in_class_omp.cpp
         //  Use the system clock to get a base seed
         unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
+
+double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
+double beta = 2.82843; // beta is the second parameter for now.
+double adiabaticFactor = (double)(count+1)/ (double)fixed_number_optimization_runs;
+adiabaticFactor = std::min(1.0, adiabaticFactor);
+cout << "Adiabatic factor: " << adiabaticFactor << endl;
 
 #pragma omp parallel shared(samplers, count) // Start parallel region.
         {
@@ -119,15 +125,10 @@ int main(int argc, char **argv)
                 numberOfParticles,
                 *rng);
 
-double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
-double beta = 2.82843; // beta is the second parameter for now.
-double adiabaticFactor = (double)(count+1)/ (double)fixed_number_optimization_runs;
-adiabaticFactor = std::min(1.0, adiabaticFactor);
-cout << "Adiabatic factor: " << adiabaticFactor << endl;
             // Construct a unique pointer to a new System
             system = std::make_unique<System>(
                 // Construct unique_ptr to Hamiltonian
-                std::make_unique<CoulombHamiltonian>(omega, inter_strength),
+                std::make_unique<CoulombHamiltonian>(omega, adiabaticFactor*inter_strength),
                 // Construct unique_ptr to wave function
                 std::make_unique<NeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega, alpha, beta, adiabaticFactor),
                 // Construct unique_ptr to solver, and move rng
@@ -135,7 +136,7 @@ cout << "Adiabatic factor: " << adiabaticFactor << endl;
                 std::make_unique<Metropolis>(std::move(rng)),
                 // Move the vector of particles to system
                 std::move(particles));
-
+//cout << "numberOfMetropolisStepsPerGradientIteration is " << numberOfMetropolisStepsPerGradientIteration << endl;
             // Run steps to equilibrate particles
             auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
                 stepLength,
@@ -186,6 +187,7 @@ cout << "Finished parallel region" << endl;
             }
         }
 
+cout << "Changing parameter 0 " << params[0] << " with " << learning_rate[0] << " * " << gradient[0] <<  " = " << (learning_rate[0]*gradient[0]) << endl;
         // Update the parameter
         for (size_t param_num = 0; param_num < params.size(); ++param_num)
         {

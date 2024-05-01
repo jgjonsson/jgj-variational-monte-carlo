@@ -36,7 +36,7 @@ NeuralNetworkWavefunction::NeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N,
     m_numberOfParameters = parameters.size();
 
 
-cout << "Satte upp et neural network med " << rbs_M << " och " << rbs_N << " noder, " << m_numberOfParameters << " params." << endl;
+//cout << "Satte upp et neural network med " << rbs_M << " och " << rbs_N << " noder, " << m_numberOfParameters << " params." << endl;
 
     //Number of parameters, M and N
     this->m_M = rbs_M;
@@ -206,8 +206,8 @@ double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<clas
     double value1 = evaluate(particles_numerator);
     double value2 = evaluate(particles_denominator);
 //    cout << "Values are " << value1 << " and " << value2 << endl;
-    //TODO: Shall we really square this?
-    double jastrowRatio = (value1/value2)*(value1/value2);
+
+    double jastrowRatio = (value1/value2);
 
 //cout << "ratio is " << jastrowRatio << endl;
 //exit(0);
