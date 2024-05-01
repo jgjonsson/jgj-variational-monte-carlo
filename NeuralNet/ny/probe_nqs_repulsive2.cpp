@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 
 double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
 double beta = 2.82843; // beta is the second parameter for now.
-double adiabaticFactor = (double)(count+1)/ (double)fixed_number_optimization_runs;
+double adiabaticFactor = 2 * (double)(count+1)/ (double)fixed_number_optimization_runs;
 adiabaticFactor = std::min(1.0, adiabaticFactor);
 cout << "Adiabatic factor: " << adiabaticFactor << endl;
 

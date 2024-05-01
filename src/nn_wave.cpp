@@ -137,7 +137,8 @@ double NeuralNetworkWavefunction::evaluate(std::vector<std::unique_ptr<class Par
     //cout << "Evaluated wave function to " << psi1 <<"*" << psi2 << "=" << (psi1*psi2) << endl;
 
 //cout << "Returning " << psi * m_adiabaticFactor*psiInteractionJastrow << endl;
-    return psi * m_adiabaticFactor*psiInteractionJastrow;//1*psi2;
+    //return psi * m_adiabaticFactor*psiInteractionJastrow;//1*psi2;
+    return psi * psiInteractionJastrow;//1*psi2;
 }
 /*
 double NeuralNetworkWavefunction::gradientSquaredOfLnWaveFunction(vec x)
