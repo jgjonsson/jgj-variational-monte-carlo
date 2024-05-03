@@ -48,6 +48,32 @@ std::vector<double> calculateNumericalGradientParameters(std::unique_ptr<NeuralN
     return gradient;
 }
 
+std::vector<double> calculateNumericalGradientInputs(std::unique_ptr<NeuralNetworkSimple>& looseNeuralNetwork, std::vector<double>& inputs) {
+    double epsilon = 1e-6; // small number for finite difference
+    std::vector<double> gradient(inputs.size());
+
+    for (size_t i = 0; i < inputs.size(); ++i) {
+        // Store the original value so we can reset it later
+        double originalValue = inputs[i];
+
+        // Evaluate function at x+h
+        inputs[i] += epsilon;
+        double plusEpsilon = looseNeuralNetwork->feedForward(inputs);
+
+        // Evaluate function at x-h
+        inputs[i] = originalValue - epsilon;
+        double minusEpsilon = looseNeuralNetwork->feedForward(inputs);
+
+        // Compute the gradient
+        gradient[i] = (plusEpsilon - minusEpsilon) / (2.0 * epsilon);
+
+        // Reset the input to its original value
+        inputs[i] = originalValue;
+    }
+
+    return gradient;
+}
+
 /*
 std::vector<double> calculateNumericalGradient(std::unique_ptr<NeuralNetworkSimple>& looseNeuralNetwork, std::vector<double>& inputs) {
     double epsilon = 1e-6; // small number for finite difference
@@ -139,20 +165,33 @@ cout << "junit 1" << endl;
     }
 
     auto gradientSymbolicCachedFunction = looseNeuralNetwork->getTheGradient(inputsDual);
-    cout << "Gradient calculated with automatic diff cached func:    ";
+    cout << "Params Gradient calculated with automatic diff cached func:    ";
     for(const auto& value : gradientSymbolicCachedFunction) {
         cout << value << " ";
     }
     cout << endl;
 
-    std::vector<double> gradientNumeric = calculateNumericalGradientParameters(looseNeuralNetwork, inputs);
+    auto gradientSymbolicCachedFunctionInputs = looseNeuralNetwork->getTheGradientOnPositions(inputsDual);
+    cout << "Inputs Gradient calculated with automatic diff cached func:    ";
+    for(const auto& value : gradientSymbolicCachedFunctionInputs) {
+        cout << value << " ";
+    }
+    cout << endl;
 
-    cout << "Gradient calculated with numerical methods:             ";
+    std::vector<double> gradientNumeric = calculateNumericalGradientParameters(looseNeuralNetwork, inputs);
+    std::vector<double> gradientNumericInputs = calculateNumericalGradientInputs(looseNeuralNetwork, inputs);
+
+    cout << "Params Gradient calculated with numerical methods:             ";
     for(const auto& value : gradientNumeric) {
         cout << value << " ";
     }
     cout << endl;
 
+    cout << "Inputs Gradient calculated with numerical methods:             ";
+    for(const auto& value : gradientNumericInputs) {
+        cout << value << " ";
+    }
+    cout << endl;
 /*
 	double lap = looseNeuralNetwork->computeLocalLaplasian(particles);
 	cout << " ------------------------------ " << endl;
