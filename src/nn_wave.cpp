@@ -219,25 +219,43 @@ double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<clas
  */
 std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
 {
-    cout << "Trying to compute the QUANTUM FORCE" << endl;
+//    cout << "Trying to compute the QUANTUM FORCE" << endl;
     vec x = flattenParticleCoordinatesToVector(particles, m_M);
-    /*
-    vec sigmoid(m_N);
-    vec gradientLnPsi(m_M);
 
-    sigmoid = 1/(1 + exp(-(m_b + 1/m_sigmaSquared*(m_W.t()*x))));
+//    cout << "Hi done to compute the QUANTUM FORCE" << endl;
+    // I assume again that we do not arrive to forbidden states (r < r_hard_core), so I do not check for that.
+    double alpha = 0.5;
+    std::vector<double> quantumForce = std::vector<double>();
+    std::vector<double> position = particles[particle_index]->getPosition();
+//    cout << "Hej done to compute the QUANTUM FORCE" << endl;
+    for (size_t j = 0; j < position.size(); j++)
+    {
+        quantumForce.push_back(-4 * alpha * position[j] * (j == 2 ? m_beta : 1.0));
+    }
+//    cout << "Half done to compute the QUANTUM FORCE" << endl;
+    VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
+    auto theGradient = m_neuralNetwork.getTheGradientOnPositions(xDual);
+    auto theGradientVector = transformVectorXdualToVector(theGradient);
 
-    gradientLnPsi = 1/m_sigmaSquared*(m_a - x + m_W*sigmoid);
-    vec quantumForceVector = 2 * gradientLnPsi;
-    std::vector<double> quantumForce = arma::conv_to < std::vector<double> >::from(quantumForceVector);
+    //std::vector<double> result(quantumForce.size());
+    for(size_t i = 0; i < quantumForce.size(); i++) {
+        quantumForce[i] = quantumForce[i] + theGradientVector[i];
+    }
+//    cout << "Did to compute the QUANTUM FORCE" << endl;
+    return quantumForce;
+}
 
-    //Pick out the quantum force for only the particle of requested index. From subset of the total quantum force vector,
-    size_t dimensions = particles[0]->getNumberOfDimensions();
-    size_t firstIndex = particle_index*dimensions;
-    size_t lastIndex = firstIndex + dimensions;// - 1;
-    std::vector<double> quantumForceOneSingleParticle(quantumForce.begin()+firstIndex, quantumForce.begin()+lastIndex);
-*/
-    //return quantumForceOneSingleParticle;
-        std::vector<double> dummyValue = {0.0, 0.0, 0.0};
-        return dummyValue;
+std::vector<double> NeuralNetworkWavefunction::transformVectorXdualToVector(const VectorXdual& gradient) {
+    std::vector<double> values(gradient.size());
+    std::transform(gradient.begin(), gradient.end(), values.begin(), [](const dual& d) { return d.val; });
+    return values;
+}
+
+std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles)
+{
+    VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
+    auto theGradient = m_neuralNetwork.getTheGradient(xDual);
+    std::vector<double> logPsiDerivativeOverParameters(theGradient.size());
+    std::transform(theGradient.begin(), theGradient.end(), logPsiDerivativeOverParameters.begin(), [](const dual& d) { return d.val; });
+    return logPsiDerivativeOverParameters;
 }

@@ -139,7 +139,7 @@ int main(int argc, char **argv)
         // As it stands right now it will always run the set number of optimization, and
         if (converged)
             break;
-            
+
         // Extract the gradient
         auto gradient = std::vector<double>(params.size());
         for (size_t param_num = 0; param_num < params.size(); ++param_num)

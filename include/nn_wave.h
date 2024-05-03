@@ -35,6 +35,7 @@ public:
 
     std::vector<double> computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index);
     std::vector<double> computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles);
+    std::vector<double> transformVectorXdualToVector(const VectorXdual& gradient);
 
     void insertParameters(std::vector<double> parameters);
     static std::vector<double> generateRandomParameterSet(size_t rbs_M, size_t rbs_N, int randomSeed, double spread);

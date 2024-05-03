@@ -26,6 +26,7 @@
 #include "../../include/rbm.h"
 #include "../../include/neural.h"
 #include "../../include/nn_wave.h"
+#include "../../include/adam.h"
 
 using namespace std;
 using namespace autodiff;
@@ -54,7 +55,7 @@ int main(int argc, char **argv)
     std::vector<double> params{};
 
     // Start with all parameters as random values
-    int parameter_seed = 2023;         // For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
+    int parameter_seed = 111;//2023;         // For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
     double parameterGuessSpread = 0.1; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
     params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
@@ -86,7 +87,7 @@ int main(int argc, char **argv)
 
     std::unique_ptr<Sampler> combinedSampler;
 
-    int numThreads = 14;//14;
+    int numThreads = 12;//12;//14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
@@ -133,7 +134,7 @@ cout << "Adiabatic factor: " << adiabaticFactor << endl;
                 std::make_unique<NeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega, alpha, beta, adiabaticFactor),
                 // Construct unique_ptr to solver, and move rng
                 //std::make_unique<MetropolisHastings>(std::move(rng)),
-                std::make_unique<Metropolis>(std::move(rng)),
+                std::make_unique<MetropolisHastings>(std::move(rng)),
                 // Move the vector of particles to system
                 std::move(particles));
 //cout << "numberOfMetropolisStepsPerGradientIteration is " << numberOfMetropolisStepsPerGradientIteration << endl;

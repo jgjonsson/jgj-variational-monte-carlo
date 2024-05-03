@@ -22,11 +22,11 @@ NeuralNetworkSimple::NeuralNetworkSimple(std::vector<double> randNumbers, int in
     gradientFunction = getGradientFunction();
 }
 
-dual feedForwardDual(VectorXdual kalle, VectorXdual inputsDual, int inputSize, int hiddenSize) {
+dual feedForwardDual(VectorXdual parameters, VectorXdual inputsDual, int inputSize, int hiddenSize) {
     int weightsSize = inputSize * hiddenSize + hiddenSize;
-    VectorXdual inputLayerWeights = kalle.segment(0, inputSize * hiddenSize);
-    VectorXdual hiddenLayerWeights = kalle.segment(inputSize * hiddenSize, hiddenSize);
-    VectorXdual hiddenLayerBiases = kalle.segment(inputSize * hiddenSize + hiddenSize, hiddenSize);
+    VectorXdual inputLayerWeights = parameters.segment(0, inputSize * hiddenSize);
+    VectorXdual hiddenLayerWeights = parameters.segment(inputSize * hiddenSize, hiddenSize);
+    VectorXdual hiddenLayerBiases = parameters.segment(inputSize * hiddenSize + hiddenSize, hiddenSize);
 
     // Reshape inputLayerWeights into a matrix
     Eigen::Map<MatrixXdual> inputLayerWeightsMatrix(inputLayerWeights.data(), hiddenSize, inputSize);
@@ -89,11 +89,6 @@ double NeuralNetworkSimple::feedForward(std::vector<double> inputs) {
 }
 
 std::function<VectorXdual(VectorXdual, VectorXdual)> NeuralNetworkSimple::getGradientFunction() {
-    /*cout << "Differentiating with parameters being: ";
-    for(const auto& value : parametersDual) {
-        cout << value << " ";
-    }*/
-    cout << endl;
     return [&](VectorXdual parametersDual, VectorXdual inputsDual) {
         auto feedForwardDual2Wrapper = [&](VectorXdual parametersDual) {
             this->parametersDual = parametersDual;
@@ -105,20 +100,61 @@ std::function<VectorXdual(VectorXdual, VectorXdual)> NeuralNetworkSimple::getGra
 }
 
 VectorXdual NeuralNetworkSimple::getTheGradient(VectorXdual inputsDual)
-    //VectorXdual getGradient(VectorXdual inputsDual)
 {
     auto feedForwardWrapper = [&](VectorXdual kalle) {
         return feedForwardDual(kalle, inputsDual, inputSize, hiddenSize);
     };
 
     VectorXdual gradde = gradient(feedForwardWrapper, wrt(parametersDual), at(parametersDual));
-/*
-    cout << "hej" << endl;
-    VectorXdual gradientSymbolic = gradientFunction(parametersDual, inputsDual);
-    return gradientSymbolic;*/
-
     return gradde;
 }
+
+VectorXdual NeuralNetworkSimple::getTheGradientOnPositions(VectorXdual inputsDual)
+{
+    auto feedForwardWrapper = [&](VectorXdual inputs) {
+        return feedForwardDual(parametersDual, inputs, inputSize, hiddenSize);
+    };
+
+    VectorXdual theGradient = gradient(feedForwardWrapper, wrt(inputsDual), at(inputsDual));
+
+    return theGradient;
+}
+/*
+VectorXdual NeuralNetworkSimple::getTheGradientOnPositions (std::vector<double> inputs)
+//(VectorXdual inputsDual)
+{
+auto inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
+    auto feedForwardWrapper = [&](VectorXdual kalle) {
+        return feedForwardDual(parametersDual, kalle, inputSize, hiddenSize);
+    };
+
+    VectorXdual theGradient = gradient(feedForwardWrapper, wrt(inputsDual), at(inputsDual));
+
+    return theGradient;
+}*/
+/*
+//std::vector<double> NeuralNetworkSimple::getTheGradientOnPositions(std::vector<double> inputs)
+VectorXdual NeuralNetworkSimple::getTheGradientOnPositions(std::vector<double> inputs)
+{
+    auto inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
+    auto feedForwardWrapper = [&](VectorXdual kalle) {
+        return feedForwardDual(parametersDual, kalle, inputSize, hiddenSize);
+    };
+
+    VectorXdual theGradient = gradient(feedForwardWrapper, wrt(inputsDual), at(inputsDual));
+
+
+return theGradient;*/
+/*
+    std::vector<double> returnVector(theGradient.size());
+    std::transform(theGradient.begin(), theGradient.end(), returnVector.begin(), [](const dual& d) { return d.val; });
+
+    //std::vector<double> graddeVec = Eigen::Map<VectorXd>(gradde.unaryExpr([](const dual& x) { return val(x); }).data(), gradde.size()).cast<double>();
+//    VectorXd graddeDouble = gradde.unaryExpr([](const dual& x) { return val(x); });
+//    std::vector<double> graddeVec(graddeDouble.data(), graddeDouble.data() + graddeDouble.size());
+    return returnVector;
+    */
+//}
 
 std::vector<double> NeuralNetworkSimple::getTheGradientVector(std::vector<double> inputs)
 {

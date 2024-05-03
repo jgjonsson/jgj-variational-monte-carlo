@@ -44,63 +44,6 @@ mat NeuralNetworkWavefunction::gradient_W_ln_psi(vec x)
     many values of this function, and accumulate in order to calculate the needed averages.
     This function is only concerned about the value for one state.
 */
-std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles)
-{
-//    cout << "Trying to compute log psi derivative over parameters" << endl;
-//#include "../include/neural.h"
-
-    VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
-/*
-    std::vector<double> inputs = flattenParticleCoordinatesToVector(particles, m_M);
-
-
-    auto x1 = m_neuralNetwork.feedForward(inputs);
-//    cout << "Input.length = " << inputs.size() << endl;
-//    cout << "x1 = " << x1 << endl;
-    VectorXdual inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
-
-//    cout << "inputsDual.length = " << inputsDual.size() << endl;
-    auto x2 = m_neuralNetwork.feedForwardDual2(inputsDual);
-//    cout << "x2 = " << x2 << endl;
-    inputsDual = inputsDual.transpose();
-*/
-    auto theGradient = m_neuralNetwork.getTheGradient(xDual);
-
-/*
-    vec grad_a = gradient_a_ln_psi(x);
-    vec grad_b = gradient_b_ln_psi(x);
-
-    mat grad_W = gradient_W_ln_psi(x);
-    std::vector<double> logPsiDerivativeOverParameters = std::vector<double>();
-
-    for (size_t i = 0; i < m_M; i++){
-        logPsiDerivativeOverParameters.push_back(grad_a(i));
-    }
-    for (size_t i = 0; i < m_N; i++){
-        logPsiDerivativeOverParameters.push_back(grad_b(i));
-    }
-
-    for (size_t i = 0; i < m_M; i++){
-        for (size_t j = 0; j < m_N; j++){
-            logPsiDerivativeOverParameters.push_back(grad_W(i,j));
-        }
-    }*/
-//    cout << "Cuccedded to compute log psi derivative over parameters" << endl;
-    /*std::vector<double> logPsiDerivativeOverParameters;
-
-    for(int i = 0; i < theGradient.size(); i++) {
-        dual d = theGradient[i];
-        //std::cout << "d = " << d << std::endl;
-        double d2 = d.val;
-        //.val();
-        logPsiDerivativeOverParameters.push_back(d2); // .val() is used to get the value of the dual number
-    }*/
-    std::vector<double> logPsiDerivativeOverParameters(theGradient.size());
-    std::transform(theGradient.begin(), theGradient.end(), logPsiDerivativeOverParameters.begin(), [](const dual& d) { return d.val; });
-
-    return logPsiDerivativeOverParameters;
-}
-
 /** Function for setting all the parameters. Takes one single array as input and populates a, b and W.
     It's important to insert the values in the same order they where taken out in the function right above.
     This function is meant to be called repeatedly during Gradient descent.
