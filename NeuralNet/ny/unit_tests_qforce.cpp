@@ -7,12 +7,24 @@
 
 int main() {
     // Initialize parameters
-    size_t numberOfParticles = 4;
-    size_t numberOfDimensions = 2;
+    size_t numberOfParticles = 2;
+    size_t numberOfDimensions = 3;
     size_t inputNodes = numberOfParticles * numberOfDimensions;
     size_t hiddenNodes = 2;
     size_t numberParameters = inputNodes * hiddenNodes + hiddenNodes * 2;
-    std::vector<double> parameters(numberParameters, 0.5);
+
+    std::vector<double> parameters(numberParameters);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(-0.1, 0.1);
+
+    for (size_t i = 0; i < numberParameters; ++i) {
+        parameters[i] = dis(gen);
+    }
+    for (size_t i = 0; i < numberParameters; ++i) {
+        std::cout << "Parameter " << i << ": " << parameters[i] << std::endl;
+    }
+
     double omega = 1.0;
     double alpha = 0.5;
     double beta = 1.0;
