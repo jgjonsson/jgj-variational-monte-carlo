@@ -73,9 +73,16 @@ int main(int argc, char **argv)
 
     std::unique_ptr<Sampler> combinedSampler;
 
-    int numThreads = 8;
+    int numThreads = 14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
+
+    //Parameters for Adam optimizer
+    std::vector<double> m(params.size(), 0); // first moment vector
+    std::vector<double> v(params.size(), 0); // second moment vector
+    double beta1 = 0.9; // exponential decay rate for the first moment estimates
+    double beta2 = 0.999; // exponential decay rate for the second moment estimates
+    double epsilon = 1e-8; // small constant for numerical stability
 
     for (size_t count = 0; count < max_iterations; ++count)
     {
@@ -136,37 +143,55 @@ int main(int argc, char **argv)
         if (converged)
             break;
 
-        // Extract the gradient
-        auto gradient = std::vector<double>(params.size());
-        for (size_t param_num = 0; param_num < params.size(); ++param_num)
+        // At first iteration, choose reasonable learning rate
+        if (count == 0)
         {
-            gradient[param_num] = combinedSampler->getObservables()[2 + param_num];
+            learning_rate = std::vector<double>(params.size());
         }
-
+/*
         // At first iteration, choose reasonable learning rate
         if (count == 0)
         {
             learning_rate = std::vector<double>(params.size());
             for (size_t param_num = 0; param_num < params.size(); ++param_num)
             {
-                /*
-                if (fabs(gradient[param_num]) < 0.1)
-                    learning_rate[param_num] = 1;
-                else
-                    learning_rate[param_num] = fabs(0.1 / gradient[param_num]);
-                */
-                // learning_rate[param_num] = 0.01;  //Using hardcoded value like in lecture examples, rather than trying to calculate a more optimal one.
-                // learning_rate[param_num] = 0.1/numberOfParticles;  //Purely on emprihical basis, we experience divergence problems with higher learning rate on large number of particles.
                 learning_rate[param_num] = fixed_learning_rate;
-                // cout << "Learning rate: " << learning_rate[param_num] << endl;
             }
-        }
+        }*/
 
-        // Update the parameter
+        // Extract the gradient
+        auto gradient = std::vector<double>(params.size());
         for (size_t param_num = 0; param_num < params.size(); ++param_num)
         {
-            params[param_num] -= learning_rate[param_num] * gradient[param_num];
+            gradient[param_num] = combinedSampler->getObservables()[2 + param_num];
         }
+        double total_change = 0.0;
+//cout << "Now with Adam" << endl;
+        // Update the parameter using Adam optimizer
+        for (size_t param_num = 0; param_num < params.size(); ++param_num)
+        {
+            // Update biased first and second moment estimates
+            m[param_num] = beta1 * m[param_num] + (1 - beta1) * gradient[param_num];
+//            cout << "Now with Adam 1" << endl;
+            v[param_num] = beta2 * v[param_num] + (1 - beta2) * gradient[param_num] * gradient[param_num];
+//cout << "Now with Adam 2" << endl;
+            // Compute bias-corrected first and second moment estimates
+            double m_hat = m[param_num] / (1 - pow(beta1, count + 1));
+            double v_hat = v[param_num] / (1 - pow(beta2, count + 1));
+//cout << "Now with Adam 3" << endl;
+            // Update parameters
+            params[param_num] -= fixed_learning_rate * m_hat / (sqrt(v_hat) + epsilon);
+//            cout << "Now with Adam 4" << endl;
+            total_change += fabs(fixed_learning_rate * m_hat / (sqrt(v_hat) + epsilon));
+        }
+            /*
+        for (size_t param_num = 0; param_num < params.size(); ++param_num)
+        {
+            //params[param_num] -= learning_rate[param_num] * gradient[param_num];
+            params[param_num] -= fixed_learning_rate * gradient[param_num];
+        }
+*/
+//cout << "After with Adam" << endl;
         if (verbose)
         {
             cout << "Iteration " << count << endl;
@@ -176,7 +201,7 @@ int main(int argc, char **argv)
         }
 
         // Check if the parameter has converged (estimate as total parameter change < tolerance)
-
+/*
         double total_change = 0;
         bool everyCloseEnough = true;
         for (size_t param_num = 0; param_num < params.size(); ++param_num)
@@ -186,7 +211,7 @@ int main(int argc, char **argv)
                 everyCloseEnough = false;
             }
             total_change += fabs(learning_rate[param_num] * gradient[param_num]);
-        }
+        }*/
         cout << "Tolerance " << parameter_tolerance << " Total change: " << total_change << endl;
     }
     // Output information from the simulation
