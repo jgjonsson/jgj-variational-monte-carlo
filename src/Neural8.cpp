@@ -111,8 +111,8 @@ VectorXdual NeuralNetworkSimple::getTheGradient(VectorXdual inputsDual)
 
 VectorXdual NeuralNetworkSimple::getTheGradientOnPositions(VectorXdual inputsDual)
 {
-    auto feedForwardWrapper = [&](VectorXdual inputs) {
-        return feedForwardDual(parametersDual, inputs, inputSize, hiddenSize);
+    auto feedForwardWrapper = [&](VectorXdual inputs2) {
+        return feedForwardDual(parametersDual, inputs2, inputSize, hiddenSize);
     };
 
     VectorXdual theGradient = gradient(feedForwardWrapper, wrt(inputsDual), at(inputsDual));
