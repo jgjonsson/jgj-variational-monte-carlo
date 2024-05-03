@@ -91,6 +91,9 @@ int main(int argc, char **argv)
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
+    //Initialize Adam optimizer
+    AdamOptimizer adamOptimizer(params.size(), fixed_learning_rate);
+
     for (size_t count = 0; count < max_iterations; ++count)
     {
         converged = count == fixed_number_optimization_runs; // TODO: hack for converge condition on set number of iterations
@@ -103,7 +106,7 @@ double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter f
 double beta = 2.82843; // beta is the second parameter for now.
 double adiabaticFactor = 2 * (double)(count+1)/ (double)fixed_number_optimization_runs;
 adiabaticFactor = std::min(1.0, adiabaticFactor);
-cout << "Adiabatic factor: " << adiabaticFactor << endl;
+cout << "Iteration " << count+1 << " Adiabatic factor: " << adiabaticFactor << endl;
 
 #pragma omp parallel shared(samplers, count) // Start parallel region.
         {
@@ -169,52 +172,16 @@ cout << "Finished parallel region" << endl;
             gradient[param_num] = combinedSampler->getObservables()[2 + param_num];
         }
 
-        // At first iteration, choose reasonable learning rate
-        if (count == 0)
-        {
-            learning_rate = std::vector<double>(params.size());
-            for (size_t param_num = 0; param_num < params.size(); ++param_num)
-            {
-                /*
-                if (fabs(gradient[param_num]) < 0.1)
-                    learning_rate[param_num] = 1;
-                else
-                    learning_rate[param_num] = fabs(0.1 / gradient[param_num]);
-                */
-                // learning_rate[param_num] = 0.01;  //Using hardcoded value like in lecture examples, rather than trying to calculate a more optimal one.
-                // learning_rate[param_num] = 0.1/numberOfParticles;  //Purely on emprihical basis, we experience divergence problems with higher learning rate on large number of particles.
-                learning_rate[param_num] = fixed_learning_rate;
-                // cout << "Learning rate: " << learning_rate[param_num] << endl;
-            }
+        // Update the parameter using Adam optimization
+        auto NewParams = adamOptimizer.adamOptimization(params, gradient, count);
+        double sum = 0.0;
+        for (size_t i = 0; i < params.size(); ++i) {
+            double diff = NewParams[i] - params[i];
+            sum += diff * diff;
         }
-
-cout << "Changing parameter 0 " << params[0] << " with " << learning_rate[0] << " * " << gradient[0] <<  " = " << (learning_rate[0]*gradient[0]) << endl;
-        // Update the parameter
-        for (size_t param_num = 0; param_num < params.size(); ++param_num)
-        {
-            params[param_num] -= learning_rate[param_num] * gradient[param_num];
-        }
-        if (verbose)
-        {
-            cout << "Iteration " << count << endl;
-            // cout << "Predictions: ";
-            // combinedSampler->printOutputToTerminal();
-            cout << endl;
-        }
-
-        // Check if the parameter has converged (estimate as total parameter change < tolerance)
-
-        double total_change = 0;
-        bool everyCloseEnough = true;
-        for (size_t param_num = 0; param_num < params.size(); ++param_num)
-        {
-            if (fabs(learning_rate[param_num] * gradient[param_num]) > parameter_tolerance)
-            {
-                everyCloseEnough = false;
-            }
-            total_change += fabs(learning_rate[param_num] * gradient[param_num]);
-        }
-        cout << "Tolerance " << parameter_tolerance << " Total change: " << total_change << endl;
+        double meanSquareDifference = sum / params.size();
+        params = NewParams;
+        cout << "Tolerance " << parameter_tolerance << " Adam MSE Total change: " << meanSquareDifference << endl;
         cout << "Energy estimate: " << combinedSampler->getObservables()[0] << endl;
     }
     // Output information from the simulation
