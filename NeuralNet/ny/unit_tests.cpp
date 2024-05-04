@@ -178,7 +178,8 @@ cout << "junit 1" << endl;
     }
     cout << endl;
 
-    std::vector<double> gradientNumeric = calculateNumericalGradientParameters(looseNeuralNetwork, inputs);
+    //std::vector<double> gradientNumeric = calculateNumericalGradientParameters(looseNeuralNetwork, inputs);
+    std::vector<double> gradientNumeric = looseNeuralNetwork->calculateNumericalGradientParameters(inputs);
     std::vector<double> gradientNumericInputs = calculateNumericalGradientInputs(looseNeuralNetwork, inputs);
 
     cout << "Params Gradient calculated with numerical methods:             ";

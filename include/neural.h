@@ -40,6 +40,9 @@ public:
     //std::vector<double> getTheGradientOnPositions(std::vector<double> inputs);
     VectorXdual getTheGradientOnPositions(std::vector<double> inputs);
     VectorXdual getTheGradientOnPositions(VectorXdual inputsDual);
+
+    std::vector<double> calculateNumericalGradientParameters(std::vector<double>& inputs);
+
     std::vector<double> getTheGradientVector(std::vector<double> inputs);
     void backpropagate(std::vector<double> inputs, double targetOutput, double learningRate);
     void printParameters();

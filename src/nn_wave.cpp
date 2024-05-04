@@ -273,9 +273,12 @@ std::vector<double> NeuralNetworkWavefunction::transformVectorXdualToVector(cons
 
 std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles)
 {
+    auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
+    return m_neuralNetwork.calculateNumericalGradientParameters(xInputs);
+/*
     VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
     auto theGradient = m_neuralNetwork.getTheGradient(xDual);
     std::vector<double> logPsiDerivativeOverParameters(theGradient.size());
     std::transform(theGradient.begin(), theGradient.end(), logPsiDerivativeOverParameters.begin(), [](const dual& d) { return d.val; });
-    return logPsiDerivativeOverParameters;
+    return logPsiDerivativeOverParameters;*/
 }

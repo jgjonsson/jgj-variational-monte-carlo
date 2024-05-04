@@ -172,3 +172,29 @@ std::vector<double> NeuralNetworkSimple::getTheGradientVector(std::vector<double
 
     return graddeVec;
 }
+
+std::vector<double> NeuralNetworkSimple::calculateNumericalGradientParameters(std::vector<double>& inputs) {
+    double epsilon = 1e-6; // small number for finite difference
+    std::vector<double> gradient(parameters.size());
+
+    for (size_t i = 0; i < parameters.size(); ++i) {
+        // Store the original value so we can reset it later
+        double originalValue = parameters[i];
+
+        // Evaluate function at p+h
+        parameters[i] += epsilon;
+        double plusEpsilon = feedForward(inputs);
+
+        // Evaluate function at p-h
+        parameters[i] = originalValue - epsilon;
+        double minusEpsilon = feedForward(inputs);
+
+        // Compute the gradient
+        gradient[i] = (plusEpsilon - minusEpsilon) / (2.0 * epsilon);
+
+        // Reset the parameter to its original value
+        parameters[i] = originalValue;
+    }
+
+    return gradient;
+}
