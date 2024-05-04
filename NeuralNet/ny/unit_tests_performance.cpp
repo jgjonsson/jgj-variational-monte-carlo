@@ -13,6 +13,7 @@
 
 #include "../../include/neural.h"
 #include "../../include/nn_wave.h"
+#include "../../include/neural_reverse.h"
 
 using namespace std;
 
@@ -118,6 +119,7 @@ int main(int argc, char **argv)
 	//auto looseNeuralNetwork = std::make_unique<SimpleRBM>(rbs_M, rbs_N, randomParameters, omega);
     auto start = std::chrono::high_resolution_clock::now();
 	auto looseNeuralNetwork = std::make_unique<NeuralNetworkSimple>(randomParameters, rbs_M, rbs_N);
+	auto speedyNeuralNetwork = std::make_unique<NeuralNetworkReverse>(randomParameters, rbs_M, rbs_N);
 	auto elapsedAutodiff =  std::chrono::high_resolution_clock::now() - start;
 	// Construct an input vector of doubles
     //std::vector<double> inputs = {0.1, 0.2, 0.3, 0.4};
@@ -141,9 +143,11 @@ cout << "junit 1" << endl;
     cout << "junit 2" << endl;
     // Call the feedForward function
     double output = looseNeuralNetwork->feedForward(inputs);
+    double outputReverse = speedyNeuralNetwork->feedForward(inputs);
     cout << "junit 3" << endl;
     cout << "outputDual: " << outputDual << endl;
     cout << "output: " << output << endl;
+    cout << "output Reverse: " << outputReverse << endl;
     // Check if the values are the same
     if (abs(output - static_cast<double>(outputDual)) < 1e-6) {
         std::cout << "The values are the same." << std::endl;
@@ -162,9 +166,20 @@ for(int q=0; q<4;q++){
     auto gradientSymbolicCachedFunction = looseNeuralNetwork->getTheGradient(inputsDual);
     auto gradientSymbolicCachedFunction2 = looseNeuralNetwork->getTheGradient(inputsDual2);
     auto gradientSymbolicCachedFunction3 = looseNeuralNetwork->getTheGradient(inputsDual3);
+
     auto elapsedAutoPerform =  std::chrono::high_resolution_clock::now() - start2;
 
+    auto start2a = std::chrono::high_resolution_clock::now();
+
+
+    auto gradientReverseMode1 = speedyNeuralNetwork->getTheGradientVectorParameters(inputs);
+    auto gradientReverseMode2 = speedyNeuralNetwork->getTheGradientVectorParameters(inputs2);
+    auto gradientReverseMode3 = speedyNeuralNetwork->getTheGradientVectorParameters(inputs3);
+
+    auto elapsedAutoReversePerform =  std::chrono::high_resolution_clock::now() - start2a;
+
     cout << "Evaluate derivative took       " << elapsedAutoPerform.count() << " milliseconds to execute." << endl;
+    cout << "Reverse mode derivative took       " << elapsedAutoReversePerform.count() << " milliseconds to execute." << endl;
 
 if(verbose){
     cout << "Gradient calculated with automatic diff cached func:    ";
