@@ -7,6 +7,7 @@
 #include <cmath>
 #include <random>
 #include <cstdlib>
+#include <iomanip>
 
 #include <autodiff/forward/dual.hpp>
 #include <autodiff/forward/dual/eigen.hpp>
@@ -56,7 +57,7 @@ int main(int argc, char **argv)
 
     // Start with all parameters as random values
     int parameter_seed = 2023;//111;//2023;         // For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
-    double parameterGuessSpread = 0.01; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
+    double parameterGuessSpread = 0.1; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
     params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
 
@@ -185,6 +186,11 @@ cout << "Finished parallel region" << endl;
         params = NewParams;
 
         combinedSampler->printOutputToTerminalMini(verbose);
+
+        for (const auto &param : params) {
+            std::cout << std::setprecision(3) << std::fixed << param << " ";
+        }
+        std::cout << std::endl;
         cout << "Tolerance " << parameter_tolerance << " Adam MSE Total change: " << meanSquareDifference << endl;
         cout << "Energy estimate: " << combinedSampler->getObservables()[0] << endl;
 
