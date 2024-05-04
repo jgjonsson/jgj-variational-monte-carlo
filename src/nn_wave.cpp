@@ -8,7 +8,7 @@
 #include "../include/neural_reverse.h"
 
 using namespace std;
-using namespace arma;
+
 
 //TODO: 0.5 is nearly optimal, maybe exactly optimal for case 2 part 2D? However we should parametrize this as well later.
 //double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
@@ -106,20 +106,15 @@ double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<clas
 
     double value1 = evaluate(particles_numerator);
     double value2 = evaluate(particles_denominator);
-//    cout << "Values are " << value1 << " and " << value2 << endl;
 
-    double jastrowRatio = (value1/value2);
-
-//cout << "ratio is " << jastrowRatio << endl;
-//exit(0);
-    return jastrowRatio;
+    return value1/value2;
 }
 
 /** Calculate the quantum force, defined by 2 * 1/Psi * grad(Psi)
  */
 std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
 {
-    vec x = flattenParticleCoordinatesToVector(particles, m_M);
+    //vec x = flattenParticleCoordinatesToVector(particles, m_M);
 
     // I assume again that we do not arrive to forbidden states (r < r_hard_core), so I do not check for that.
     double alpha = 0.5;
@@ -146,13 +141,7 @@ std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<s
     }
     return quantumForce;
 }
-/*
-std::vector<double> NeuralNetworkWavefunction::transformVectorXdualToVector(const VectorXdual& gradient) {
-    std::vector<double> values(gradient.size());
-    std::transform(gradient.begin(), gradient.end(), values.begin(), [](const dual& d) { return d.val; });
-    return values;
-}
-*/
+
 std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
