@@ -28,52 +28,14 @@ NeuralNetworkWavefunction::NeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N,
     //TODO: Consider parameterizing this. However project spec says only look at sigma=1.0 so this is perhaps ok.
     m_sigmaSquared = 1.0;
 
-    //NeuralNetwork neuralNetwork(parameters, inputNodes, hiddenNodes);
-    //NeuralNetwork neuralNetwork(parameters, rbs_M, rbs_N);
-    // Initialize m_neuralNetwork here after the assertions
-    //m_neuralNetwork = NeuralNetwork(parameters, rbs_M, rbs_N);
-
     m_numberOfParameters = parameters.size();
 
-
-//cout << "Satte upp et neural network med " << rbs_M << " och " << rbs_N << " noder, " << m_numberOfParameters << " params." << endl;
-
-    //Number of parameters, M and N
     this->m_M = rbs_M;
     this->m_N = rbs_N;
-/*
-    //Parameters for the wave function, initialize as vectors and matrices
-    m_W.set_size(m_M, m_N);
-    m_a.set_size(m_M);
-    m_b.set_size(m_N);
 
-    insertParameters(parameters);*/
-/*
-    cout << "Initial a = " << m_a << endl;
-    cout << "Initial b = " << m_b << endl;
-    cout << "Initial W = " << m_W << endl;
-*/
     m_numberOfParameters = parameters.size();
 }
 
-/** Helper-function to turn the P particles times D dimensions coordinates into a M=P*D vector
-*/
-//vec flattenParticleCoordinatesToVector(std::vector<class Particle*> particles, size_t m_M)
-/*vec NeuralNetworkWavefunction::flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
-{
-    vec x(m_M);
-    for (size_t i = 0; i < particles.size(); i++)
-    {
-        auto position = particles[i]->getPosition();
-        auto numDimensions = position.size();
-        for (size_t j=0; j<numDimensions; j++)
-        {
-            x(i*numDimensions + j) = position[j];
-        }
-    }
-    return x;
-}
-*/
 std::vector<double> NeuralNetworkWavefunction::flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
 {
     std::vector<double> x(m_M);
@@ -125,45 +87,10 @@ double NeuralNetworkWavefunction::evaluate(std::vector<std::unique_ptr<class Par
 
     auto x = flattenParticleCoordinatesToVector(particles, m_M);
     double psiInteractionJastrow = m_neuralNetwork.feedForward(x);
-//    cout <<"Psi interaction jastrow is " << psiInteractionJastrow << endl;
-/*
-    vec xMinusA = x - m_a;
-    double psi1 = exp(-1/(2*m_sigmaSquared)*dot(xMinusA, xMinusA));
 
-    vec xTimesW = m_W.t()*x; //Transpose is necessary to get the matching dimensions.
-    vec psiFactors = 1 + exp(m_b + 1/m_sigmaSquared*(xTimesW));
-    double psi2 = prod(psiFactors);
-*/
-    //cout << "Evaluated wave function to " << psi1 <<"*" << psi2 << "=" << (psi1*psi2) << endl;
-
-//cout << "Returning " << psi * m_adiabaticFactor*psiInteractionJastrow << endl;
-    //return psi * m_adiabaticFactor*psiInteractionJastrow;//1*psi2;
     return psi * psiInteractionJastrow;//1*psi2;
 }
-/*
-double NeuralNetworkWavefunction::gradientSquaredOfLnWaveFunction(vec x)
-{
-    vec sigmoid(m_N);
-    vec gradientLnPsi(m_M);
 
-    sigmoid = 1/(1 + exp(-(m_b + 1/m_sigmaSquared*(m_W.t()*x))));
-
-    gradientLnPsi = 1/m_sigmaSquared*(m_a - x + m_W*sigmoid);
-
-    return dot(gradientLnPsi, gradientLnPsi);
-}
-
-double NeuralNetworkWavefunction::laplacianOfLnWaveFunction(vec x)
-{
-    cout << "Trying to compute the LAPLACIAN" << endl;
-    vec sigmoidParameter = (m_b + 1/m_sigmaSquared*(m_W.t()*x));
-    vec sigmoid = 1/(1 + exp(-sigmoidParameter));
-    vec sigmoidNegative = 1/(1 + exp(sigmoidParameter));
-    vec sigmoidTimesSigmoidNegative = sigmoid%sigmoidNegative;  //Elementwise multiplication to obtain all S(bj+...)S(-bj-...) terms.
-    vec termsLaplacianLnPsi = -1/m_sigmaSquared + 1/(m_sigmaSquared*m_sigmaSquared)*(square(m_W)*sigmoidTimesSigmoidNegative);
-    return sum(termsLaplacianLnPsi);
-}
-*/
 /** Compute the double derivative of the trial wave function over trial wave function.
  *  This is based on an analythical derivation using product rule showing that is equivalent
  *  to the expression you see below.
@@ -188,17 +115,6 @@ double NeuralNetworkWavefunction::computeLocalLaplasian(std::vector<std::unique_
     }
     return sum_laplasian;
 }
- /*
-double NeuralNetworkWavefunction::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
-{
-
-    //TODO: return symbolic derivative of ln(psi) after we have joined the neural network with gaussian trial wave function.
-    //Alternatively try to compute the laplacian of the wave function by autodiff.
-    return 0.0;
-    / *vec x = flattenParticleCoordinatesToVector(particles, m_M);
-    return gradientSquaredOfLnWaveFunction(x) + laplacianOfLnWaveFunction(x);
-    * /
-}*/
 
 double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<class Particle>> &particles_numerator, std::vector<std::unique_ptr<class Particle>> &particles_denominator)
 {
@@ -219,24 +135,16 @@ double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<clas
  */
 std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
 {
-//    cout << "Trying to compute the QUANTUM FORCE" << endl;
     vec x = flattenParticleCoordinatesToVector(particles, m_M);
 
-//    cout << "Hi done to compute the QUANTUM FORCE" << endl;
     // I assume again that we do not arrive to forbidden states (r < r_hard_core), so I do not check for that.
     double alpha = 0.5;
     std::vector<double> quantumForce = std::vector<double>();
     std::vector<double> position = particles[particle_index]->getPosition();
-//    cout << "Hej done to compute the QUANTUM FORCE" << endl;
     for (int j = 0; j < position.size(); j++)
     {
         quantumForce.push_back(-4 * alpha * position[j]);
-    }/*
-    for (size_t j = 0; j < position.size(); j++)
-    {
-        quantumForce.push_back(-4 * alpha * position[j] * (j == 2 ? m_beta : 1.0));
-    }*/
-//    cout << "Half done to compute the QUANTUM FORCE" << endl;
+    }
     VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
     auto theGradient = m_neuralNetwork.getTheGradientOnPositions(xDual);
     auto theGradientVector = transformVectorXdualToVector(theGradient);
@@ -248,20 +156,9 @@ std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<s
     size_t end = start + numDimensions;
 
     for(size_t i = start; i < end; i++) {
-        auto interactionPartOfQuantumForce = 2 * theGradientVector[i];  //TODO: Should it be a minus sign?
-        //cout << "Performing assignment to " << i - start << " being " << quantumForce[i - start] << " with value " << interactionPartOfQuantumForce << " from gradient " << i << " being" << theGradientVector[i] << endl;
+        auto interactionPartOfQuantumForce = 2 * theGradientVector[i];
         quantumForce[i - start] += interactionPartOfQuantumForce;
     }
-    /*
-    for(size_t i = 0; i < quantumForce.size(); i++) {
-        // Skip the calculation for the particle at particle_index
-        / * if (i / numDimensions == particle_index) {
-            continue;
-        }* /
-        auto interactionPartOfQuantumForce = 2 * theGradientVector[i];  //TODO: Should it be a minus sign?
-        quantumForce[i] = quantumForce[i] + interactionPartOfQuantumForce;
-    }*/
-//    cout << "Did to compute the QUANTUM FORCE" << endl;
     return quantumForce;
 }
 

@@ -20,7 +20,6 @@ NeuralNetworkReverse::NeuralNetworkReverse(std::vector<double> randNumbers, int 
     : parameters(randNumbers), inputSize(inputSize), hiddenSize(hiddenSize)
 {
     parametersDual = Eigen::Map<VectorXd>(randNumbers.data(), randNumbers.size()).cast<var>().array();
-    //gradientFunction = getGradientFunction();
 }
 
 using ArrayXXvar = Eigen::Array<autodiff::var, Eigen::Dynamic, Eigen::Dynamic>;
@@ -28,7 +27,6 @@ using ArrayXXvar = Eigen::Array<autodiff::var, Eigen::Dynamic, Eigen::Dynamic>;
 
 
 var feedForwardXvar(const ArrayXvar& parameters, const ArrayXvar& inputs, int inputSize, int hiddenSize) {
-//return sqrt((inputsDual * inputsDual).sum());
 
     int weightsSize = inputSize * hiddenSize + hiddenSize;
     ArrayXvar inputLayerWeights = parameters.head(inputSize * hiddenSize);
