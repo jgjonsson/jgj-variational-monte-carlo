@@ -165,8 +165,8 @@ cout << "junit 1" << endl;
         std::cout << "The values are not the same." << std::endl;
     }
 */
-auto gradientSymbolicCachedFunctionInputs = looseNeuralNetwork->getTheGradientVector(inputs);
-auto gradientSymbolicCachedFunctionParameters = looseNeuralNetwork->getTheGradientVectorParameters(inputs);
+auto gradientSymbolicCachedFunctionInputs = looseNeuralNetwork->getTheGradientVectorWrtInputs(inputs);
+auto gradientSymbolicCachedFunctionParameters = looseNeuralNetwork->getTheGradientVectorWrtParameters(inputs);
 
     cout << "Params Gradient calculated with automatic diff cached func:    ";
     for(const auto& value : gradientSymbolicCachedFunctionParameters) {

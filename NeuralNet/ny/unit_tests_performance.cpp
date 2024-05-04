@@ -172,13 +172,13 @@ for(int q=0; q<4;q++){
     auto start2a = std::chrono::high_resolution_clock::now();
 
 
-    auto gradientReverseMode1 = speedyNeuralNetwork->getTheGradientVectorParameters(inputs);
-    auto gradientReverseMode2 = speedyNeuralNetwork->getTheGradientVectorParameters(inputs2);
-    auto gradientReverseMode3 = speedyNeuralNetwork->getTheGradientVectorParameters(inputs3);
+    auto gradientReverseMode1 = speedyNeuralNetwork->getTheGradientVectorWrtParameters(inputs);
+    auto gradientReverseMode2 = speedyNeuralNetwork->getTheGradientVectorWrtParameters(inputs2);
+    auto gradientReverseMode3 = speedyNeuralNetwork->getTheGradientVectorWrtParameters(inputs3);
 
     auto elapsedAutoReversePerform =  std::chrono::high_resolution_clock::now() - start2a;
 
-    cout << "Evaluate derivative took       " << elapsedAutoPerform.count() << " milliseconds to execute." << endl;
+    cout << "Evaluate derivative took           " << elapsedAutoPerform.count() << " milliseconds to execute." << endl;
     cout << "Reverse mode derivative took       " << elapsedAutoReversePerform.count() << " milliseconds to execute." << endl;
 
 if(verbose){
@@ -209,7 +209,7 @@ if(verbose){
          }
     cout << endl;}
 
-    cout << "Numeric derivative took        " << elapsedNumeric.count() << " milliseconds to execute." << endl;
+    cout << "Numeric derivative took            " << elapsedNumeric.count() << " milliseconds to execute." << endl;
 }
 /*
 	double lap = looseNeuralNetwork->computeLocalLaplasian(particles);

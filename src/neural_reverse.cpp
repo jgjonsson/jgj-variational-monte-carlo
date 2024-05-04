@@ -77,7 +77,7 @@ double NeuralNetworkReverse::feedForward(std::vector<double> inputs) {
     return finalOutput;
 }
 
-std::vector<double> NeuralNetworkReverse::getTheGradientVectorParameters(std::vector<double> inputs)
+std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtParameters(std::vector<double> inputs)
 {
     VectorXvar xInputs = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
 
@@ -93,7 +93,7 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVectorParameters(std::ve
     return dydx_vec;
 }
 
-std::vector<double> NeuralNetworkReverse::getTheGradientVector(std::vector<double> inputs)
+std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtInputs(std::vector<double> inputs)
 {
     VectorXvar x = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
 
