@@ -79,16 +79,20 @@ double NeuralNetworkReverse::feedForward(std::vector<double> inputs) {
 
 std::vector<double> NeuralNetworkReverse::getTheGradientVectorParameters(std::vector<double> inputs)
 {
+/*
     VectorXvar xInputs(inputSize);
     for (int i = 0; i < inputSize; i++) {
         xInputs(i) = inputs[i];
     }
-
+*/
+    VectorXvar xInputs = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
+    VectorXvar x = Eigen::Map<VectorXd>(parameters.data(), parameters.size()).cast<var>().array();
+/*
     VectorXvar x(parameters.size());
     for (int i = 0; i < parameters.size(); i++) {
         x(i) = parameters[i];
     }
-
+*/
     auto feedForwardWrapper = [&](const VectorXvar& kalle) {
         return feedForwardXvar(kalle, xInputs, inputSize, hiddenSize);
     };
@@ -107,6 +111,10 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVectorParameters(std::ve
 
 std::vector<double> NeuralNetworkReverse::getTheGradientVector(std::vector<double> inputs)
 {
+
+    VectorXvar x = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
+    VectorXvar xParameters = Eigen::Map<VectorXd>(parameters.data(), parameters.size()).cast<var>().array();
+    /*
     VectorXvar x(inputSize);
     for (int i = 0; i < inputSize; i++) {
         x(i) = inputs[i];
@@ -116,7 +124,7 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVector(std::vector<doubl
     for (int i = 0; i < parameters.size(); i++) {
         xParameters(i) = parameters[i];
     }
-
+*/
     auto feedForwardWrapper = [&](const VectorXvar& inputsDual) {
         return feedForwardXvar(xParameters, inputsDual, inputSize, hiddenSize);
     };
