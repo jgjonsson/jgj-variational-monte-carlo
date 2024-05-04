@@ -102,7 +102,7 @@ std::vector<double> SimpleRBM::generateRandomParameterSet(size_t rbs_M, size_t r
     mt19937_64 generator;
     generator.seed(randomSeed);
     normal_distribution<double> distribution(0, spread);
-
+double reduceSizeFactor = 0.1;
     std::vector<double> parameters = std::vector<double>();
     size_t numberParameters = rbs_M+rbs_N+rbs_M*rbs_N;
     for (size_t i = 0; i < numberParameters; i++){

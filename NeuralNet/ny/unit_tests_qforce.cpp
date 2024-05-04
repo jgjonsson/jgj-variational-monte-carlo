@@ -40,13 +40,18 @@ int main() {
         particles.push_back(std::make_unique<Particle>(position));
     }
 
+    for (size_t i = 0; i < numberOfParticles; ++i) {
+        std::vector<double> quantumForce = wavefunction.computeQuantumForce(particles, i);
+        for (size_t j = 0; j < numberOfDimensions; ++j) {
+            std::cout << "Quantum force " << i << " " << j << ": " << quantumForce[j] << std::endl;
+        }
+    }
     // Compute quantum force
     std::vector<double> quantumForce = wavefunction.computeQuantumForce(particles, 0);
 
     // Check the size of the quantum force vector
     //ASSERT_EQ(quantumForce.size(), numberOfDimensions);
     assert(quantumForce.size() == numberOfDimensions);
-
 
     // Check the values of the quantum force vector
     // The expected values depend on the specific implementation of your computeQuantumForce method

@@ -85,7 +85,7 @@ std::vector<double> NeuralNetworkWavefunction::generateRandomParameterSet(size_t
     mt19937_64 generator;
     generator.seed(randomSeed);
     normal_distribution<double> distribution(0, spread);
-
+//double reduceSizeFactor = 0.1;
     std::vector<double> parameters = std::vector<double>();
     //size_t numberParameters = rbs_M+rbs_N+rbs_M*rbs_N;
     int inputNodes = rbs_M;

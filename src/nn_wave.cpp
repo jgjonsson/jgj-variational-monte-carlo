@@ -240,14 +240,23 @@ std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<s
     //auto position = particles[0]->getPosition();
     auto numDimensions = position.size();
     //std::vector<double> result(quantumForce.size());
+    size_t start = particle_index * numDimensions;
+    size_t end = start + numDimensions;
+
+    for(size_t i = start; i < end; i++) {
+        auto interactionPartOfQuantumForce = 2 * theGradientVector[i];  //TODO: Should it be a minus sign?
+        //cout << "Performing assignment to " << i - start << " being " << quantumForce[i - start] << " with value " << interactionPartOfQuantumForce << " from gradient " << i << " being" << theGradientVector[i] << endl;
+        quantumForce[i - start] = quantumForce[i - start] + interactionPartOfQuantumForce;
+    }
+    /*
     for(size_t i = 0; i < quantumForce.size(); i++) {
         // Skip the calculation for the particle at particle_index
-        /*if (i / numDimensions == particle_index) {
+        / * if (i / numDimensions == particle_index) {
             continue;
-        }*/
+        }* /
         auto interactionPartOfQuantumForce = 2 * theGradientVector[i];  //TODO: Should it be a minus sign?
         quantumForce[i] = quantumForce[i] + interactionPartOfQuantumForce;
-    }
+    }*/
 //    cout << "Did to compute the QUANTUM FORCE" << endl;
     return quantumForce;
 }
