@@ -165,23 +165,21 @@ cout << "junit 1" << endl;
         std::cout << "The values are not the same." << std::endl;
     }
 */
-auto gradientSymbolicCachedFunction = looseNeuralNetwork->getTheGradientVector(inputs);
+auto gradientSymbolicCachedFunctionInputs = looseNeuralNetwork->getTheGradientVector(inputs);
+auto gradientSymbolicCachedFunctionParameters = looseNeuralNetwork->getTheGradientVectorParameters(inputs);
 
-/*
-    auto gradientSymbolicCachedFunction = looseNeuralNetwork->getTheGradient(inputsDual);
     cout << "Params Gradient calculated with automatic diff cached func:    ";
-    for(const auto& value : gradientSymbolicCachedFunction) {
+    for(const auto& value : gradientSymbolicCachedFunctionParameters) {
         cout << value << " ";
     }
     cout << endl;
 
-    auto gradientSymbolicCachedFunctionInputs = looseNeuralNetwork->getTheGradientOnPositions(inputsDual);
     cout << "Inputs Gradient calculated with automatic diff cached func:    ";
     for(const auto& value : gradientSymbolicCachedFunctionInputs) {
         cout << value << " ";
     }
     cout << endl;
-*/
+
     //std::vector<double> gradientNumeric = calculateNumericalGradientParameters(looseNeuralNetwork, inputs);
     std::vector<double> gradientNumeric = looseNeuralNetwork->calculateNumericalGradientParameters(inputs);
     std::vector<double> gradientNumericInputs = calculateNumericalGradientInputs(looseNeuralNetwork, inputs);

@@ -26,6 +26,7 @@ NeuralNetworkReverse::NeuralNetworkReverse(std::vector<double> randNumbers, int 
 using ArrayXXvar = Eigen::Array<autodiff::var, Eigen::Dynamic, Eigen::Dynamic>;
 
 
+
 var feedForwardXvar(const ArrayXvar& parameters, const ArrayXvar& inputs, int inputSize, int hiddenSize) {
 //return sqrt((inputsDual * inputsDual).sum());
 
@@ -194,9 +195,36 @@ return theGradient;*/
     */
 //}
 
+std::vector<double> NeuralNetworkReverse::getTheGradientVectorParameters(std::vector<double> inputs)
+{
+    VectorXvar xInputs(inputSize);
+    for (int i = 0; i < inputSize; i++) {
+        xInputs(i) = inputs[i];
+    }
+
+    VectorXvar x(parameters.size());
+    for (int i = 0; i < parameters.size(); i++) {
+        x(i) = parameters[i];
+    }
+
+    auto feedForwardWrapper = [&](const VectorXvar& kalle) {
+        return feedForwardXvar(kalle, xInputs, inputSize, hiddenSize);
+    };
+
+    var y = feedForwardWrapper(x); // the output variable y
+
+    VectorXd dydx = gradient(y, x);        // evaluate the gradient vector dy/dx
+
+    std::cout << "y = " << y << std::endl;           // print the evaluated output y
+    std::cout << "dy/dx = \n" << dydx << std::endl;  // print the evaluated gradient vector dy/dx
+
+    std::vector<double> dydx_vec(dydx.data(), dydx.data() + dydx.size());
+
+    return dydx_vec;
+}
+
 std::vector<double> NeuralNetworkReverse::getTheGradientVector(std::vector<double> inputs)
 {
-    //
     VectorXvar x(inputSize);
     for (int i = 0; i < inputSize; i++) {
         x(i) = inputs[i];
