@@ -147,6 +147,16 @@ void Sampler::printOutputToTerminal(bool verbose)
     cout << endl;
 }
 
+
+void Sampler::printOutputToTerminalMini(bool verbose)
+{
+    auto p = m_wavefunction_parameters.size();
+    cout << " Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << endl;
+    cout << " Ratio of accepted steps: " << ((double)m_numberOfAcceptedSteps) / ((double)m_numberOfMetropolisSteps) << endl;
+    cout << " Energy : " << m_observables[0] << endl;
+    cout << endl;
+}
+
 void Sampler::computeObservables()
 {
     /* Compute the observables out of the sampled quantities.

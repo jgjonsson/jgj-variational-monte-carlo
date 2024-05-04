@@ -228,10 +228,14 @@ std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<s
     std::vector<double> quantumForce = std::vector<double>();
     std::vector<double> position = particles[particle_index]->getPosition();
 //    cout << "Hej done to compute the QUANTUM FORCE" << endl;
+    for (int j = 0; j < position.size(); j++)
+    {
+        quantumForce.push_back(-4 * alpha * position[j]);
+    }/*
     for (size_t j = 0; j < position.size(); j++)
     {
         quantumForce.push_back(-4 * alpha * position[j] * (j == 2 ? m_beta : 1.0));
-    }
+    }*/
 //    cout << "Half done to compute the QUANTUM FORCE" << endl;
     VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
     auto theGradient = m_neuralNetwork.getTheGradientOnPositions(xDual);
@@ -244,7 +248,7 @@ std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<s
     size_t end = start + numDimensions;
 
     for(size_t i = start; i < end; i++) {
-        auto interactionPartOfQuantumForce = 2 * theGradientVector[i];  //TODO: Should it be a minus sign?
+        auto interactionPartOfQuantumForce = - 2 * theGradientVector[i];  //TODO: Should it be a minus sign?
         //cout << "Performing assignment to " << i - start << " being " << quantumForce[i - start] << " with value " << interactionPartOfQuantumForce << " from gradient " << i << " being" << theGradientVector[i] << endl;
         quantumForce[i - start] = quantumForce[i - start] + interactionPartOfQuantumForce;
     }

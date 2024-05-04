@@ -93,6 +93,7 @@ int main(int argc, char **argv)
 
     //Initialize Adam optimizer
     AdamOptimizer adamOptimizer(params.size(), fixed_learning_rate);
+    bool hasResetAdamAtEndOfAdiabaticChange = false;
 
     for (size_t count = 0; count < max_iterations; ++count)
     {
@@ -174,7 +175,7 @@ cout << "Finished parallel region" << endl;
         }
 
         // Update the parameter using Adam optimization
-        auto NewParams = adamOptimizer.adamOptimization(params, gradient, count);
+        auto NewParams = adamOptimizer.adamOptimization(params, gradient);
         double sum = 0.0;
         for (size_t i = 0; i < params.size(); ++i) {
             double diff = fabs(NewParams[i] - params[i]);
@@ -183,13 +184,14 @@ cout << "Finished parallel region" << endl;
         double meanSquareDifference = sum / params.size();
         params = NewParams;
 
+        combinedSampler->printOutputToTerminalMini(verbose);
         cout << "Tolerance " << parameter_tolerance << " Adam MSE Total change: " << meanSquareDifference << endl;
         cout << "Energy estimate: " << combinedSampler->getObservables()[0] << endl;
 
         if(adiabaticFactor==1.0 && !hasResetAdamAtEndOfAdiabaticChange)
         {
             cout << "Resetting Adam optimizer" << endl;
-            adamOptimizers[thread_id].reset();
+            adamOptimizer.reset();
             hasResetAdamAtEndOfAdiabaticChange = true;
         }
     }
