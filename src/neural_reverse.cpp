@@ -52,65 +52,6 @@ var feedForwardXvar(const ArrayXvar& parameters, const ArrayXvar& inputs, int in
     return finalOutput;
 }
 
-// The scalar function for which the gradient is needed
-var feedForwardDual(const ArrayXvar& parameters, const ArrayXvar& inputsDual, int inputSize, int hiddenSize) {
-return sqrt((inputsDual * inputsDual).sum());
-#if 0
-    int weightsSize = inputSize * hiddenSize + hiddenSize;
-    ArrayXvar inputLayerWeights = parameters.head(inputSize * hiddenSize);
-    ArrayXvar hiddenLayerWeights = parameters.segment(inputSize * hiddenSize, hiddenSize);
-    ArrayXvar hiddenLayerBiases = parameters.tail(hiddenSize);
-    /*
-    ArrayXvar inputLayerWeights = parameters.segment(0, inputSize * hiddenSize);
-    ArrayXvar hiddenLayerWeights = parameters.segment(inputSize * hiddenSize, hiddenSize);
-    ArrayXvar hiddenLayerBiases = parameters.segment(inputSize * hiddenSize + hiddenSize, hiddenSize);
-*/
-    // Reshape inputLayerWeights into a matrix
-    Eigen::Map<ArrayXXvar> inputLayerWeightsMatrix(inputLayerWeights.data(), hiddenSize, inputSize);
-  //auto hiddenOutputsBeforeActivation = (inputLayerWeightsMatrix.matrix() * inputsDual.matrix()).array() + hiddenLayerBiases;
-    //auto hiddenOutputsBeforeActivation = (inputLayerWeightsMatrix.matrix() * inputsDual.matrix()).array() + hiddenLayerBiases.cast<var>();
-    ArrayXXvar hiddenOutputsBeforeActivation = (inputLayerWeightsMatrix.matrix() * inputsDual.matrix()).array() + hiddenLayerBiases.cast<var>();
-
-//    Eigen::Map<Eigen::ArrayXXvar> inputLayerWeightsMatrix(inputLayerWeights.data(), hiddenSize, inputSize);
-//    auto hiddenOutputsBeforeActivation = (inputLayerWeightsMatrix.matrix() * inputsDual.matrix()).array() + hiddenLayerBiases;
-
-//    Eigen::Map<MatrixXdual> inputLayerWeightsMatrix(inputLayerWeights.data(), hiddenSize, inputSize);
-//    auto hiddenOutputsBeforeActivation = inputLayerWeightsMatrix * inputsDual + hiddenLayerBiases;
-
-    ArrayXvar hiddenOutputs = hiddenOutputsBeforeActivation.unaryExpr([](const var& x) { return tanh(x); });
-    var finalOutput = hiddenOutputs.matrix().dot(hiddenLayerWeights.matrix());
-/*
-    VectorXdual hiddenOutputs(hiddenSize);
-    for(int i = 0; i < hiddenOutputs.size(); i++) {
-        hiddenOutputs[i] = tanh(hiddenOutputsBeforeActivation[i]);
-    }
-
-    dual finalOutput = hiddenOutputs.dot(hiddenLayerWeights);
-*/
-    return finalOutput;
-#endif
-}
-/*
-dual NeuralNetworkReverse::feedForwardDual2(VectorXdual inputsDual) {
-    int weightsSize = inputSize * hiddenSize + hiddenSize;
-    VectorXdual inputLayerWeights = parametersDual.segment(0, inputSize * hiddenSize);
-    VectorXdual hiddenLayerWeights = parametersDual.segment(inputSize * hiddenSize, hiddenSize);
-    VectorXdual hiddenLayerBiases = parametersDual.segment(inputSize * hiddenSize + hiddenSize, hiddenSize);
-
-    // Reshape inputLayerWeights into a matrix
-    Eigen::Map<MatrixXdual> inputLayerWeightsMatrix(inputLayerWeights.data(), hiddenSize, inputSize);
-    auto hiddenOutputsBeforeActivation = inputLayerWeightsMatrix * inputsDual + hiddenLayerBiases;
-
-    VectorXdual hiddenOutputs(hiddenSize);
-    for(int i = 0; i < hiddenOutputs.size(); i++) {
-        hiddenOutputs[i] = tanh(hiddenOutputsBeforeActivation[i]);
-    }
-
-    dual finalOutput = hiddenOutputs.dot(hiddenLayerWeights);
-
-    return finalOutput;
-}
-*/
 double NeuralNetworkReverse::feedForward(std::vector<double> inputs) {
     int weightsSize = inputSize * hiddenSize + hiddenSize;
 
@@ -135,65 +76,6 @@ double NeuralNetworkReverse::feedForward(std::vector<double> inputs) {
     }
     return finalOutput;
 }
-/*
-VectorXdual NeuralNetworkReverse::getTheGradient(VectorXdual inputsDual)
-{
-    auto feedForwardWrapper = [&](VectorXdual kalle) {
-        return feedForwardDual(kalle, inputsDual, inputSize, hiddenSize);
-    };
-
-    VectorXdual gradde = gradient(feedForwardWrapper, wrt(parametersDual), at(parametersDual));
-    return gradde;
-}
-*/
-/*
-VectorXdual NeuralNetworkReverse::getTheGradientOnPositions(VectorXdual inputsDual)
-{
-    auto feedForwardWrapper = [&](VectorXdual inputs2) {
-        return feedForwardDual(parametersDual, inputs2, inputSize, hiddenSize);
-    };
-
-    VectorXdual theGradient = gradient(feedForwardWrapper, wrt(inputsDual), at(inputsDual));
-
-    return theGradient;
-}
-*/
-/*
-VectorXdual NeuralNetworkReverse::getTheGradientOnPositions (std::vector<double> inputs)
-//(VectorXdual inputsDual)
-{
-auto inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
-    auto feedForwardWrapper = [&](VectorXdual kalle) {
-        return feedForwardDual(parametersDual, kalle, inputSize, hiddenSize);
-    };
-
-    VectorXdual theGradient = gradient(feedForwardWrapper, wrt(inputsDual), at(inputsDual));
-
-    return theGradient;
-}*/
-/*
-//std::vector<double> NeuralNetworkReverse::getTheGradientOnPositions(std::vector<double> inputs)
-VectorXdual NeuralNetworkReverse::getTheGradientOnPositions(std::vector<double> inputs)
-{
-    auto inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
-    auto feedForwardWrapper = [&](VectorXdual kalle) {
-        return feedForwardDual(parametersDual, kalle, inputSize, hiddenSize);
-    };
-
-    VectorXdual theGradient = gradient(feedForwardWrapper, wrt(inputsDual), at(inputsDual));
-
-
-return theGradient;*/
-/*
-    std::vector<double> returnVector(theGradient.size());
-    std::transform(theGradient.begin(), theGradient.end(), returnVector.begin(), [](const dual& d) { return d.val; });
-
-    //std::vector<double> graddeVec = Eigen::Map<VectorXd>(gradde.unaryExpr([](const dual& x) { return val(x); }).data(), gradde.size()).cast<double>();
-//    VectorXd graddeDouble = gradde.unaryExpr([](const dual& x) { return val(x); });
-//    std::vector<double> graddeVec(graddeDouble.data(), graddeDouble.data() + graddeDouble.size());
-    return returnVector;
-    */
-//}
 
 std::vector<double> NeuralNetworkReverse::getTheGradientVectorParameters(std::vector<double> inputs)
 {
