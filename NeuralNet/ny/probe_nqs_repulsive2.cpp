@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     // Number of MCMC cycles for the large calculation after optimization
     size_t numberOfMetropolisSteps = argc > 6 ? stoi(argv[6]) : 1e6;
 
-    size_t numberOfEquilibrationSteps = numberOfMetropolisSteps / 10;
+    size_t numberOfEquilibrationSteps = numberOfMetropolisSteps / 5;
     double omega = 1.0; // Oscillator frequency.
 
     size_t MC_reduction = 100; // Number of MC steps to reduce by at intermediate steps
@@ -109,14 +109,14 @@ double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter f
 double beta = 2.82843; // beta is the second parameter for now.
 double adiabaticFactor = 2 * (double)(count+1)/ (double)fixed_number_optimization_runs;
 adiabaticFactor = std::min(1.0, adiabaticFactor);
-
+//adiabaticFactor = 1.0;//If we want to test without adiabatic change
 cout << "Iteration " << count+1 << " Adiabatic factor: " << adiabaticFactor << endl;
 
         //size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged | count == max_iterations - 1 ? MC_reduction : 1);
         size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / fixed_number_optimization_runs;
         cout << "This round of optimization gets " << numberOfMetropolisStepsPerGradientIteration << " MC steps, split on " << numThreads << " threads.";
         numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
-        cout << " meaning only " << numberOfMetropolisStepsPerGradientIteration;        
+        cout << " meaning only " << numberOfMetropolisStepsPerGradientIteration;
 #pragma omp parallel shared(samplers, count) // Start parallel region.
         {
             int thread_id = omp_get_thread_num();
@@ -171,7 +171,7 @@ cout << "Finished parallel region" << endl;
         // As it stands right now it will always run the set number of optimization, and
         if (converged)
             break;
-
+//if(count%2==1){ //Temporary try to only update parameters every 2 step, to investigate how much MC spreads with parameters unchanged
         // Extract the gradient
         auto gradient = std::vector<double>(params.size());
         for (size_t param_num = 0; param_num < params.size(); ++param_num)
@@ -188,7 +188,7 @@ cout << "Finished parallel region" << endl;
         }
         double meanSquareDifference = sum / params.size();
         params = NewParams;
-
+//}
         combinedSampler->printOutputToTerminalMini(verbose);
 
         std::streamsize original_precision = std::cout.precision(); // Save original precision
@@ -198,7 +198,7 @@ cout << "Finished parallel region" << endl;
         std::cout.precision(original_precision); // Restore original precision
 
         std::cout << std::endl;
-        cout << "Tolerance " << parameter_tolerance << " Adam MSE Total change: " << meanSquareDifference << endl;
+        //cout << "Tolerance " << parameter_tolerance << " Adam MSE Total change: " << meanSquareDifference << endl;
         cout << "Energy estimate: " << combinedSampler->getObservables()[0] << endl;
 
         if(adiabaticFactor==1.0 && !hasResetAdamAtEndOfAdiabaticChange)

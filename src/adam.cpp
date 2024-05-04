@@ -16,8 +16,8 @@ std::vector<double> AdamOptimizer::adamOptimization(std::vector<double> params, 
         // Update parameters
         params[param_num] -= learning_rate * m_hat / (sqrt(v_hat) + epsilon);
         total_change += fabs(learning_rate * m_hat / (sqrt(v_hat) + epsilon));
-        count++;
     }
+    count++;
     return params;
 }
 
