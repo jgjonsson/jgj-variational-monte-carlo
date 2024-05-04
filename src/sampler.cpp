@@ -11,6 +11,17 @@
 using std::cout;
 using std::endl;
 
+// Define some ANSI escape codes for colors
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+
 //This just needs to be a reasonable number to pick a fraction of samples for error analysis.
 //Making it a fixed parameter here. 100 was suggested in lecture.
 const size_t howOftenStoreSampleForBlocking = 100;
@@ -152,8 +163,10 @@ void Sampler::printOutputToTerminalMini(bool verbose)
 {
     auto p = m_wavefunction_parameters.size();
     cout << " Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << endl;
-    cout << " Ratio of accepted steps: " << ((double)m_numberOfAcceptedSteps) / ((double)m_numberOfMetropolisSteps) << endl;
-    cout << " Energy : " << m_observables[0] << endl;
+    cout << " Ratio of accepted steps: "
+        << RED <<  ((double)m_numberOfAcceptedSteps) / ((double)m_numberOfMetropolisSteps)
+        << RESET << endl;
+    cout << " Energy : " << YELLOW << m_observables[0] << RESET << endl;
     cout << endl;
 }
 

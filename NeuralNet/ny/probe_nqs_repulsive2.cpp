@@ -33,6 +33,7 @@ using namespace std;
 using namespace autodiff;
 using namespace Eigen;
 
+
 int main3();
 
 int main(int argc, char **argv)
@@ -140,7 +141,7 @@ cout << "Iteration " << count+1 << " Adiabatic factor: " << adiabaticFactor << e
                 std::make_unique<NeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega, alpha, beta, adiabaticFactor),
                 // Construct unique_ptr to solver, and move rng
                 //std::make_unique<MetropolisHastings>(std::move(rng)),
-                std::make_unique<Metropolis>(std::move(rng)),
+                std::make_unique<MetropolisHastings>(std::move(rng)),
                 // Move the vector of particles to system
                 std::move(particles));
 //cout << "numberOfMetropolisStepsPerGradientIteration is " << numberOfMetropolisStepsPerGradientIteration << endl;
@@ -187,9 +188,12 @@ cout << "Finished parallel region" << endl;
 
         combinedSampler->printOutputToTerminalMini(verbose);
 
+        std::streamsize original_precision = std::cout.precision(); // Save original precision
         for (const auto &param : params) {
             std::cout << std::setprecision(3) << std::fixed << param << " ";
         }
+        std::cout.precision(original_precision); // Restore original precision
+
         std::cout << std::endl;
         cout << "Tolerance " << parameter_tolerance << " Adam MSE Total change: " << meanSquareDifference << endl;
         cout << "Energy estimate: " << combinedSampler->getObservables()[0] << endl;
