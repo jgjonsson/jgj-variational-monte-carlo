@@ -112,6 +112,11 @@ adiabaticFactor = std::min(1.0, adiabaticFactor);
 
 cout << "Iteration " << count+1 << " Adiabatic factor: " << adiabaticFactor << endl;
 
+        //size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged | count == max_iterations - 1 ? MC_reduction : 1);
+        size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / fixed_number_optimization_runs;
+        cout << "This round of optimization gets " << numberOfMetropolisStepsPerGradientIteration << " MC steps, split on " << numThreads << " threads.";
+        numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
+        cout << " meaning only " << numberOfMetropolisStepsPerGradientIteration;        
 #pragma omp parallel shared(samplers, count) // Start parallel region.
         {
             int thread_id = omp_get_thread_num();
@@ -120,8 +125,6 @@ cout << "Iteration " << count+1 << " Adiabatic factor: " << adiabaticFactor << e
             unsigned int my_seed = base_seed + thread_id;
             auto rng = std::make_unique<Random>(my_seed);
 
-            size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged | count == max_iterations - 1 ? MC_reduction : 1);
-            numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
 
             std::unique_ptr<Sampler> sampler;
             std::unique_ptr<System> system;
