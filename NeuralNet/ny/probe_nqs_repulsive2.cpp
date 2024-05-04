@@ -9,8 +9,8 @@
 #include <cstdlib>
 #include <iomanip>
 
-#include <autodiff/forward/dual.hpp>
-#include <autodiff/forward/dual/eigen.hpp>
+//#include <autodiff/forward/dual.hpp>
+//#include <autodiff/forward/dual/eigen.hpp>
 
 #include "../../include/system.h"
 #include "../../include/gaussianjastrow.h"
@@ -24,15 +24,13 @@
 #include "../../include/particle.h"
 #include "../../include/sampler.h"
 #include "../../include/file_io.h"
-#include "../../include/rbm.h"
-#include "../../include/neural.h"
 #include "../../include/nn_wave.h"
 #include "../../include/adam.h"
 
 using namespace std;
-using namespace autodiff;
+/*using namespace autodiff;
 using namespace Eigen;
-
+*/
 
 int main3();
 
