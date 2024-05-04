@@ -86,7 +86,7 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVectorParameters(std::ve
     }
 */
     VectorXvar xInputs = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
-    VectorXvar x = Eigen::Map<VectorXd>(parameters.data(), parameters.size()).cast<var>().array();
+    //VectorXvar x = Eigen::Map<VectorXd>(parameters.data(), parameters.size()).cast<var>().array();
 /*
     VectorXvar x(parameters.size());
     for (int i = 0; i < parameters.size(); i++) {
@@ -97,9 +97,9 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVectorParameters(std::ve
         return feedForwardXvar(kalle, xInputs, inputSize, hiddenSize);
     };
 
-    var y = feedForwardWrapper(x); // the output variable y
+    var y = feedForwardWrapper(parametersDual); // the output variable y
 
-    VectorXd dydx = gradient(y, x);        // evaluate the gradient vector dy/dx
+    VectorXd dydx = gradient(y, parametersDual);        // evaluate the gradient vector dy/dx
 
     std::cout << "y = " << y << std::endl;           // print the evaluated output y
     std::cout << "dy/dx = \n" << dydx << std::endl;  // print the evaluated gradient vector dy/dx
@@ -113,7 +113,7 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVector(std::vector<doubl
 {
 
     VectorXvar x = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
-    VectorXvar xParameters = Eigen::Map<VectorXd>(parameters.data(), parameters.size()).cast<var>().array();
+    //VectorXvar xParameters = Eigen::Map<VectorXd>(parameters.data(), parameters.size()).cast<var>().array();
     /*
     VectorXvar x(inputSize);
     for (int i = 0; i < inputSize; i++) {
@@ -126,7 +126,7 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVector(std::vector<doubl
     }
 */
     auto feedForwardWrapper = [&](const VectorXvar& inputsDual) {
-        return feedForwardXvar(xParameters, inputsDual, inputSize, hiddenSize);
+        return feedForwardXvar(parametersDual, inputsDual, inputSize, hiddenSize);
     };
 
     var y = feedForwardWrapper(x); // the output variable y
