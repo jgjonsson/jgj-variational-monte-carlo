@@ -12,11 +12,13 @@ private:
     double beta2; // exponential decay rate for the second moment estimates
     double epsilon; // small constant for numerical stability
     double learning_rate; // learning rate
+    int count; // number of iterations
 
 public:
     AdamOptimizer(int paramSize, double learningRate);
 
-    std::vector<double> adamOptimization(std::vector<double> params, std::vector<double>& gradient, int count);
+    std::vector<double> adamOptimization(std::vector<double> params, std::vector<double>& gradient);
+    void reset();
 };
 
 #endif // ADAMOPTIMIZER_H

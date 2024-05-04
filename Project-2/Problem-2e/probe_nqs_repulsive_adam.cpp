@@ -146,7 +146,7 @@ int main(int argc, char **argv)
         {
             gradient[param_num] = combinedSampler->getObservables()[2 + param_num];
         }
-        auto NewParams = adamOptimizer.adamOptimization(params, gradient, count);
+        auto NewParams = adamOptimizer.adamOptimization(params, gradient);
         double sum = 0.0;
         for (size_t i = 0; i < params.size(); ++i) {
             double diff = NewParams[i] - params[i];

@@ -106,6 +106,7 @@ double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter f
 double beta = 2.82843; // beta is the second parameter for now.
 double adiabaticFactor = 2 * (double)(count+1)/ (double)fixed_number_optimization_runs;
 adiabaticFactor = std::min(1.0, adiabaticFactor);
+
 cout << "Iteration " << count+1 << " Adiabatic factor: " << adiabaticFactor << endl;
 
 #pragma omp parallel shared(samplers, count) // Start parallel region.
@@ -176,13 +177,21 @@ cout << "Finished parallel region" << endl;
         auto NewParams = adamOptimizer.adamOptimization(params, gradient, count);
         double sum = 0.0;
         for (size_t i = 0; i < params.size(); ++i) {
-            double diff = NewParams[i] - params[i];
+            double diff = fabs(NewParams[i] - params[i]);
             sum += diff * diff;
         }
         double meanSquareDifference = sum / params.size();
         params = NewParams;
+
         cout << "Tolerance " << parameter_tolerance << " Adam MSE Total change: " << meanSquareDifference << endl;
         cout << "Energy estimate: " << combinedSampler->getObservables()[0] << endl;
+
+        if(adiabaticFactor==1.0 && !hasResetAdamAtEndOfAdiabaticChange)
+        {
+            cout << "Resetting Adam optimizer" << endl;
+            adamOptimizers[thread_id].reset();
+            hasResetAdamAtEndOfAdiabaticChange = true;
+        }
     }
     // Output information from the simulation
     combinedSampler->printOutputToTerminal(verbose);
