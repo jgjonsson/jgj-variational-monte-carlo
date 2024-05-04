@@ -79,30 +79,14 @@ double NeuralNetworkReverse::feedForward(std::vector<double> inputs) {
 
 std::vector<double> NeuralNetworkReverse::getTheGradientVectorParameters(std::vector<double> inputs)
 {
-/*
-    VectorXvar xInputs(inputSize);
-    for (int i = 0; i < inputSize; i++) {
-        xInputs(i) = inputs[i];
-    }
-*/
     VectorXvar xInputs = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
-    //VectorXvar x = Eigen::Map<VectorXd>(parameters.data(), parameters.size()).cast<var>().array();
-/*
-    VectorXvar x(parameters.size());
-    for (int i = 0; i < parameters.size(); i++) {
-        x(i) = parameters[i];
-    }
-*/
+
     auto feedForwardWrapper = [&](const VectorXvar& kalle) {
         return feedForwardXvar(kalle, xInputs, inputSize, hiddenSize);
     };
 
     var y = feedForwardWrapper(parametersDual); // the output variable y
-
     VectorXd dydx = gradient(y, parametersDual);        // evaluate the gradient vector dy/dx
-
-    std::cout << "y = " << y << std::endl;           // print the evaluated output y
-    std::cout << "dy/dx = \n" << dydx << std::endl;  // print the evaluated gradient vector dy/dx
 
     std::vector<double> dydx_vec(dydx.data(), dydx.data() + dydx.size());
 
@@ -111,30 +95,14 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVectorParameters(std::ve
 
 std::vector<double> NeuralNetworkReverse::getTheGradientVector(std::vector<double> inputs)
 {
-
     VectorXvar x = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
-    //VectorXvar xParameters = Eigen::Map<VectorXd>(parameters.data(), parameters.size()).cast<var>().array();
-    /*
-    VectorXvar x(inputSize);
-    for (int i = 0; i < inputSize; i++) {
-        x(i) = inputs[i];
-    }
 
-    VectorXvar xParameters(parameters.size());
-    for (int i = 0; i < parameters.size(); i++) {
-        xParameters(i) = parameters[i];
-    }
-*/
     auto feedForwardWrapper = [&](const VectorXvar& inputsDual) {
         return feedForwardXvar(parametersDual, inputsDual, inputSize, hiddenSize);
     };
 
     var y = feedForwardWrapper(x); // the output variable y
-
     VectorXd dydx = gradient(y, x);        // evaluate the gradient vector dy/dx
-
-    std::cout << "y = " << y << std::endl;           // print the evaluated output y
-    std::cout << "dy/dx = \n" << dydx << std::endl;  // print the evaluated gradient vector dy/dx
 
     std::vector<double> dydx_vec(dydx.data(), dydx.data() + dydx.size());
 
