@@ -5,7 +5,7 @@
 #include "../include/nn_wave.h"
 #include "../include/particle.h"
 #include "../include/random.h"
-#include "../include/neural.h"
+#include "../include/neural_reverse.h"
 
 using namespace std;
 using namespace arma;
@@ -39,22 +39,6 @@ NeuralNetworkWavefunction::NeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N,
 std::vector<double> NeuralNetworkWavefunction::flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
 {
     std::vector<double> x(m_M);
-    for (size_t i = 0; i < particles.size(); i++)
-    {
-        auto position = particles[i]->getPosition();
-        auto numDimensions = position.size();
-        for (size_t j=0; j<numDimensions; j++)
-        {
-            x[i*numDimensions + j] = position[j];
-        }
-    }
-    return x;
-}
-
-VectorXdual NeuralNetworkWavefunction::flattenParticleCoordinatesToVectorAutoDiffFormat(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
-//VectorXdual flattenParticleCoordinatesToVectorAutoDiffFormat(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
-{
-    VectorXdual x(m_M);
     for (size_t i = 0; i < particles.size(); i++)
     {
         auto position = particles[i]->getPosition();
@@ -145,9 +129,10 @@ std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<s
     {
         quantumForce.push_back(-4 * alpha * position[j]);
     }
-    VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
-    auto theGradient = m_neuralNetwork.getTheGradientOnPositions(xDual);
-    auto theGradientVector = transformVectorXdualToVector(theGradient);
+    auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
+    //VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
+    auto theGradientVector = m_neuralNetwork.getTheGradientVectorWrtInputs(xInputs);
+    //auto theGradientVector = transformVectorXdualToVector(theGradient);
 
     //auto position = particles[0]->getPosition();
     auto numDimensions = position.size();
@@ -161,17 +146,17 @@ std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<s
     }
     return quantumForce;
 }
-
+/*
 std::vector<double> NeuralNetworkWavefunction::transformVectorXdualToVector(const VectorXdual& gradient) {
     std::vector<double> values(gradient.size());
     std::transform(gradient.begin(), gradient.end(), values.begin(), [](const dual& d) { return d.val; });
     return values;
 }
-
+*/
 std::vector<double> NeuralNetworkWavefunction::computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
-    return m_neuralNetwork.calculateNumericalGradientParameters(xInputs);
+    return m_neuralNetwork.getTheGradientVectorWrtParameters(xInputs);
 /*
     VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
     auto theGradient = m_neuralNetwork.getTheGradient(xDual);
