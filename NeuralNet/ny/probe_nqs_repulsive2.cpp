@@ -34,6 +34,14 @@ using namespace Eigen;
 
 int main3();
 
+std::unique_ptr<class MonteCarlo> createSolverFromArgument(string algoritm, std::unique_ptr<class Random> rng)
+{
+    if (algoritm=="METROPOLIS") return std::make_unique<Metropolis>(std::move(rng));
+    if (algoritm=="METROPOLIS_HASTINGS") return std::make_unique<MetropolisHastings>(std::move(rng));
+    cout << "Invalid type of algoritm for Monte Carlo, valid types are METROPOLIS and METROPOLIS_HASTINGS " << endl;
+    exit(-1);
+}
+
 int main(int argc, char **argv)
 {
     // This program is for experimenting with learning rate and number of hidden layers.
@@ -65,6 +73,12 @@ int main(int argc, char **argv)
 
     // Number of MCMC cycles for the large calculation after optimization
     size_t numberOfMetropolisSteps = argc > 6 ? stoi(argv[6]) : 1e6;
+
+	//Type of Hamiltonian to use, ie interaction or not, and shape of potential. Ex: HARMONIC, HARMONIC_CYLINDRIC_INTERACTION
+    auto hamiltonianChoice = argc > 7 ? argv[7] : "HARMONIC";
+
+    //Algoritm for sampling. Ex: METROPOLIS, METROPOLIS_HASTINGS (brute force and importance samling respectively)
+    auto algoritmChoice = argc > 8 ? argv[8] : "METROPOLIS";
 
     size_t numberOfEquilibrationSteps = numberOfMetropolisSteps / 5;
     double omega = 1.0; // Oscillator frequency.
@@ -142,7 +156,8 @@ cout << "Iteration " << count+1 << " Adiabatic factor: " << adiabaticFactor << e
                 std::make_unique<NeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega, alpha, beta, adiabaticFactor),
                 // Construct unique_ptr to solver, and move rng
                 //std::make_unique<MetropolisHastings>(std::move(rng)),
-                std::make_unique<Metropolis>(std::move(rng)),
+                //std::make_unique<Metropolis>(std::move(rng)),
+                createSolverFromArgument(algoritmChoice, std::move(rng)),
                 // Move the vector of particles to system
                 std::move(particles));
 //cout << "numberOfMetropolisStepsPerGradientIteration is " << numberOfMetropolisStepsPerGradientIteration << endl;
