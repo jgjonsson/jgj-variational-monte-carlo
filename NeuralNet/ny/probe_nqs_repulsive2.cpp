@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 
     // Start with all parameters as random values
     int parameter_seed = 2023;//111;//2023;         // For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
-    double parameterGuessSpread = 0.1; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
+    double parameterGuessSpread = 0.001; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
     params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
 
@@ -114,7 +114,7 @@ cout << "Iteration " << count+1 << " Adiabatic factor: " << adiabaticFactor << e
         size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / fixed_number_optimization_runs;
         cout << "This round of optimization gets " << numberOfMetropolisStepsPerGradientIteration << " MC steps, split on " << numThreads << " threads.";
         numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
-        cout << " meaning only " << numberOfMetropolisStepsPerGradientIteration;
+        cout << " so " << numberOfMetropolisStepsPerGradientIteration << " per thread. " ;
 #pragma omp parallel shared(samplers, count) // Start parallel region.
         {
             int thread_id = omp_get_thread_num();
@@ -142,7 +142,7 @@ cout << "Iteration " << count+1 << " Adiabatic factor: " << adiabaticFactor << e
                 std::make_unique<NeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega, alpha, beta, adiabaticFactor),
                 // Construct unique_ptr to solver, and move rng
                 //std::make_unique<MetropolisHastings>(std::move(rng)),
-                std::make_unique<MetropolisHastings>(std::move(rng)),
+                std::make_unique<Metropolis>(std::move(rng)),
                 // Move the vector of particles to system
                 std::move(particles));
 //cout << "numberOfMetropolisStepsPerGradientIteration is " << numberOfMetropolisStepsPerGradientIteration << endl;
@@ -189,9 +189,11 @@ cout << "Finished parallel region" << endl;
 //}
         combinedSampler->printOutputToTerminalMini(verbose);
 
+        cout << "Num params: " << params.size() << " Parameters:" << endl;
         std::streamsize original_precision = std::cout.precision(); // Save original precision
-        for (const auto &param : params) {
-            std::cout << std::setprecision(3) << std::fixed << param << " ";
+        std::cout << std::setprecision(4) << std::fixed;
+        for (int i = 0; i < 8 && i < params.size(); ++i) {
+            std::cout << params[i] << " ";
         }
         std::cout.precision(original_precision); // Restore original precision
 
