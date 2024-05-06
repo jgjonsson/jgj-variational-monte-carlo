@@ -132,3 +132,23 @@ std::vector<double> NeuralNetworkReverse::calculateNumericalGradientParameters(s
 
     return gradient;
 }
+
+double NeuralNetworkReverse::calculateNumericalDeriviateWrtInput(std::vector<double>& inputs, int inputIndexForDerivative) {
+    double epsilon = 1e-6; // small number for finite difference
+    // Store the original value so we can reset it later
+    double originalValue = inputs[inputIndexForDerivative];
+
+    // Evaluate function at x+h
+    inputs[inputIndexForDerivative] += epsilon;
+    double plusEpsilon = feedForward(inputs);
+
+    // Evaluate function at x-h
+    inputs[inputIndexForDerivative] = originalValue - epsilon;
+    double minusEpsilon = feedForward(inputs);
+
+    // Reset the input to its original value
+    inputs[inputIndexForDerivative] = originalValue;
+
+    // Compute the derivative
+    return (plusEpsilon - minusEpsilon) / (2.0 * epsilon);
+}

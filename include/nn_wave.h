@@ -34,6 +34,7 @@ public:
                          std::vector<std::unique_ptr<class Particle>> &particles_denominator);
 
     std::vector<double> computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index);
+    std::vector<double> computeQuantumForceOld(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index);
     std::vector<double> computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles);
 //    std::vector<double> transformVectorXdualToVector(const VectorXdual& gradient);
 

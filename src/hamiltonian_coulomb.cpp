@@ -7,7 +7,7 @@
 #include "../include/particle.h"
 #include "../include/wavefunction.h"
 
-
+double m_beta = 2.82843;
 CoulombHamiltonian::CoulombHamiltonian(double omega, double inter_strength)
     : m_omega{omega}, m_inter{inter_strength}
 {
@@ -25,8 +25,10 @@ double CoulombHamiltonian::computeLocalEnergy(
     for (auto &particle : particles)
     {
         auto position = particle->getPosition();
-        for (size_t pos_index = 0; pos_index < particle->getNumberOfDimensions(); ++pos_index)
-            potentialEnergy += position[pos_index] * position[pos_index];
+        for (size_t pos_index = 0; pos_index < particle->getNumberOfDimensions(); ++pos_index){
+            potentialEnergy += (pos_index == 2 ? m_beta * m_beta : 1.0) * position[pos_index] * position[pos_index];
+//            potentialEnergy += position[pos_index] * position[pos_index];
+        }
     }
     potentialEnergy *= 0.5 * m_omega * m_omega;
 

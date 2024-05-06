@@ -112,7 +112,7 @@ double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<clas
 
 /** Calculate the quantum force, defined by 2 * 1/Psi * grad(Psi)
  */
-std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
+std::vector<double> NeuralNetworkWavefunction::computeQuantumForceOld(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
 {
     //vec x = flattenParticleCoordinatesToVector(particles, m_M);
 
@@ -122,7 +122,9 @@ std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<s
     std::vector<double> position = particles[particle_index]->getPosition();
     for (int j = 0; j < position.size(); j++)
     {
-        quantumForce.push_back(-4 * alpha * position[j]);
+        //Cylinder would need this:
+        quantumForce.push_back(-4 * alpha * position[j] * (j == 2 ? m_beta : 1.0));
+        //quantumForce.push_back(-4 * alpha * position[j]);
     }
     auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
     //VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
@@ -138,6 +140,28 @@ std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<s
     for(size_t i = start; i < end; i++) {
         auto interactionPartOfQuantumForce = 2 * theGradientVector[i];
         quantumForce[i - start] += interactionPartOfQuantumForce;
+    }
+    return quantumForce;
+}
+
+
+std::vector<double> NeuralNetworkWavefunction::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
+{
+    //vec x = flattenParticleCoordinatesToVector(particles, m_M);
+
+    auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
+
+    // I assume again that we do not arrive to forbidden states (r < r_hard_core), so I do not check for that.
+    double alpha = 0.5;
+    std::vector<double> quantumForce = std::vector<double>();
+    std::vector<double> position = particles[particle_index]->getPosition();
+    for (int j = 0; j < position.size(); j++)
+    {
+        double qForceHarmonic = -4 * alpha * position[j] * (j == 2 ? m_beta : 1.0);
+        int indexInX = particle_index * position.size() + j;
+        double derivative = m_neuralNetwork.calculateNumericalDeriviateWrtInput(xInputs, indexInX);
+        double qForceInteraction = 2 * derivative;
+        quantumForce.push_back(qForceHarmonic + qForceInteraction);
     }
     return quantumForce;
 }

@@ -41,6 +41,13 @@ int main() {
     }
 
     for (size_t i = 0; i < numberOfParticles; ++i) {
+        std::vector<double> quantumForce = wavefunction.computeQuantumForceOld(particles, i);
+        for (size_t j = 0; j < numberOfDimensions; ++j) {
+            std::cout << "Old q-force   " << i << " " << j << ": " << quantumForce[j] << std::endl;
+        }
+    }
+
+    for (size_t i = 0; i < numberOfParticles; ++i) {
         std::vector<double> quantumForce = wavefunction.computeQuantumForce(particles, i);
         for (size_t j = 0; j < numberOfDimensions; ++j) {
             std::cout << "Quantum force " << i << " " << j << ": " << quantumForce[j] << std::endl;
