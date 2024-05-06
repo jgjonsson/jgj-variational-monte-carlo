@@ -93,8 +93,11 @@ double NeuralNetworkWavefunction::computeLocalLaplasian(std::vector<std::unique_
     for (size_t i = 0; i < particles.size(); i++)
     {
         double r2 = 0.0;
-        for (size_t j = 0; j < particles[i]->getPosition().size(); ++j)
-            r2 += particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+        for (size_t j = 0; j < particles[i]->getPosition().size(); ++j){
+//                                      r2 += particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+            r2 += (j == 2 ? m_beta : 1.0) * particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+            }
+
         sum_laplasian += 4 * m_alpha * m_alpha * r2 - 2 * m_alpha * particles[i]->getPosition().size();
     }
     return sum_laplasian;
@@ -104,10 +107,28 @@ double NeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<clas
 {
     assert(particles_numerator.size() == particles_denominator.size());
 
-    double value1 = evaluate(particles_numerator);
-    double value2 = evaluate(particles_denominator);
+    double ratio = 1.0;
 
-    return value1/value2;
+    // Regular gaussian part.
+    for (size_t i = 0; i < particles_numerator.size(); i++)
+    {
+        double r2_numerator = 0.0;
+        double r2_denominator = 0.0;
+        for (size_t j = 0; j < particles_numerator[i]->getPosition().size(); j++)
+        {
+            r2_numerator += (j == 2 ? m_beta : 1.0) * particles_numerator[i]->getPosition()[j] * particles_numerator[i]->getPosition()[j];
+            r2_denominator += (j == 2 ? m_beta : 1.0) * particles_denominator[i]->getPosition()[j] * particles_denominator[i]->getPosition()[j];
+        }
+        ratio *= exp(-m_alpha * (r2_numerator - r2_denominator));
+    }
+
+    double jastrowNumerator = m_neuralNetwork.feedForward(flattenParticleCoordinatesToVector(particles_numerator, m_M));
+    double jastrowDenominator = m_neuralNetwork.feedForward(flattenParticleCoordinatesToVector(particles_denominator, m_M));
+    /*This is verified the same
+    ouble value1 = evaluate(particles_numerator);
+    double value2 = evaluate(particles_denominator);
+    cout << value1/value2 << " vs " << ratio * jastrowNumerator/jastrowDenominator << endl;*/
+    return ratio * jastrowNumerator/jastrowDenominator;
 }
 
 /** Calculate the quantum force, defined by 2 * 1/Psi * grad(Psi)
