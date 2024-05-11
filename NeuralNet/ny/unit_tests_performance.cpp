@@ -226,6 +226,27 @@ if(verbose){
     auto laplacianReverseMode3 = speedyNeuralNetwork->calculateNumericalLaplacianWrtInput(inputs2);
     elapsedNumeric = std::chrono::high_resolution_clock::now() - start3;
     cout << "Laplacian calculated derivatives: " << laplacianReverseMode3 << " took " << elapsedNumeric.count() << " ms." << endl;
+/*
+    start3 = std::chrono::high_resolution_clock::now();
+    auto gradientNumericInputs = speedyNeuralNetwork->calculateNumericalDeriviateWrtInput(inputs2);
+    elapsedNumeric = std::chrono::high_resolution_clock::now() - start3;
+    cout << "Gradient INPUTS calculated with numerical methods:             ";
+    cout << endl;
+    for(const auto& value : gradientNumericInputs) {
+        cout << value << " ";
+    }      cout << endl;
+    cout << "Numeric gradient on inputs took " << elapsedNumeric.count() << " ms." << endl;
+   */
+   start3 = std::chrono::high_resolution_clock::now();
+   auto gradientNumericReverse = speedyNeuralNetwork->getTheGradientVectorWrtInputs(inputs2);
+   elapsedNumeric = std::chrono::high_resolution_clock::now() - start3;
+   cout << "Gradient INPUTS calculated with numerical methods:             ";
+   cout << endl;
+   for(const auto& value : gradientNumericReverse) {
+       cout << value << " ";
+   }      cout << endl;
+   cout << "Numeric gradient on inputs took " << elapsedNumeric.count() << " ms." << endl;
+
 
 }
 /*

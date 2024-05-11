@@ -26,6 +26,21 @@ NeuralNetworkReverse::NeuralNetworkReverse(std::vector<double> randNumbers, int 
 using ArrayXXvar = Eigen::Array<autodiff::var, Eigen::Dynamic, Eigen::Dynamic>;
 
 
+inline var relu(var x) {
+    return max(var(0.0), x);
+}
+
+inline double relu(double x) {
+    return std::max(0.0, x);
+}
+
+inline var leaky_relu(var x) {
+    return max(0.01 * x, x);
+}
+
+inline double leaky_relu(double x) {
+    return std::max(0.01 * x, x);
+}
 
 var feedForwardXvar(const ArrayXvar& parameters, const ArrayXvar& inputs, int inputSize, int hiddenSize) {
 
@@ -42,6 +57,7 @@ var feedForwardXvar(const ArrayXvar& parameters, const ArrayXvar& inputs, int in
         }
         output += hiddenLayerBiases[i];
         hiddenOutputs[i] = tanh(output);
+        //hiddenOutputs[i] = leaky_relu(output);
     }
 
     var finalOutput = 0.0;
@@ -67,6 +83,7 @@ double NeuralNetworkReverse::feedForward(std::vector<double> inputs) {
         }
         output += hiddenLayerBiases[i];
         hiddenOutputs.push_back(tanh(output));
+        //hiddenOutputs.push_back(leaky_relu(output));
     }
 
     double finalOutput = 0.0;
@@ -76,7 +93,7 @@ double NeuralNetworkReverse::feedForward(std::vector<double> inputs) {
     return finalOutput;
 }
 
-std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtParameters(std::vector<double> inputs)
+std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtParameters(std::vector<double> &inputs)
 {
     VectorXvar xInputs = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
 
@@ -92,7 +109,7 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtParameters(std:
     return dydx_vec;
 }
 
-std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtInputs(std::vector<double> inputs)
+std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtInputs(std::vector<double> &inputs)
 {
     VectorXvar x = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
 
