@@ -27,6 +27,17 @@
 #include "../../include/nn_wave.h"
 #include "../../include/adam.h"
 
+// Define some ANSI escape codes for colors
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+
 using namespace std;
 /*using namespace autodiff;
 using namespace Eigen;
@@ -63,8 +74,8 @@ int main(int argc, char **argv)
     std::vector<double> params{};
 
     // Start with all parameters as random values
-    int parameter_seed = 2023;//111;//2023;         // For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
-    double parameterGuessSpread = 0.0001; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
+    int parameter_seed = 111;//2023;         // For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
+    double parameterGuessSpread = 0.001; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
     params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
 
@@ -117,12 +128,14 @@ int main(int argc, char **argv)
         //  Use the system clock to get a base seed
         unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
 
+double adiabaticFactorStart = 0.001;
 double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
 double beta = 2.82843; // beta is the second parameter for now.
-double adiabaticFactor = 2 * (double)(count+1)/ (double)fixed_number_optimization_runs;
+//double adiabaticFactor = 2 * (double)(count+1)/ (double)fixed_number_optimization_runs;
+double adiabaticFactor = count*count*adiabaticFactorStart;
 adiabaticFactor = std::min(1.0, adiabaticFactor);
 //adiabaticFactor = 1.0;//If we want to test without adiabatic change
-cout << "Iteration " << count+1 << " Adiabatic factor: " << adiabaticFactor << endl;
+cout << "Iteration " << BLUE << count+1 << RESET << " Adiabatic factor: " << BLUE << adiabaticFactor << RESET << endl;
 
         //size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged | count == max_iterations - 1 ? MC_reduction : 1);
         size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / fixed_number_optimization_runs;
