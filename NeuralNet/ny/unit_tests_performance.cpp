@@ -210,6 +210,23 @@ if(verbose){
     cout << endl;}
 
     cout << "Numeric derivative took            " << elapsedNumeric.count() << " milliseconds to execute." << endl;
+
+
+    start3 = std::chrono::high_resolution_clock::now();
+    auto laplacianReverseMode1 = speedyNeuralNetwork->calculateNumericalLaplacianWrtInput(inputs2);
+    elapsedNumeric = std::chrono::high_resolution_clock::now() - start3;
+    cout << "Laplacian calculated numerically: " << laplacianReverseMode1 << " took " << elapsedNumeric.count() << " ms." << endl;
+
+    start3 = std::chrono::high_resolution_clock::now();
+    auto laplacianReverseMode2 = speedyNeuralNetwork->getTheLaplacianVectorWrtInputs(inputs2);
+    elapsedNumeric = std::chrono::high_resolution_clock::now() - start3;
+    cout << "Laplacian calculated Hessian: " << laplacianReverseMode2 << " took " << elapsedNumeric.count() << " ms." << endl;
+
+    start3 = std::chrono::high_resolution_clock::now();
+    auto laplacianReverseMode3 = speedyNeuralNetwork->calculateNumericalLaplacianWrtInput(inputs2);
+    elapsedNumeric = std::chrono::high_resolution_clock::now() - start3;
+    cout << "Laplacian calculated derivatives: " << laplacianReverseMode3 << " took " << elapsedNumeric.count() << " ms." << endl;
+
 }
 /*
 	double lap = looseNeuralNetwork->computeLocalLaplasian(particles);

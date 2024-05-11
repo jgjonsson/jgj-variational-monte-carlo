@@ -1,6 +1,8 @@
 #include <memory>
 #include <cmath>
 #include <cassert>
+#include <numeric>
+
 
 #include "../include/nn_wave.h"
 #include "../include/particle.h"
@@ -100,6 +102,15 @@ double NeuralNetworkWavefunction::computeLocalLaplasian(std::vector<std::unique_
 
         sum_laplasian += 4 * m_alpha * m_alpha * r2 - 2 * m_alpha * particles[i]->getPosition().size();
     }
+
+    auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
+
+    double interactionLaplacian = m_neuralNetwork.calculateNumericalLaplacianWrtInput(xInputs);
+    auto theGradientVector = m_neuralNetwork.getTheGradientVectorWrtInputs(xInputs);
+
+    double interactionGradSquared = std::inner_product(theGradientVector.begin(), theGradientVector.end(), theGradientVector.begin(), 0.0);
+//    cout << "Laplacian adding " << sum_laplasian << " with " << interactionLaplacian << " and " << interactionGradSquared << endl;
+    sum_laplasian += interactionLaplacian + interactionGradSquared;
     return sum_laplasian;
 }
 
