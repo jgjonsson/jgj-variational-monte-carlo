@@ -84,7 +84,7 @@ double MixedNeuralNetworkWavefunction::evaluate(std::vector<std::unique_ptr<clas
     }
 
     auto x = flattenParticleCoordinatesToVector(particles, m_M);
-    double psiInteractionJastrow = m_neuralNetwork.feedForward(x);
+    double psiInteractionJastrow = exp(m_neuralNetwork.feedForward(x));
 
     return psi * psiInteractionJastrow;//1*psi2;
 }
@@ -147,7 +147,7 @@ double MixedNeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr
 
     double jastrowNumerator = m_neuralNetwork.feedForward(flattenParticleCoordinatesToVector(particles_numerator, m_M));
     double jastrowDenominator = m_neuralNetwork.feedForward(flattenParticleCoordinatesToVector(particles_denominator, m_M));
-    return ratio * jastrowNumerator/jastrowDenominator;
+    return ratio * exp(jastrowNumerator-jastrowDenominator);
 }
 
 std::vector<double> MixedNeuralNetworkWavefunction::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
