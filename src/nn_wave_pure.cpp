@@ -56,7 +56,7 @@ std::vector<double> PureNeuralNetworkWavefunction::flattenParticleCoordinatesToV
 double PureNeuralNetworkWavefunction::evaluate(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     auto x = flattenParticleCoordinatesToVector(particles, m_M);
-    return m_neuralNetwork.feedForward(x);
+    return exp(m_neuralNetwork.feedForward(x));
 }
 
 /** Compute the double derivative of the trial wave function over trial wave function.
