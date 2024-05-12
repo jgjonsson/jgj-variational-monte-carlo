@@ -118,9 +118,14 @@ double beta = 2.82843; // beta is the second parameter for now.
 
     std::unique_ptr<Sampler> combinedSampler;
 
-    int numThreads = 20;//12;//14;
+    int numThreads = 20;//20;//12;//14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
+
+    //For collecting energies during training and print to energiesTraining.csv for plotting.
+    std::vector<double> energiesTraining{};
+    std::vector<double> epochsTraining{};
+    std::vector<double> alphasTraining{};
 
     //Initialize Adam optimizer
     AdamOptimizer adamOptimizer(params.size(), fixed_learning_rate);
@@ -207,6 +212,9 @@ cout << "Finished parallel region" << endl;
         {
             gradient[param_num] = combinedSampler->getObservables()[2 + param_num];
         }
+        //Try to adress the fact that the same learning rate is not good for alpha as for the neural network parameters.
+        double suppressAlphaChange = 0.1; // Set your value
+        gradient.back() *= suppressAlphaChange;
 
         // Update the parameter using Adam optimization
         auto NewParams = adamOptimizer.adamOptimization(params, gradient);
@@ -231,7 +239,11 @@ cout << "Finished parallel region" << endl;
 
         std::cout << std::endl;
         //cout << "Tolerance " << parameter_tolerance << " Adam MSE Total change: " << meanSquareDifference << endl;
-        cout << "Energy estimate: " << combinedSampler->getObservables()[0] << endl;
+        auto energyEstimate = combinedSampler->getObservables()[0];
+        cout << "Energy estimate: " << energyEstimate << endl;
+        energiesTraining.push_back(energyEstimate);
+        epochsTraining.push_back(count);
+        alphasTraining.push_back(params[params.size()-1]);
 
         if(adiabaticFactor==1.0 && !hasResetAdamAtEndOfAdiabaticChange)
         {
@@ -245,6 +257,10 @@ cout << "Finished parallel region" << endl;
 
     //Write energies to file, to be used by blocking method script.
     one_columns_to_csv("energies.csv", combinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
+
+    one_columns_to_csv("energiesTraining.csv", energiesTraining, ",", 0, 6);
+    two_columns_to_csv("energiesTraining2.csv", epochsTraining, energiesTraining, ",", 0, 6);
+    two_columns_to_csv("alphasTraining2.csv", epochsTraining, alphasTraining, ",", 0, 6);
 
 //    main3();
 
