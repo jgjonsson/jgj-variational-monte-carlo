@@ -36,4 +36,6 @@ public:
     double getTheLaplacianVectorWrtInputs(std::vector<double> &inputs);
     double getTheLaplacianVectorWrtInputs2(std::vector<double> &inputs);
 
+    void backpropagate(std::vector<double> inputs, double targetOutput, double learningRate);
+
 };

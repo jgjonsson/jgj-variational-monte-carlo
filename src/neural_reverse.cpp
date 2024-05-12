@@ -93,6 +93,112 @@ double NeuralNetworkReverse::feedForward(std::vector<double> inputs) {
     return finalOutput;
 }
 
+
+void NeuralNetworkReverse::backpropagate(std::vector<double> inputs, double targetOutput, double learningRate) {
+
+    int weightsSize = inputSize * hiddenSize + hiddenSize;
+
+    std::vector<double> inputLayerWeights(parameters.begin(), parameters.begin() + inputSize * hiddenSize);
+    std::vector<double> hiddenLayerWeights(parameters.begin() + inputSize * hiddenSize, parameters.begin() + weightsSize);
+    std::vector<double> hiddenLayerBiases(parameters.begin() + weightsSize, parameters.begin() + weightsSize + hiddenSize);
+
+    // Calculate the outputs of the hidden layer
+    std::vector<double> hiddenLayerOutputs(hiddenSize);
+    for(int i = 0; i < hiddenLayerBiases.size(); i++) {
+        double output = 0.0;
+        for(int j = 0; j < inputs.size(); j++) {
+            output += inputLayerWeights[j * hiddenLayerBiases.size() + i] * inputs[j];
+        }
+        output += hiddenLayerBiases[i];
+        hiddenLayerOutputs[i] = tanh(output);
+    }
+
+    // Feed the inputs forward through the network
+    double output = 0.0;
+    for(int i = 0; i < hiddenLayerOutputs.size(); i++) {
+        output += hiddenLayerWeights[i] * hiddenLayerOutputs[i];
+    }
+
+    // Calculate the error of the output
+    double outputError = targetOutput - output;
+//cout << "outputError: " << outputError << endl;
+
+    // Compute gradient at output layer
+    double outputGradient = outputError; // derivative of linear activation function is 1
+
+    // Propagate error back to hidden layer
+    std::vector<double> hiddenError(hiddenSize);
+    for (int i = 0; i < hiddenSize; i++) {
+        hiddenError[i] = outputGradient * hiddenLayerWeights[i];
+    }
+
+    // Compute gradient at hidden layer
+    std::vector<double> hiddenGradient(hiddenSize);
+    for (int i = 0; i < hiddenSize; i++) {
+        hiddenGradient[i] = hiddenError[i] * (1 - hiddenLayerOutputs[i] * hiddenLayerOutputs[i]); // derivative of tanh
+    }
+
+    // Update weights and biases
+    for (int i = 0; i < inputSize * hiddenSize; i++) {
+        inputLayerWeights[i] += learningRate * hiddenGradient[i / hiddenSize] * inputs[i % inputSize];
+    }
+    for (int i = 0; i < hiddenSize; i++) {
+        hiddenLayerWeights[i] += learningRate * outputGradient * hiddenLayerOutputs[i];
+        hiddenLayerBiases[i] += learningRate * hiddenGradient[i];
+    }
+
+    // Map the updated weights and biases back to parameters
+    std::copy(inputLayerWeights.begin(), inputLayerWeights.end(), parameters.begin());
+    std::copy(hiddenLayerWeights.begin(), hiddenLayerWeights.end(), parameters.begin() + inputSize * hiddenSize);
+    std::copy(hiddenLayerBiases.begin(), hiddenLayerBiases.end(), parameters.begin() + weightsSize);
+}
+/*
+void backpropagate(std::vector<double> inputs, double targetOutput, double learningRate) {
+
+    int weightsSize = inputSize * hiddenSize + hiddenSize;
+
+    std::vector<double> inputLayerWeights(parameters.begin(), parameters.begin() + inputSize * hiddenSize);
+    std::vector<double> hiddenLayerWeights(parameters.begin() + inputSize * hiddenSize, parameters.begin() + weightsSize);
+    std::vector<double> hiddenLayerBiases(parameters.begin() + weightsSize, parameters.begin() + weightsSize + hiddenSize);
+
+
+    // Feed the inputs forward through the network
+    double output = feedForward(inputs);
+
+    // Calculate the error of the output
+    double outputError = targetOutput - output;
+
+    // Compute gradient at output layer
+    double outputGradient = outputError; // derivative of linear activation function is 1
+
+    // Propagate error back to hidden layer
+    std::vector<double> hiddenError(hiddenSize);
+    for (int i = 0; i < hiddenSize; i++) {
+        hiddenError[i] = outputGradient * hiddenLayerWeights[i];
+    }
+
+    // Compute gradient at hidden layer
+    std::vector<double> hiddenGradient(hiddenSize);
+    for (int i = 0; i < hiddenSize; i++) {
+        hiddenGradient[i] = hiddenError[i] * (1 - hiddenLayerOutputs[i] * hiddenLayerOutputs[i]); // derivative of tanh
+    }
+
+    // Update weights and biases
+    for (int i = 0; i < inputSize * hiddenSize; i++) {
+        inputLayerWeights[i] += learningRate * hiddenGradient[i / hiddenSize] * inputs[i % inputSize];
+    }
+    for (int i = 0; i < hiddenSize; i++) {
+        hiddenLayerWeights[i] += learningRate * outputGradient * hiddenLayerOutputs[i];
+        //hiddenLayerWeights[i] += learningRate * outputGradient * inputs[i];
+        hiddenLayerBiases[i] += learningRate * hiddenGradient[i];
+    }
+
+    // Map the updated weights and biases back to parameters
+    std::copy(inputLayerWeights.begin(), inputLayerWeights.end(), parameters.begin());
+    std::copy(hiddenLayerWeights.begin(), hiddenLayerWeights.end(), parameters.begin() + inputSize * hiddenSize);
+    std::copy(hiddenLayerBiases.begin(), hiddenLayerBiases.end(), parameters.begin() + weightsSize);
+}
+*/
 std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtParameters(std::vector<double> &inputs)
 {
     VectorXvar xInputs = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
