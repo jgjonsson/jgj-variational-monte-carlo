@@ -80,6 +80,11 @@ int main(int argc, char **argv)
 
     params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
 
+double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
+double beta = 2.82843; // beta is the second parameter for now.
+//double adiabaticFactor = 2 * (double)(count+1)/ (double)fixed_number_optimization_runs;
+    params.push_back(alpha);
+
     // We're experimenting with what learning rate works best.
     double fixed_learning_rate = argc > 5 ? stod(argv[5]) : 0.01;
 
@@ -130,9 +135,6 @@ int main(int argc, char **argv)
         unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
 
 double adiabaticFactorStart = 0.001;
-double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
-double beta = 2.82843; // beta is the second parameter for now.
-//double adiabaticFactor = 2 * (double)(count+1)/ (double)fixed_number_optimization_runs;
 double adiabaticFactor = count*count*adiabaticFactorStart;
 adiabaticFactor = std::min(1.0, adiabaticFactor);
 //adiabaticFactor = 1.0;//If we want to test without adiabatic change
@@ -221,6 +223,7 @@ cout << "Finished parallel region" << endl;
         cout << "Num params: " << params.size() << " Parameters:" << endl;
         std::streamsize original_precision = std::cout.precision(); // Save original precision
         std::cout << std::setprecision(4) << std::fixed;
+        cout << "Alpha: " << params[params.size()-1] << ", ";
         for (int i = 0; i < 8 && i < params.size(); ++i) {
             std::cout << params[i] << " ";
         }

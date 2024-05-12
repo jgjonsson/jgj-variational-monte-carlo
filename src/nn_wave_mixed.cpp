@@ -4,7 +4,7 @@
 #include <numeric>
 
 
-#include "../include/nn_wave.h"
+#include "../include/nn_wave_mixed.h"
 #include "../include/particle.h"
 #include "../include/random.h"
 #include "../include/neural_reverse.h"
@@ -16,13 +16,24 @@ using namespace std;
 //double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
 //double m_beta = 2.82843; // beta is the second parameter for now.
 
+//Helper function to constructor, to let parameters contain both neural network parameters and alpha.
+std::vector<double> popLastElement(std::vector<double>& parameters, double& alpha) {
+    alpha = parameters.back();
+    parameters.pop_back();
+    return parameters;
+}
+
 MixedNeuralNetworkWavefunction::MixedNeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N, std::vector<double> parameters, double omega, double alpha, double beta, double adiabaticFactor)
-: m_neuralNetwork(parameters, rbs_M, rbs_N)
+    : m_neuralNetwork(popLastElement(parameters, m_alpha), rbs_M, rbs_N)
 {
+
     assert(rbs_M > 0);
     assert(rbs_N > 0);
 
-    m_alpha = alpha;
+    //m_alpha = parameters.back(); // Store the last element in m_alpha
+    //parameters.pop_back(); // Remove the last element from the vector
+
+    //m_alpha = alpha;
     m_beta = beta;
     m_adiabaticFactor = adiabaticFactor;
     m_omega = omega;
@@ -30,12 +41,13 @@ MixedNeuralNetworkWavefunction::MixedNeuralNetworkWavefunction(size_t rbs_M, siz
     //TODO: Consider parameterizing this. However project spec says only look at sigma=1.0 so this is perhaps ok.
     m_sigmaSquared = 1.0;
 
-    m_numberOfParameters = parameters.size();
+    m_numberOfParameters = parameters.size()+1; //+1 for alpha
 
     this->m_M = rbs_M;
     this->m_N = rbs_N;
 
-    m_numberOfParameters = parameters.size();
+    // Initialize m_neuralNetwork after popping the last element from parameters
+    //m_neuralNetwork = std::make_unique<NeuralNetworkReverse>(parameters, rbs_M, rbs_N);
 }
 
 std::vector<double> MixedNeuralNetworkWavefunction::flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
@@ -145,12 +157,12 @@ std::vector<double> MixedNeuralNetworkWavefunction::computeQuantumForce(std::vec
     auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
 
     // I assume again that we do not arrive to forbidden states (r < r_hard_core), so I do not check for that.
-    double alpha = 0.5;
+
     std::vector<double> quantumForce = std::vector<double>();
     std::vector<double> position = particles[particle_index]->getPosition();
     for (int j = 0; j < position.size(); j++)
     {
-        double qForceHarmonic = -4 * alpha * position[j] * (j == 2 ? m_beta : 1.0);
+        double qForceHarmonic = -4 * m_alpha * position[j] * (j == 2 ? m_beta : 1.0);
         int indexInX = particle_index * position.size() + j;
         double derivative = m_neuralNetwork.calculateNumericalDeriviateWrtInput(xInputs, indexInX);
         double qForceInteraction = 2 * derivative;
@@ -159,10 +171,26 @@ std::vector<double> MixedNeuralNetworkWavefunction::computeQuantumForce(std::vec
     return quantumForce;
 }
 
+double calculateDerivativeOfAlpha(std::vector<std::unique_ptr<class Particle>> &particles, double alpha, double m_beta)
+{
+    double sum = 0.0;
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        double r2 = 0.0;
+        for (size_t j = 0; j < particles[i]->getPosition().size(); j++)
+            r2 += (j == 2 ? m_beta : 1.0) * particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+        sum += r2;
+    }
+    return - sum;
+}
+
 std::vector<double> MixedNeuralNetworkWavefunction::computeLogPsiDerivativeOverParameters(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
-    auto neuralNetworkDerivaties = m_neuralNetwork.getTheGradientVectorWrtParameters(xInputs);
+    auto derivatives = m_neuralNetwork.getTheGradientVectorWrtParameters(xInputs);
+    derivatives.push_back(calculateDerivativeOfAlpha(particles, m_alpha, m_beta));
+    //cout << "Alpha derivative is " << derivatives.back() << endl;
+    return derivatives;
 /*
     VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
     auto theGradient = m_neuralNetwork.getTheGradient(xDual);
