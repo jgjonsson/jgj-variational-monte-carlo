@@ -29,7 +29,7 @@ double gaussian2D(double x, double y) {
 int main() {
     // Initialize the neural network with 2 input nodes and 4 hidden nodes
     int inputSize = 2;
-    int hiddenSize = 4;
+    int hiddenSize = 12;
     /*
     std::vector<double> randNumbers(inputSize * hiddenSize + hiddenSize);
     std::generate(randNumbers.begin(), randNumbers.end(), std::rand);
@@ -46,6 +46,60 @@ int main() {
 	//auto nnr = std::make_unique<NeuralNetworkReverse>(randomParameters, inputSize, hiddenSize);
 	NeuralNetworkReverse nnr(randomParameters, inputSize, hiddenSize);
 
+// Define the training data
+std::vector<std::vector<double>> inputs(5, std::vector<double>(inputSize));
+std::vector<double> targets(inputs.size());
+
+// Initialize random number generator
+std::random_device rd;
+std::mt19937 gen(rd());
+std::uniform_real_distribution<> dis(-1.0, 1.0);
+
+
+	// Run the training loop
+    double learningRate = 0.1;
+    for (int epoch = 0; epoch < 100000; epoch++) {
+
+        // Generate new random inputs for each epoch
+        for (size_t i = 0; i < inputs.size(); i++) {
+            for (size_t j = 0; j < inputSize; j++) {
+                inputs[i][j] = dis(gen);
+            }
+        }
+        /*
+        // Generate new random inputs for each epoch
+        for (auto& input : inputs) {
+            for (auto& value : input) {
+                value = dis(gen);
+            }
+        }*/
+
+        // Calculate targets for new inputs
+        for (size_t i = 0; i < inputs.size(); i++) {
+            targets[i] = gaussian2D(inputs[i][0], inputs[i][1]);
+        }
+        //cout << "Blah" << inputs.size() << endl;
+        //cout << "Target is " << targets[0] <<endl;
+//cout << "Training on " << inputs[0][0] <<endl;
+        // Train on the new inputs and targets
+        for (size_t i = 0; i < inputs.size(); i++) {
+        //cout << "Calling backpropagate with " << inputs[i][0] << " and " << inputs[i][1] << " and " << targets[i] << endl;
+            nnr.backpropagate(inputs[i], targets[i], learningRate);
+        }
+    }
+
+    // Check the outputs of the neural network after training on new random inputs
+    for (int i = 0; i < 100; i++) {
+        std::vector<double> newInput(inputSize);
+        for (auto& value : newInput) {
+            value = dis(gen);
+        }
+        double newTarget = gaussian2D(newInput[0], newInput[1]);
+        double newOutput = nnr.feedForward(newInput);
+        assert(std::fabs(newTarget - newOutput) < 0.1); // The output of the neural network should match the target
+    }
+
+/*
     // Define the training data
     std::vector<std::vector<double>> inputs = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
     std::vector<double> targets(inputs.size());
@@ -66,6 +120,7 @@ int main() {
         double output = nnr.feedForward(inputs[i]);
         assert(std::fabs(targets[i] - output) < 0.1); // The output of the neural network should match the target
     }
+    */
 
     return 0;
 }
