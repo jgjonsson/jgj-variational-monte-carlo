@@ -54,6 +54,95 @@ std::unique_ptr<class MonteCarlo> createSolverFromArgument(string algoritm, std:
     exit(-1);
 }
 
+
+double getLogPsiTarget(std::vector<std::unique_ptr<class Particle>> &particles, double alpha, double m_beta)
+{
+    double totalSum = 0.0;
+
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        // Let's support as many dimensions as we want.
+        double r2 = 0;
+//        cout << "Particle size is " << particles[i]->getPosition().size() << endl;
+        for (size_t j = 0; j < particles[i]->getPosition().size(); j++){
+//            cout << "Particle " << i << " dimension " << j << " position " << particles[i]->getPosition()[j] << endl;
+            r2 += (j == 2 ? m_beta : 1.0) * particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+        }
+        // spherical ansatz
+        double g = -alpha * r2;
+//cout << "ADDING g " << g << endl;
+        // Trial wave function is product of g for all particles.
+        totalSum = totalSum + g;
+    }
+
+    return totalSum;
+}
+
+//TODO: cloned code from PureNeuralNetworkWavefunction::
+std::vector<double> flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
+{
+    std::vector<double> x(m_M);
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        auto position = particles[i]->getPosition();
+        auto numDimensions = position.size();
+        for (size_t j=0; j<numDimensions; j++)
+        {
+            x[i*numDimensions + j] = position[j];
+        }
+    }
+    return x;
+}
+
+std::vector<double> preTrainNeuralNetwork(size_t inputSize, size_t hiddenSize, std::vector<double> params,
+                                          size_t numberOfDimensions, size_t numberOfParticles,
+                                          double alpha, double beta, double stepLength, int seed)
+{
+    // Initialize the neural network with the given parameters
+    NeuralNetworkReverse nnr(params, inputSize, hiddenSize);
+    double learning_rate = 0.01;
+    auto rng = std::make_unique<Random>(seed);
+//cout << "Number particles " << numberOfParticles << " number of dimensions " << numberOfDimensions << endl;
+
+    for (int epoch = 0; epoch < 5000000; epoch++) {
+        // Initialize particles
+        auto particles = setupRandomUniformInitialState(
+            stepLength,
+            numberOfDimensions,
+            numberOfParticles,
+            *rng);
+//exit(0);
+        double target = getLogPsiTarget(particles, alpha, beta);
+
+        auto flattenedParticles = flattenParticleCoordinatesToVector(particles, inputSize);
+        nnr.backpropagate(flattenedParticles, target, learning_rate);
+
+        if(epoch%50000==0){
+            cout << "Epoch " << epoch << " Output: " << nnr.feedForward(flattenedParticles) << " Target: " << target << endl;
+        }
+        //nnr.backpropagate(particles, target, learning_rate);
+    }
+
+    for (int epoch = 0; epoch < 5; epoch++) {
+        // Initialize particles
+        auto particles = setupRandomUniformInitialState(
+            stepLength,
+            numberOfDimensions,
+            numberOfParticles,
+            *rng);
+
+        double target = getLogPsiTarget(particles, alpha, beta);
+
+        auto flattenedParticles = flattenParticleCoordinatesToVector(particles, inputSize);
+        double output = nnr.feedForward(flattenedParticles);
+        cout << "Output: " << output << " Target: " << target << endl;
+        //nnr.backpropagate(particles, target, learning_rate);
+    }
+
+    // Return the updated parameters of the neural network
+    return nnr.parameters;
+}
+
 int main(int argc, char **argv)
 {
     // This program is for experimenting with learning rate and number of hidden layers.
@@ -104,6 +193,11 @@ int main(int argc, char **argv)
     double stepLength = 0.1;     // Metropolis step length.
     bool verbose = true;         // Verbosity of output
 
+
+double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
+double beta = 2.82843; // beta is the second parameter for now.
+    params = preTrainNeuralNetwork(rbs_M, rbs_N, params, numberOfDimensions, numberOfParticles, alpha, beta, stepLength, parameter_seed);
+
     // Let's perform optimization here; Gradient descent to be used
 
     std::vector<double> learning_rate; // deduced automatically
@@ -113,7 +207,7 @@ int main(int argc, char **argv)
 
     std::unique_ptr<Sampler> combinedSampler;
 
-    int numThreads = 20;//12;//14;
+    int numThreads = 1;//20;//12;//14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
@@ -130,8 +224,6 @@ int main(int argc, char **argv)
         unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
 
 double adiabaticFactorStart = 0.0001;
-double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
-double beta = 2.82843; // beta is the second parameter for now.
 //double adiabaticFactor = 2 * (double)(count+1)/ (double)fixed_number_optimization_runs;
 //double adiabaticFactor = count*count*adiabaticFactorStart;
 double adiabaticFactor = (count-50)*(count-50)*adiabaticFactorStart;
