@@ -98,7 +98,8 @@ double beta = 2.82843; // beta is the second parameter for now.
     auto algoritmChoice = argc > 8 ? argv[8] : "METROPOLIS";
 
     size_t numberOfEquilibrationSteps = numberOfMetropolisSteps / 5;
-    double omega = 1.0; // Oscillator frequency.
+    double omega = 1.0; // Oscillator frequency.             // Frequency ratio
+    double hard_core_size = 0.0043 / sqrt(omega);
 
     size_t MC_reduction = 100; // Number of MC steps to reduce by at intermediate steps
 
@@ -118,7 +119,7 @@ double beta = 2.82843; // beta is the second parameter for now.
 
     std::unique_ptr<Sampler> combinedSampler;
 
-    int numThreads = 20;//20;//12;//14;
+    int numThreads = 20;//1;//20;//20;//12;//14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
@@ -163,12 +164,14 @@ cout << "Iteration " << BLUE << count+1 << RESET << " Adiabatic factor: " << BLU
             std::unique_ptr<System> system;
 
             // Initialize particles
+            auto particles = setupRandomUniformInitialStateWithRepulsion(stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
+            /*
             auto particles = setupRandomUniformInitialState(
                 stepLength,
                 numberOfDimensions,
                 numberOfParticles,
                 *rng);
-
+*/
             // Construct a unique pointer to a new System
             system = std::make_unique<System>(
                 // Construct unique_ptr to Hamiltonian
@@ -216,6 +219,7 @@ cout << "Finished parallel region" << endl;
         double suppressAlphaChange = 0.1; // Set your value
         gradient.back() *= suppressAlphaChange;
 
+        double alphaBefore = params[params.size()-1];
         // Update the parameter using Adam optimization
         auto NewParams = adamOptimizer.adamOptimization(params, gradient);
         double sum = 0.0;
@@ -225,6 +229,11 @@ cout << "Finished parallel region" << endl;
         }
         double meanSquareDifference = sum / params.size();
         params = NewParams;
+
+        cout << "Old alpha " << alphaBefore << " New alpha " << params[params.size()-1] << " Overridde alpha" << alphaBefore - 0.01 * gradient[params.size()-1] << endl;
+        //Trying to override Adams for alpha with fixed learning rate to see if it helps.
+        params[params.size()-1] = alphaBefore - 0.01 * gradient[params.size()-1];
+        params[params.size()-1] = 0.5; //Whatever, fix it to 0.5, see what happens.
 //}
         combinedSampler->printOutputToTerminalMini(verbose);
 
