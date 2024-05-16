@@ -35,6 +35,8 @@ public:
     double calculateNumericalLaplacianWrtInput(std::vector<double>& inputs);
     double getTheLaplacianVectorWrtInputs(std::vector<double> &inputs);
     double getTheLaplacianVectorWrtInputs2(std::vector<double> &inputs);
+    double getTheLaplacianFromGradient(std::vector<double> &inputs);
+    double laplacianOfLogarithmWrtInputs(std::vector<double> &inputs);
 
     void backpropagate(std::vector<double> inputs, double targetOutput, double learningRate);
 

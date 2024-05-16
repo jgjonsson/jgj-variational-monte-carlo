@@ -110,19 +110,26 @@ double MixedNeuralNetworkWavefunction::computeLocalLaplasian(std::vector<std::un
         for (size_t j = 0; j < particles[i]->getPosition().size(); ++j){
 //                                      r2 += particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
             r2 += (j == 2 ? m_beta : 1.0) * particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
-            }
+        }
 
         sum_laplasian += 4 * m_alpha * m_alpha * r2 - 2 * m_alpha * particles[i]->getPosition().size();
     }
 
     auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
-
+/*
     double interactionLaplacian = m_neuralNetwork.calculateNumericalLaplacianWrtInput(xInputs);
     auto theGradientVector = m_neuralNetwork.getTheGradientVectorWrtInputs(xInputs);
 
     double interactionGradSquared = std::inner_product(theGradientVector.begin(), theGradientVector.end(), theGradientVector.begin(), 0.0);
-//    cout << "Laplacian adding " << sum_laplasian << " with " << interactionLaplacian << " and " << interactionGradSquared << endl;
-    sum_laplasian += interactionLaplacian + interactionGradSquared;
+*/
+    double laplacianOfLogarithmWrtInputs = m_neuralNetwork.laplacianOfLogarithmWrtInputs(xInputs);
+    if(fabs(laplacianOfLogarithmWrtInputs)>0.001){
+    //cout << "Laplacian adding " << sum_laplasian << " with " << interactionLaplacian << " and " << interactionGradSquared << endl;
+    //cout << "Laplacian adding " << sum_laplasian << " with " << interactionLaplacian + interactionGradSquared << endl;
+    cout << "Laplacian adding " << sum_laplasian << " with " << laplacianOfLogarithmWrtInputs << endl;
+ }
+    //sum_laplasian += interactionLaplacian + interactionGradSquared;
+    sum_laplasian += laplacianOfLogarithmWrtInputs;
     return sum_laplasian;
 }
 

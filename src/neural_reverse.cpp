@@ -8,6 +8,7 @@
 
 // autodiff include
 //#include <autodiff/reverse/var.hpp>
+
 #include <autodiff/reverse/var.hpp>
 #include <autodiff/reverse/var/eigen.hpp>
 
@@ -231,6 +232,33 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtInputs(std::vec
     return dydx_vec;
 }
 
+double NeuralNetworkReverse::getTheLaplacianFromGradient(std::vector<double> &inputs)
+{
+    VectorXvar x = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
+
+    double totalLaplacian = 0.0;
+    auto feedForwardWrapper = [&](const VectorXvar& inputsDual) {
+        return feedForwardXvar(parametersDual, inputsDual, inputSize, hiddenSize);
+    };
+
+    var u = feedForwardWrapper(x); // the output variable y
+    /*
+    auto [ux] = derivativesx(u);//, x);//wrt(x));
+
+    auto [uxx] = derivativesx(ux, wrt(x));
+
+    //VectorXvar dydx = gradient(y, x); // evaluate the gradient vector dy/dx
+
+    for (size_t i = 0; i < uxx.size(); ++i) {
+        // Compute the derivative of the i-th component of the gradient with respect to the i-th input variable
+        //auto derder = uxx[i];
+        totalLaplacian += uxx[i];
+        //totalLaplacian += derder;//second_derivative.val(); // Extract the value from the var type and add it to the total
+    }
+*/
+    return totalLaplacian;
+}
+
 std::vector<double> NeuralNetworkReverse::calculateNumericalGradientParameters(std::vector<double>& inputs) {
     double epsilon = 1e-6; // small number for finite difference
     std::vector<double> gradient(parameters.size());
@@ -327,10 +355,11 @@ double NeuralNetworkReverse::getTheTotalLaplacian(std::vector<double> inputs)
 //#include <vector>
 //#include <functional>
 
+
 double NeuralNetworkReverse::calculateNumericalLaplacianWrtInput(std::vector<double>& inputs) {
 //double laplacian(std::function<double(std::vector<double>)> f, std::vector<double> x, double h = 1e-5) {
 
-    double epsilon = 1e-6; // small number for finite difference
+    double epsilon = 3e-4; // small number for finite difference
 
     double fInputs = feedForward(inputs);
     double laplacian = 0.0;
@@ -379,12 +408,37 @@ double NeuralNetworkReverse::getTheLaplacianVectorWrtInputs(std::vector<double> 
     };
 
     var y = feedForwardWrapper(x); // the output variable y
-    MatrixXd H = hessian(y, x); // evaluate the Hessian matrix H = d^2y/dx^2
+    Eigen::VectorXd g;
+    Eigen::MatrixXd H = hessian(y, x, g); // evaluate the Hessian matrix H = d^2y/dx^2
+    double laplacian2 = H.trace(); // evaluate the trace of the Hessian matrix
+    double gradientSquared = g.squaredNorm(); // evaluate the squared norm of the gradient vector
+    //auto [ux] = derivativesx(y, wrt(x));
+    //std::vector<double> laplacian(H.diagonal().data(), H.diagonal().data() + H.diagonal().size());
 
-    std::vector<double> laplacian(H.diagonal().data(), H.diagonal().data() + H.diagonal().size());
+    //double sum = std::accumulate(laplacian.begin(), laplacian.end(), 0.0);
 
-    double sum = std::accumulate(laplacian.begin(), laplacian.end(), 0.0);
-    return sum;
+    //cout << "Laplacian2: " << laplacian2 << /*" and summed laplacian " << sum <<*/ endl;
+    //cout << "Gradient squared " << gradientSquared << endl;
+    return laplacian2;
+}
+
+double NeuralNetworkReverse::laplacianOfLogarithmWrtInputs(std::vector<double> &inputs)
+{
+    VectorXvar x = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
+
+    auto feedForwardWrapper = [&](const VectorXvar& inputsDual) {
+        return feedForwardXvar(parametersDual, inputsDual, inputSize, hiddenSize);
+    };
+
+    var y = feedForwardWrapper(x); // the output variable y
+    Eigen::VectorXd g;
+    Eigen::MatrixXd H = hessian(y, x, g); // evaluate the Hessian matrix H = d^2y/dx^2
+    double laplacian2 = H.trace(); // evaluate the trace of the Hessian matrix
+    double gradientSquared = g.squaredNorm(); // evaluate the squared norm of the gradient vector
+
+    //cout << "Laplacian2: " << laplacian2 << endl;
+    //cout << "Gradient squared " << gradientSquared << endl;
+    return laplacian2+gradientSquared;
 }
 
 double NeuralNetworkReverse::getTheLaplacianVectorWrtInputs2(std::vector<double> &inputs)
