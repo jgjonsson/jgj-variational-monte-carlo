@@ -12,30 +12,57 @@
 using namespace std;
 
 
-//TODO: 0.5 is nearly optimal, maybe exactly optimal for case 2 part 2D? However we should parametrize this as well later.
-//double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
-//double m_beta = 2.82843; // beta is the second parameter for now.
+
 
 PureNeuralNetworkWavefunction::PureNeuralNetworkWavefunction(size_t rbs_M, size_t rbs_N, std::vector<double> parameters, double omega, double alpha, double beta, double adiabaticFactor)
-: m_neuralNetwork(parameters, rbs_M, rbs_N)
+    : m_neuralNetwork(parameters, rbs_M, rbs_N)
 {
+
     assert(rbs_M > 0);
     assert(rbs_N > 0);
-/*
+
+    //m_alpha = parameters.back(); // Store the last element in m_alpha
+    //parameters.pop_back(); // Remove the last element from the vector
+
     m_alpha = alpha;
     m_beta = beta;
-    m_adiabaticFactor = adiabaticFactor;
+//    m_adiabaticFactor = adiabaticFactor;
     m_omega = omega;
-*/
+
     //TODO: Consider parameterizing this. However project spec says only look at sigma=1.0 so this is perhaps ok.
     m_sigmaSquared = 1.0;
 
-    m_numberOfParameters = parameters.size();
+    m_numberOfParameters = parameters.size()+1; //+1 for alpha
 
     this->m_M = rbs_M;
     this->m_N = rbs_N;
 
-    m_numberOfParameters = parameters.size();
+    // Initialize m_neuralNetwork after popping the last element from parameters
+    //m_neuralNetwork = std::make_unique<NeuralNetworkReverse>(parameters, rbs_M, rbs_N);
+}
+
+double PureNeuralNetworkWavefunction::ratioToTrainingGaussian_A(std::vector<std::unique_ptr<class Particle>> &particles)
+{
+    //Calculate Psi_train -
+    double psiTrain = 1.0;
+    for (size_t i = 0; i < particles.size(); i++)
+    {
+        // Let's support as many dimensions as we want.
+        double r2 = 0;
+        for (size_t j = 0; j < particles[i]->getPosition().size(); j++)
+            r2 += (j == 2 ? m_beta : 1.0) * particles[i]->getPosition()[j] * particles[i]->getPosition()[j];
+        // spherical ansatz
+        double g = exp(-m_alpha * r2);
+        // Trial wave function is product of g for all particles.
+        psiTrain = psiTrain * g;
+    }
+
+    //Calculate Psi of the neural network
+    auto x = flattenParticleCoordinatesToVector(particles, m_M);
+    double psiNN = exp(m_neuralNetwork.feedForward(x));
+
+    //Calculate A = Psi_train / Psi_NN used in eqs (6),(7) in Saito's article.
+    return psiTrain / psiNN;
 }
 
 std::vector<double> PureNeuralNetworkWavefunction::flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
@@ -91,35 +118,6 @@ double PureNeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<
     cout << value1/value2 << " vs " << ratio * jastrowNumerator/jastrowDenominator << endl;*/
     return jastrowNumerator/jastrowDenominator;
 }
-
-/** Calculate the quantum force, defined by 2 * 1/Psi * grad(Psi)
- */
-std::vector<double> PureNeuralNetworkWavefunction::computeQuantumForceOld(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
-{
-    //vec x = flattenParticleCoordinatesToVector(particles, m_M);
-
-    // I assume again that we do not arrive to forbidden states (r < r_hard_core), so I do not check for that.
-    std::vector<double> quantumForce = std::vector<double>();
-    std::vector<double> position = particles[particle_index]->getPosition();
-
-    auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
-    //VectorXdual xDual = flattenParticleCoordinatesToVectorAutoDiffFormat(particles, m_M);
-    auto theGradientVector = m_neuralNetwork.getTheGradientVectorWrtInputs(xInputs);
-    //auto theGradientVector = transformVectorXdualToVector(theGradient);
-
-    //auto position = particles[0]->getPosition();
-    auto numDimensions = position.size();
-    //std::vector<double> result(quantumForce.size());
-    size_t start = particle_index * numDimensions;
-    size_t end = start + numDimensions;
-
-    for(size_t i = start; i < end; i++) {
-        auto interactionPartOfQuantumForce = 2 * theGradientVector[i];
-        quantumForce.push_back(interactionPartOfQuantumForce);
-    }
-    return quantumForce;
-}
-
 
 std::vector<double> PureNeuralNetworkWavefunction::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
 {
