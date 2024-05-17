@@ -107,7 +107,7 @@ double beta = 2.82843; // beta is the second parameter for now.
                                  /*
                                  //Other parameters we used in project 1 that we might want to add back in.
                                  */
-    double stepLength = 0.1;     // Metropolis step length.
+    double stepLength = 0.4;     // Metropolis step length.
     bool verbose = true;         // Verbosity of output
 
     // Let's perform optimization here; Gradient descent to be used
@@ -233,7 +233,7 @@ cout << "Finished parallel region" << endl;
         cout << "Old alpha " << alphaBefore << " New alpha " << params[params.size()-1] << " Overridde alpha" << alphaBefore - 0.01 * gradient[params.size()-1] << endl;
         //Trying to override Adams for alpha with fixed learning rate to see if it helps.
         params[params.size()-1] = alphaBefore - 0.01 * gradient[params.size()-1];
-        params[params.size()-1] = 0.5; //Whatever, fix it to 0.5, see what happens.
+        //params[params.size()-1] = 0.5; //Whatever, fix it to 0.5, see what happens.
 //}
         combinedSampler->printOutputToTerminalMini(verbose);
 
