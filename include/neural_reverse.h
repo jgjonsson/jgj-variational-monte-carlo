@@ -40,4 +40,10 @@ public:
 
     void backpropagate(std::vector<double> inputs, double targetOutput, double learningRate);
 
+private:
+    int weightsSize;
+    ArrayXvar inputLayerWeights;
+    ArrayXvar hiddenLayerWeights;
+    ArrayXvar hiddenLayerBiases;
+
 };

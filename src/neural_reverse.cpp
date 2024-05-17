@@ -18,10 +18,14 @@ using namespace autodiff;
 using namespace Eigen;
 using namespace std;
 
-NeuralNetworkReverse::NeuralNetworkReverse(std::vector<double> randNumbers, int inputSize, int hiddenSize)
-    : parameters(randNumbers), inputSize(inputSize), hiddenSize(hiddenSize)
+NeuralNetworkReverse::NeuralNetworkReverse(std::vector<double> parameters, int inputSize, int hiddenSize)
+    : parameters(parameters), inputSize(inputSize), hiddenSize(hiddenSize)
 {
-    parametersDual = Eigen::Map<VectorXd>(randNumbers.data(), randNumbers.size()).cast<var>().array();
+    parametersDual = Eigen::Map<VectorXd>(parameters.data(), parameters.size()).cast<var>().array();
+    weightsSize = inputSize * hiddenSize + hiddenSize;
+    inputLayerWeights = parametersDual.head(inputSize * hiddenSize);
+    hiddenLayerWeights = parametersDual.segment(inputSize * hiddenSize, hiddenSize);
+    hiddenLayerBiases = parametersDual.tail(hiddenSize);
 }
 
 using ArrayXXvar = Eigen::Array<autodiff::var, Eigen::Dynamic, Eigen::Dynamic>;
@@ -49,6 +53,26 @@ var feedForwardXvar(const ArrayXvar& parameters, const ArrayXvar& inputs, int in
     ArrayXvar inputLayerWeights = parameters.head(inputSize * hiddenSize);
     ArrayXvar hiddenLayerWeights = parameters.segment(inputSize * hiddenSize, hiddenSize);
     ArrayXvar hiddenLayerBiases = parameters.tail(hiddenSize);
+
+    ArrayXvar hiddenOutputs(hiddenLayerBiases.size());
+    for(int i = 0; i < hiddenLayerBiases.size(); i++) {
+        var output = 0.0;
+        for(int j = 0; j < inputs.size(); j++) {
+            output += inputLayerWeights[j * hiddenLayerBiases.size() + i] * inputs[j];
+        }
+        output += hiddenLayerBiases[i];
+        hiddenOutputs[i] = tanh(output);
+        //hiddenOutputs[i] = leaky_relu(output);
+    }
+
+    var finalOutput = 0.0;
+    for(int i = 0; i < hiddenOutputs.size(); i++) {
+        finalOutput += hiddenLayerWeights[i] * hiddenOutputs[i];
+    }
+    return finalOutput;
+}
+
+var feedForwardXvarParametersOptimized(const ArrayXvar& inputLayerWeights, const ArrayXvar& hiddenLayerWeights, const ArrayXvar& hiddenLayerBiases, const ArrayXvar& inputs, int inputSize, int hiddenSize) {
 
     ArrayXvar hiddenOutputs(hiddenLayerBiases.size());
     for(int i = 0; i < hiddenLayerBiases.size(); i++) {
@@ -221,7 +245,7 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtInputs(std::vec
     VectorXvar x = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
 
     auto feedForwardWrapper = [&](const VectorXvar& inputsDual) {
-        return feedForwardXvar(parametersDual, inputsDual, inputSize, hiddenSize);
+        return feedForwardXvarParametersOptimized(inputLayerWeights, hiddenLayerWeights, hiddenLayerBiases, inputsDual, inputSize, hiddenSize);
     };
 
     var y = feedForwardWrapper(x); // the output variable y
@@ -427,9 +451,12 @@ double NeuralNetworkReverse::laplacianOfLogarithmWrtInputs(std::vector<double> &
     VectorXvar x = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
 
     auto feedForwardWrapper = [&](const VectorXvar& inputsDual) {
+        return feedForwardXvarParametersOptimized(inputLayerWeights, hiddenLayerWeights, hiddenLayerBiases, inputsDual, inputSize, hiddenSize);
+    };
+    /*auto feedForwardWrapper = [&](const VectorXvar& inputsDual) {
         return feedForwardXvar(parametersDual, inputsDual, inputSize, hiddenSize);
     };
-
+*/
     var y = feedForwardWrapper(x); // the output variable y
     Eigen::VectorXd g;
     Eigen::MatrixXd H = hessian(y, x, g); // evaluate the Hessian matrix H = d^2y/dx^2
