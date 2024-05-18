@@ -103,17 +103,19 @@ cout << "This round " << count << " of PRE-TRAINING gets " << numberOfMetropolis
 
         auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
             stepLength,
-            numberOfEquilibrationStepsPerIteration);//numberOfMetropolisStepsPerGradientIteration / numberOfEquilibrationSteps);
+            1000);
+            //numberOfEquilibrationStepsPerIteration);//numberOfMetropolisStepsPerGradientIteration / numberOfEquilibrationSteps);
 
         pretrainSamplers[thread_id] = system->runMetropolisSteps(
             stepLength,
-            numberOfMetropolisStepsPerGradientIteration);
+            10000);
+            //numberOfMetropolisStepsPerGradientIteration);
     }
 
     return std::unique_ptr<PretrainSampler>(new PretrainSampler(pretrainSamplers, numThreads));
 }
 
-std::unique_ptr<PretrainSampler> runNonInteractingParallelMonteCarloSimulation(
+std::unique_ptr<Sampler> runNonInteractingParallelMonteCarloSimulation(
     size_t count,
     size_t numberOfMetropolisSteps,
     size_t fixed_number_optimization_runs,
@@ -136,13 +138,13 @@ std::unique_ptr<PretrainSampler> runNonInteractingParallelMonteCarloSimulation(
     numberOfMetropolisStepsPerGradientIteration /= numThreads;
     numberOfEquilibrationStepsPerIteration  /= numThreads;
 
-    std::unique_ptr<PretrainSampler> pretrainSamplers[numThreads] = {};
+    std::unique_ptr<Sampler> samplers[numThreads] = {};
 
-cout << "This round " << count << " of PRE-TRAINING gets " << numberOfMetropolisStepsPerGradientIteration << " MC steps, split on " << numThreads << " threads.";
+cout << "This round " << count << " of TRAINING gets " << numberOfMetropolisStepsPerGradientIteration << " MC steps, split on " << numThreads << " threads.";
         numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
         cout << " so " << numberOfMetropolisStepsPerGradientIteration << " per thread. " << endl ;
 
-#pragma omp parallel shared(pretrainSamplers, count)
+#pragma omp parallel shared(samplers, count)
     {
         int thread_id = omp_get_thread_num();
         unsigned int my_seed = base_seed + thread_id;
@@ -153,19 +155,74 @@ cout << "This round " << count << " of PRE-TRAINING gets " << numberOfMetropolis
         auto system = std::make_unique<System>(
             std::make_unique<HarmonicOscillator>(omega),
             std::make_unique<PureNeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega, alpha, beta, 0.0),
-            createSolverFromArgument(algoritmChoice, std::move(rng)),
+            //createSolverFromArgument(algoritmChoice, std::move(rng)),
+            std::make_unique<Metropolis>(std::move(rng)),
             std::move(particles));
 
         auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
             stepLength,
             numberOfEquilibrationStepsPerIteration);//numberOfMetropolisStepsPerGradientIteration / numberOfEquilibrationSteps);
 
-        pretrainSamplers[thread_id] = system->runMetropolisSteps(
+        samplers[thread_id] = system->runMetropolisSteps(
             stepLength,
             numberOfMetropolisStepsPerGradientIteration);
     }
 
-    return std::unique_ptr<Sampler>(new Sampler(pretrainSamplers, numThreads));
+    return std::unique_ptr<Sampler>(new Sampler(samplers, numThreads));
+}
+
+std::vector<double> optimizeParameters(std::vector<double>& params, std::unique_ptr<PretrainSampler>& combinedPretrainSampler, AdamOptimizer& adamOptimizer) {
+    auto gradient = std::vector<double>(params.size());
+    for (size_t param_num = 0; param_num < params.size(); ++param_num)
+    {
+        gradient[param_num] = combinedPretrainSampler->getObservables()[2 + param_num];
+    }
+    // Update the parameter using Adam optimization
+    auto NewParams = adamOptimizer.adamOptimization(params, gradient);
+    params = NewParams;
+
+    combinedPretrainSampler->printOutputToTerminalMini(true);
+
+    std::cout << "Num params: " << params.size() << " Parameters:" << std::endl;
+    std::streamsize original_precision = std::cout.precision(); // Save original precision
+    std::cout << std::setprecision(4) << std::fixed;
+    for (int i = 0; i < params.size(); ++i) {
+        std::cout << params[i] << " ";
+    }
+    std::cout.precision(original_precision); // Restore original precision
+
+    std::cout << std::endl;
+    auto energyEstimate = combinedPretrainSampler->getObservables()[0];
+    std::cout << "Energy estimate: " << energyEstimate << std::endl;
+
+    return NewParams;
+}
+
+std::vector<double> optimizeParameters(std::vector<double>& params, std::unique_ptr<Sampler>& combinedSampler, AdamOptimizer& adamOptimizer) {
+    auto gradient = std::vector<double>(params.size());
+    for (size_t param_num = 0; param_num < params.size(); ++param_num)
+    {
+        gradient[param_num] = combinedSampler->getObservables()[2 + param_num];
+    }
+    // Update the parameter using Adam optimization
+    auto NewParams = adamOptimizer.adamOptimization(params, gradient);
+    params = NewParams;
+
+    combinedSampler->printOutputToTerminalMini(true);
+
+    std::cout << "Num params: " << params.size() << " Parameters:" << std::endl;
+    std::streamsize original_precision = std::cout.precision(); // Save original precision
+    std::cout << std::setprecision(4) << std::fixed;
+    for (int i = 0; i < params.size(); ++i) {
+        std::cout << params[i] << " ";
+    }
+    std::cout.precision(original_precision); // Restore original precision
+
+    std::cout << std::endl;
+    auto energyEstimate = combinedSampler->getObservables()[0];
+    std::cout << "Energy estimate: " << energyEstimate << std::endl;
+
+    return NewParams;
 }
 
 int main(int argc, char **argv)
@@ -247,15 +304,17 @@ double beta = 2.82843; // beta is the second parameter for now.
     //std::vector<double> alphasTraining{};
 
     //Initialize Adam optimizer
+    AdamOptimizer adamOptimizerPretrain(params.size(), 0.01);
     AdamOptimizer adamOptimizer(params.size(), fixed_learning_rate);
     bool hasResetAdamAtEndOfAdiabaticChange = false;
 
-    int max_iterations_pre_training = 300;
+    int max_iterations_pre_training = 500;
 ////// Ok, lets try get some pre-training going
     for (size_t count = 0; count < max_iterations_pre_training; ++count)
     {
         auto combinedPretrainSampler = runPreTrainParallelMonteCarloSimulation(count, numberOfMetropolisSteps, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, rbs_M, rbs_N, numberOfEquilibrationSteps, omega, alpha, beta, params, algoritmChoice);
-
+        params = optimizeParameters(params, combinedPretrainSampler, adamOptimizerPretrain);
+        /*
         auto gradient = std::vector<double>(params.size());
         cout << "Params size " << params.size() << endl;
         for (size_t param_num = 0; param_num < params.size(); ++param_num)
@@ -264,12 +323,12 @@ double beta = 2.82843; // beta is the second parameter for now.
         }
         // Update the parameter using Adam optimization
         auto NewParams = adamOptimizer.adamOptimization(params, gradient);
-        /*double sum = 0.0;
+        / *double sum = 0.0;
         for (size_t i = 0; i < params.size(); ++i) {
             double diff = fabs(NewParams[i] - params[i]);
             sum += diff * diff;
         }
-        double meanSquareDifference = sum / params.size();*/
+        double meanSquareDifference = sum / params.size();* /
         params = NewParams;
 
         combinedPretrainSampler->printOutputToTerminalMini(verbose);
@@ -278,7 +337,7 @@ double beta = 2.82843; // beta is the second parameter for now.
         std::streamsize original_precision = std::cout.precision(); // Save original precision
         std::cout << std::setprecision(4) << std::fixed;
         //cout << "Alpha: " << params[params.size()-1] << ", ";
-        for (int i = 0; /*i < 8 &&*/ i < params.size(); ++i) {
+        for (int i = 0; / *i < 8 &&* / i < params.size(); ++i) {
             std::cout << params[i] << " ";
         }
         std::cout.precision(original_precision); // Restore original precision
@@ -289,12 +348,21 @@ double beta = 2.82843; // beta is the second parameter for now.
         cout << "Energy estimate: " << energyEstimate << endl;
         KPreTraining.push_back(energyEstimate);
         epochsPreTraining.push_back(count);
-        //alphasTraining.push_back(params[params.size()-1]);
+        //alphasTraining.push_back(params[params.size()-1]);*/
 
     }
 
+    one_columns_to_csv("NNparams1.csv", params, ",", 0, 6);
     two_columns_to_csv("K_pure.csv", epochsPreTraining, KPreTraining, ",", 0, 6);
-    one_columns_to_csv("NNparams.csv", params, ",", 0, 6);
+
+    //Do the same except for calling runNonInteractingParallelMonteCarloSimulation
+    for(size_t count = 0; count < max_iterations_pre_training; ++count)
+    {
+        auto combinedPretrainSampler = runNonInteractingParallelMonteCarloSimulation(count, numberOfMetropolisSteps, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, rbs_M, rbs_N, numberOfEquilibrationSteps, omega, alpha, beta, params, algoritmChoice);
+        params = optimizeParameters(params, combinedPretrainSampler, adamOptimizer);
+    }
+
+    one_columns_to_csv("NNparams2.csv", params, ",", 0, 6);
 
     adamOptimizer.reset();
 //////////////

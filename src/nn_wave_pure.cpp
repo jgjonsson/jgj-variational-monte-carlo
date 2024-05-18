@@ -40,7 +40,7 @@ PureNeuralNetworkWavefunction::PureNeuralNetworkWavefunction(size_t rbs_M, size_
     // Initialize m_neuralNetwork after popping the last element from parameters
     //m_neuralNetwork = std::make_unique<NeuralNetworkReverse>(parameters, rbs_M, rbs_N);
 }
-
+/*
 double PureNeuralNetworkWavefunction::ratioToTrainingGaussian_A(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     //Calculate Psi_train -
@@ -73,7 +73,7 @@ cout << "Psi_train: " << psiTrain << " Psi_NN: " << psiNN << " Return value: " <
     //Calculate A = Psi_train / Psi_NN used in eqs (6),(7) in Saito's article.
     return psiTrain / psiNN;
 }
-
+*/
 std::vector<double> PureNeuralNetworkWavefunction::flattenParticleCoordinatesToVector(std::vector<std::unique_ptr<class Particle>> &particles, size_t m_M)
 {
     std::vector<double> x(m_M);
@@ -106,13 +106,23 @@ double PureNeuralNetworkWavefunction::evaluate(std::vector<std::unique_ptr<class
 double PureNeuralNetworkWavefunction::computeLocalLaplasian(std::vector<std::unique_ptr<class Particle>> &particles)
 {
     auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
+/*
+    double interactionLaplacian = m_neuralNetwork.calculateNumericalLaplacianWrtInput(xInputs);
+    auto theGradientVector = m_neuralNetwork.getTheGradientVectorWrtInputs(xInputs);
+
+    double interactionGradSquared = std::inner_product(theGradientVector.begin(), theGradientVector.end(), theGradientVector.begin(), 0.0);
+*/
+    double laplacianOfLogarithmWrtInputs = m_neuralNetwork.laplacianOfLogarithmWrtInputs(xInputs);
+    return laplacianOfLogarithmWrtInputs;
+    /*
+    auto xInputs = flattenParticleCoordinatesToVector(particles, m_M);
 
     double interactionLaplacian = m_neuralNetwork.calculateNumericalLaplacianWrtInput(xInputs);
     auto theGradientVector = m_neuralNetwork.getTheGradientVectorWrtInputs(xInputs);
 
     double interactionGradSquared = std::inner_product(theGradientVector.begin(), theGradientVector.end(), theGradientVector.begin(), 0.0);
 //    cout << "Laplacian adding " << sum_laplasian << " with " << interactionLaplacian << " and " << interactionGradSquared << endl;
-    return interactionLaplacian + interactionGradSquared;
+    return interactionLaplacian + interactionGradSquared;*/
 }
 
 double PureNeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<class Particle>> &particles_numerator, std::vector<std::unique_ptr<class Particle>> &particles_denominator)
@@ -121,11 +131,7 @@ double PureNeuralNetworkWavefunction::evaluateRatio(std::vector<std::unique_ptr<
 
     double jastrowNumerator = m_neuralNetwork.feedForward(flattenParticleCoordinatesToVector(particles_numerator, m_M));
     double jastrowDenominator = m_neuralNetwork.feedForward(flattenParticleCoordinatesToVector(particles_denominator, m_M));
-    /*This is verified the same
-    ouble value1 = evaluate(particles_numerator);
-    double value2 = evaluate(particles_denominator);
-    cout << value1/value2 << " vs " << ratio * jastrowNumerator/jastrowDenominator << endl;*/
-    return jastrowNumerator/jastrowDenominator;
+    return exp(jastrowNumerator-jastrowDenominator);
 }
 
 std::vector<double> PureNeuralNetworkWavefunction::computeQuantumForce(std::vector<std::unique_ptr<class Particle>> &particles, size_t particle_index)
