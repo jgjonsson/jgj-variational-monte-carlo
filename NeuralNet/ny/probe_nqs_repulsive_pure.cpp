@@ -76,9 +76,15 @@ std::unique_ptr<PretrainSampler> runPreTrainParallelMonteCarloSimulation(
 {
     unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
     size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / fixed_number_optimization_runs;
+    size_t numberOfEquilibrationStepsPerIteration = numberOfEquilibrationSteps/ fixed_number_optimization_runs;
     numberOfMetropolisStepsPerGradientIteration /= numThreads;
+    numberOfEquilibrationStepsPerIteration  /= numThreads;
 
     std::unique_ptr<PretrainSampler> pretrainSamplers[numThreads] = {};
+
+cout << "This round " << count << " of PRE-TRAINING gets " << numberOfMetropolisStepsPerGradientIteration << " MC steps, split on " << numThreads << " threads.";
+        numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
+        cout << " so " << numberOfMetropolisStepsPerGradientIteration << " per thread. " << endl ;
 
 #pragma omp parallel shared(pretrainSamplers, count)
     {
@@ -97,7 +103,7 @@ std::unique_ptr<PretrainSampler> runPreTrainParallelMonteCarloSimulation(
 
         auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
             stepLength,
-            numberOfEquilibrationSteps);//numberOfMetropolisStepsPerGradientIteration / numberOfEquilibrationSteps);
+            numberOfEquilibrationStepsPerIteration);//numberOfMetropolisStepsPerGradientIteration / numberOfEquilibrationSteps);
 
         pretrainSamplers[thread_id] = system->runMetropolisSteps(
             stepLength,
@@ -107,6 +113,60 @@ std::unique_ptr<PretrainSampler> runPreTrainParallelMonteCarloSimulation(
     return std::unique_ptr<PretrainSampler>(new PretrainSampler(pretrainSamplers, numThreads));
 }
 
+std::unique_ptr<PretrainSampler> runNonInteractingParallelMonteCarloSimulation(
+    size_t count,
+    size_t numberOfMetropolisSteps,
+    size_t fixed_number_optimization_runs,
+    size_t numThreads,
+    double stepLength,
+    size_t numberOfDimensions,
+    size_t numberOfParticles,
+    size_t rbs_M,
+    size_t rbs_N,
+    size_t numberOfEquilibrationSteps,
+    double omega,
+    double alpha,
+    double beta,
+    std::vector<double>& params,
+    const std::string& algoritmChoice)
+{
+    unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
+    size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / fixed_number_optimization_runs;
+    size_t numberOfEquilibrationStepsPerIteration = numberOfEquilibrationSteps/ fixed_number_optimization_runs;
+    numberOfMetropolisStepsPerGradientIteration /= numThreads;
+    numberOfEquilibrationStepsPerIteration  /= numThreads;
+
+    std::unique_ptr<PretrainSampler> pretrainSamplers[numThreads] = {};
+
+cout << "This round " << count << " of PRE-TRAINING gets " << numberOfMetropolisStepsPerGradientIteration << " MC steps, split on " << numThreads << " threads.";
+        numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
+        cout << " so " << numberOfMetropolisStepsPerGradientIteration << " per thread. " << endl ;
+
+#pragma omp parallel shared(pretrainSamplers, count)
+    {
+        int thread_id = omp_get_thread_num();
+        unsigned int my_seed = base_seed + thread_id;
+        auto rng = std::make_unique<Random>(my_seed);
+
+        auto particles = setupRandomUniformInitialState(stepLength,numberOfDimensions,numberOfParticles,*rng);
+
+        auto system = std::make_unique<System>(
+            std::make_unique<HarmonicOscillator>(omega),
+            std::make_unique<PureNeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega, alpha, beta, 0.0),
+            createSolverFromArgument(algoritmChoice, std::move(rng)),
+            std::move(particles));
+
+        auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
+            stepLength,
+            numberOfEquilibrationStepsPerIteration);//numberOfMetropolisStepsPerGradientIteration / numberOfEquilibrationSteps);
+
+        pretrainSamplers[thread_id] = system->runMetropolisSteps(
+            stepLength,
+            numberOfMetropolisStepsPerGradientIteration);
+    }
+
+    return std::unique_ptr<Sampler>(new Sampler(pretrainSamplers, numThreads));
+}
 
 int main(int argc, char **argv)
 {
@@ -174,7 +234,7 @@ double beta = 2.82843; // beta is the second parameter for now.
     std::unique_ptr<Sampler> combinedSampler;
     std::unique_ptr<PretrainSampler> combinedPretrainSampler;
 
-    int numThreads = 20;//20;//12;//14;
+    int numThreads = 18;//20;//20;//12;//14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
     std::unique_ptr<PretrainSampler> pretrainSamplers[numThreads] = {};
@@ -197,6 +257,7 @@ double beta = 2.82843; // beta is the second parameter for now.
         auto combinedPretrainSampler = runPreTrainParallelMonteCarloSimulation(count, numberOfMetropolisSteps, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, rbs_M, rbs_N, numberOfEquilibrationSteps, omega, alpha, beta, params, algoritmChoice);
 
         auto gradient = std::vector<double>(params.size());
+        cout << "Params size " << params.size() << endl;
         for (size_t param_num = 0; param_num < params.size(); ++param_num)
         {
             gradient[param_num] = combinedPretrainSampler->getObservables()[2 + param_num];

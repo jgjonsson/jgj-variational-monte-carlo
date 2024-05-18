@@ -42,9 +42,9 @@ PretrainSampler::PretrainSampler(
     m_stepLength = stepLength;
     m_numberOfAcceptedSteps = 0;
     // El, El^2, El*d ln psi/d alpha, d ln psi/d alpha
-    m_cumulatives = std::vector<double>(2 + 2 * numberOfParameters, 0.0);
+    m_cumulatives = std::vector<double>(2 + 2 * numberOfParameters +3, 0.0);
     // <E>, <(E-<E>)^2>, <d E/d alpha>
-    m_observables = std::vector<double>(2 + numberOfParameters, 0.0);
+    m_observables = std::vector<double>(2 + numberOfParameters+3, 0.0);
 }
 
 /**
@@ -60,19 +60,19 @@ PretrainSampler::PretrainSampler(std::unique_ptr<PretrainSampler> *samplers, int
     m_stepLength = samplers[0]->m_stepLength;
     m_numberOfAcceptedSteps = 0;
     // El, El^2, El*d ln psi/d alpha, d ln psi/d alpha
-    m_cumulatives = std::vector<double>(2 + 2 * m_numberOfParameters, 0.0);
+    m_cumulatives = std::vector<double>(2 + 2 * m_numberOfParameters + 3, 0.0);
     // <E>, <(E-<E>)^2>, <d E/d alpha>
-    m_observables = std::vector<double>(2 + m_numberOfParameters, 0.0);
+    m_observables = std::vector<double>(2 + m_numberOfParameters + 3, 0.0);
 
     energy_array_for_blocking = std::vector<double>();
 
     for (int i = 0; i < numberSamplers; i++)
     {
-        for (int j = 0; j < 2 + 2 * m_numberOfParameters; j++)
+        for (int j = 0; j < 2 + 2 * m_numberOfParameters+3; j++)
         {
             m_cumulatives[j] += samplers[i]->m_cumulatives[j] / numberSamplers;
         }
-        for (int j = 0; j < 2 + m_numberOfParameters; j++)
+        for (int j = 0; j < 2 + m_numberOfParameters+3; j++)
         {
             m_observables[j] += samplers[i]->m_observables[j] / numberSamplers;
         }
@@ -109,7 +109,7 @@ void PretrainSampler::sample(bool acceptedStep, PretrainSystem *system)
     system->getParticles() = std::move(particles);
     //system->setParticles(std::move(particles));
 
-    m_cumulatives[0] += A;
+    m_cumulatives[0] += fabs(A);
     m_cumulatives[1] += A*A;
     for (size_t i = 0; i < m_numberOfParameters; i++)
     {
@@ -118,7 +118,12 @@ void PretrainSampler::sample(bool acceptedStep, PretrainSystem *system)
     }
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
-
+//    cout << "Step number: " << m_stepNumber << " Local energy: " << localEnergy << " A: " << A << endl;
+    //append localEnergy, localEnergy^2 and A last in m_cumulatives
+    m_cumulatives[2 + m_numberOfParameters*2 + 0] += localEnergy;
+    m_cumulatives[2 + m_numberOfParameters*2 + 1] += localEnergy*localEnergy;
+    m_cumulatives[2 + m_numberOfParameters*2 + 2] += fabs(A);
+//cout << "Nice" << endl;
     //Store every X:th energy value to array. This will later be stored to file for resampling by Python script.
     if(m_stepNumber%howOftenStoreSampleForBlocking == 0){
         energy_array_for_blocking.push_back(localEnergy);
@@ -173,7 +178,11 @@ void PretrainSampler::printOutputToTerminalMini(bool verbose)
     cout << " Ratio of accepted steps: "
         << RED <<  ((double)m_numberOfAcceptedSteps) / ((double)m_numberOfMetropolisSteps)
         << RESET << endl;
-    cout << " Energy : " << YELLOW << m_observables[0] << RESET << endl;
+    cout << " K : " << YELLOW << m_observables[0] << RESET << endl;
+    //Now also print E, E^2 and A which are the three last elements of m_observables
+    cout << " E : " << YELLOW << m_observables[m_observables.size()-3] << RESET << " ";
+    cout << " E^2 : " << YELLOW << m_observables[m_observables.size()-2] << RESET << " ";
+    cout << " A : " << YELLOW << m_observables[m_observables.size()-1] << RESET << endl;
     cout << endl;
 }
 
@@ -203,6 +212,25 @@ void PretrainSampler::computeObservables()
         //m_observables[2 + i] = - m_observables[2 + i]; //We want to maximize the quantity K.
     }
     m_observables[0] = K;
+
+    //Take the third last element from m_cumulatives, which is the local energy. Calculate mean and append to m_observables.
+//    cout << "m_cumulatives.size()=" << m_cumulatives.size() << endl;
+//    cout << "m_cumulatives[m_cumulatives.size()-3]=" << m_cumulatives[m_cumulatives.size()-3] << endl;
+    double localEnergyMean = m_cumulatives[m_cumulatives.size()-3] / m_numberOfMetropolisSteps;
+//    cout << "localEnergyMean=" << localEnergyMean << endl;
+    m_observables[2 + m_numberOfParameters + 0] = localEnergyMean;
+    //Same with energy squared
+    double localEnergySquaredMean = m_cumulatives[m_cumulatives.size()-2] / m_numberOfMetropolisSteps;
+//    cout << "localEnergySquaredMean=" << localEnergySquaredMean << endl;
+    //m_observables.push_back(localEnergySquaredMean);
+
+    m_observables[2 + m_numberOfParameters + 1] = localEnergySquaredMean;
+    //Same with A
+    double AMean = m_cumulatives[m_cumulatives.size()-1] / m_numberOfMetropolisSteps;
+//    cout << "AMean=" << AMean << endl;
+
+    m_observables[2 + m_numberOfParameters + 2] = AMean;
+    //m_observables.push_back(AMean);
 }
 
 void PretrainSampler::storeSystemParameters(class PretrainSystem *system)
