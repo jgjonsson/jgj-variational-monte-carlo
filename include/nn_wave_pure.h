@@ -41,6 +41,10 @@ public:
     void insertParameters(std::vector<double> parameters);
     static std::vector<double> generateRandomParameterSet(size_t rbs_M, size_t rbs_N, int randomSeed, double spread);
 
+    //Used for pre-training to make the neural network target the gaussian distribution.
+    double ratioToTrainingGaussian_A(std::vector<std::unique_ptr<class Particle>> &particles);
+
+
 protected:
     double gradientSquaredOfLnWaveFunction(vec x);
     double laplacianOfLnWaveFunction(vec x);
@@ -57,8 +61,8 @@ protected:
     //Storing the physical contants for this model. Values are set in constructur.
     double m_sigmaSquared;
     double m_omega;
-    //double m_alpha;
-    //double m_beta;
+    double m_alpha;
+    double m_beta;
     //double m_adiabaticFactor;
     NeuralNetworkReverse m_neuralNetwork;
 /*

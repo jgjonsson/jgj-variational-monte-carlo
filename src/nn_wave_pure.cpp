@@ -32,7 +32,7 @@ PureNeuralNetworkWavefunction::PureNeuralNetworkWavefunction(size_t rbs_M, size_
     //TODO: Consider parameterizing this. However project spec says only look at sigma=1.0 so this is perhaps ok.
     m_sigmaSquared = 1.0;
 
-    m_numberOfParameters = parameters.size()+1; //+1 for alpha
+    m_numberOfParameters = parameters.size();
 
     this->m_M = rbs_M;
     this->m_N = rbs_N;
@@ -47,6 +47,13 @@ double PureNeuralNetworkWavefunction::ratioToTrainingGaussian_A(std::vector<std:
     double psiTrain = 1.0;
     for (size_t i = 0; i < particles.size(); i++)
     {
+        //Print particles position, in all dimensions
+        cout << "Particle " << i << " position: ";
+        for (size_t j = 0; j < particles[i]->getPosition().size(); j++)
+        {
+            cout << particles[i]->getPosition()[j] << " ";
+        }
+
         // Let's support as many dimensions as we want.
         double r2 = 0;
         for (size_t j = 0; j < particles[i]->getPosition().size(); j++)
@@ -55,12 +62,14 @@ double PureNeuralNetworkWavefunction::ratioToTrainingGaussian_A(std::vector<std:
         double g = exp(-m_alpha * r2);
         // Trial wave function is product of g for all particles.
         psiTrain = psiTrain * g;
+        cout << " g = " << g << " r2 = " << r2 << " psiTrain = " << psiTrain << endl;
     }
 
     //Calculate Psi of the neural network
     auto x = flattenParticleCoordinatesToVector(particles, m_M);
     double psiNN = exp(m_neuralNetwork.feedForward(x));
-
+cout << "Psi_train: " << psiTrain << " Psi_NN: " << psiNN << " Return value: " << psiTrain / psiNN << endl;
+//exit(-1);
     //Calculate A = Psi_train / Psi_NN used in eqs (6),(7) in Saito's article.
     return psiTrain / psiNN;
 }

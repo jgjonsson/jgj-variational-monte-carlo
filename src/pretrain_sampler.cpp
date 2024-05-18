@@ -107,6 +107,7 @@ void PretrainSampler::sample(bool acceptedStep, PretrainSystem *system)
 //cout << "A=" << A << endl;
     // I am a terrible person
     system->getParticles() = std::move(particles);
+    //system->setParticles(std::move(particles));
 
     m_cumulatives[0] += A;
     m_cumulatives[1] += A*A;
@@ -197,9 +198,11 @@ void PretrainSampler::computeObservables()
         double O_W = m_cumulatives[2 + i] / m_numberOfMetropolisSteps;
         double parentesis = AO_W / A - O_W;
   //      cout << "AO_W=" << AO_W << " O_W=" << O_W << " parentesis=" << parentesis << endl;
-        m_observables[2 + i] = 2 * K * parentesis;
+        //m_observables[2 + i] = - 2 * K * parentesis;
+        m_observables[2 + i] = - 2 * K * parentesis;
         //m_observables[2 + i] = - m_observables[2 + i]; //We want to maximize the quantity K.
     }
+    m_observables[0] = K;
 }
 
 void PretrainSampler::storeSystemParameters(class PretrainSystem *system)

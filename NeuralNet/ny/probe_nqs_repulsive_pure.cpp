@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 
     // Start with all parameters as random values
     int parameter_seed = 2023;//111;//2023;         // For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
-    double parameterGuessSpread = 0.01; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
+    double parameterGuessSpread = 0.001; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
     params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
 
@@ -110,7 +110,7 @@ double beta = 2.82843; // beta is the second parameter for now.
                                  /*
                                  //Other parameters we used in project 1 that we might want to add back in.
                                  */
-    double stepLength = 0.4;     // Metropolis step length.
+    double stepLength = 0.6;     // Metropolis step length.
     bool verbose = true;         // Verbosity of output
 
     // Let's perform optimization here; Gradient descent to be used
@@ -129,6 +129,8 @@ double beta = 2.82843; // beta is the second parameter for now.
     std::unique_ptr<PretrainSampler> pretrainSamplers[numThreads] = {};
 
     //For collecting energies during training and print to energiesTraining.csv for plotting.
+    std::vector<double> KPreTraining{};
+    std::vector<double> epochsPreTraining{};
     std::vector<double> energiesTraining{};
     std::vector<double> epochsTraining{};
     //std::vector<double> alphasTraining{};
@@ -141,7 +143,7 @@ double beta = 2.82843; // beta is the second parameter for now.
 ////// Ok, lets try get some pre-training going
     for (size_t count = 0; count < max_iterations_pre_training; ++count)
     {
-        converged = count == fixed_number_optimization_runs; // TODO: hack for converge condition on set number of iterations
+        //converged = count == fixed_number_optimization_runs; // TODO: hack for converge condition on set number of iterations
 
         // Random number setup in the way recommended for parallell computing, at https://github.com/anderkve/FYS3150/blob/master/code_examples/random_number_generation/main_rng_in_class_omp.cpp
         //  Use the system clock to get a base seed
@@ -165,8 +167,9 @@ double beta = 2.82843; // beta is the second parameter for now.
             std::unique_ptr<PretrainSystem> system;
 
             // Initialize particles
-            //auto particles = setupRandomUniformInitialStateWithRepulsion(stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
-            auto particles = setupRandomUniformInitialStateWithRepulsion(0.1, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
+            auto particles = setupRandomUniformInitialState(stepLength,numberOfDimensions,numberOfParticles,*rng);
+           //auto particles = setupRandomUniformInitialStateWithRepulsion(stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
+            //auto particles = setupRandomUniformInitialStateWithRepulsion(0.1, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
 
 //cout << "Number of particles: " << particles.size() << endl;
             /*
@@ -185,22 +188,22 @@ double beta = 2.82843; // beta is the second parameter for now.
                 std::make_unique<SimpleGaussian>(alpha),
                 // Construct unique_ptr to solver, and move rng
                 //std::make_unique<MetropolisHastings>(std::move(rng)),
-                std::make_unique<Metropolis>(std::move(rng)),
-                //createSolverFromArgument(algoritmChoice, std::move(rng)),
+                //std::make_unique<Metropolis>(std::move(rng)),
+                createSolverFromArgument(algoritmChoice, std::move(rng)),
                 // Move the vector of particles to system
                 std::move(particles));
 //cout << "numberOfMetropolisStepsPerGradientIteration is " << numberOfMetropolisStepsPerGradientIteration << endl;
             // Run steps to equilibrate particles
             auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
                 stepLength,
-                numberOfMetropolisStepsPerGradientIteration);
+                numberOfMetropolisStepsPerGradientIteration / numberOfEquilibrationSteps);
 
             // Run the Metropolis algorithm
             pretrainSamplers[thread_id] = system->runMetropolisSteps(
                 stepLength,
                 numberOfMetropolisStepsPerGradientIteration);
         }
-cout << "Finished parallel region" << endl;
+//cout << "Finished parallel region" << endl;
         // Create a new Sampler object containing the average of all the others.
         //combinedPretrainSampler = std::unique_ptr<Sampler>(samplers[0]);//
         combinedPretrainSampler = std::unique_ptr<PretrainSampler>(new PretrainSampler(pretrainSamplers, numThreads));
@@ -211,8 +214,8 @@ cout << "Finished parallel region" << endl;
 }*/
         // TODO: Code below contains a mess with commented out code, from tolerance test previously used.
         // As it stands right now it will always run the set number of optimization, and
-        if (converged)
-            break;
+        //if (converged)
+        //    break;
 //if(count%2==1){ //Temporary try to only update parameters every 2 step, to investigate how much MC spreads with parameters unchanged
         // Extract the gradient
         auto gradient = std::vector<double>(params.size());
@@ -255,12 +258,13 @@ cout << "Finished parallel region" << endl;
         //cout << "Tolerance " << parameter_tolerance << " Adam MSE Total change: " << meanSquareDifference << endl;
         auto energyEstimate = combinedPretrainSampler->getObservables()[0];
         cout << "Energy estimate: " << energyEstimate << endl;
-        energiesTraining.push_back(energyEstimate);
-        epochsTraining.push_back(count);
+        KPreTraining.push_back(energyEstimate);
+        epochsPreTraining.push_back(count);
         //alphasTraining.push_back(params[params.size()-1]);
 
     }
 
+    two_columns_to_csv("K_pure.csv", epochsPreTraining, KPreTraining, ",", 0, 6);
     adamOptimizer.reset();
 //////////////
     for (size_t count = 0; count < max_iterations; ++count)
