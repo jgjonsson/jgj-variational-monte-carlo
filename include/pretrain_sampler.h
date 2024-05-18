@@ -12,15 +12,17 @@ public:
         size_t numberOfMetropolisSteps);
     PretrainSampler(std::unique_ptr<PretrainSampler>* samplers, int numberSamplers);
 
-    void sample(bool acceptedStep, class System *system);
-    void printOutputToTerminal(class System &system, bool verbose = false);
+    void sample(bool acceptedStep, class PretrainSystem *system);
+    void printOutputToTerminal(class PretrainSystem &system, bool verbose = false);
     void printOutputToTerminal(bool verbose = false);
     void printOutputToTerminalMini(bool verbose);
     // Invoked automatically after sampling
     void computeObservables();
-    void storeSystemParameters(class System *system);
+    void storeSystemParameters(class PretrainSystem *system);
     const std::vector<double> &getObservables() const { return m_observables; }
     const std::vector<double> &getEnergyArrayForBlocking() const { return energy_array_for_blocking; }
+
+
 
 private:
     size_t m_stepNumber = 0;

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include "../include/system.h"
+#include "../include/pretrain_system.h"
 #include "../include/sampler.h"
 #include "../include/pretrain_sampler.h"
 #include "../include/particle.h"
@@ -91,19 +91,20 @@ PretrainSampler::PretrainSampler(std::unique_ptr<PretrainSampler> *samplers, int
     // cout << "Previous two energies " << samplers[0]->m_observables[0] << " and " << samplers[1]->m_observables[0] << " avareged to  " << m_observables[0]  << endl;
 }
 
-void PretrainSampler::sample(bool acceptedStep, System *system)
+void PretrainSampler::sample(bool acceptedStep, PretrainSystem *system)
 {
     /* Here you should sample all the interesting things you want to measure.
      * Note that there are (way) more than the single one here currently.
      */
     auto localEnergy = system->computeLocalEnergy();
     //..
+    double A = system->getRationToTrainTargetWaveFunction();
     auto particles = std::move(system->getParticles());
     auto gradients = system->getWaveFunction()->computeLogPsiDerivativeOverParameters(particles);
 
     //The A in eqs. (6) and (7) in the Saito's article.
-    double A = system->getWaveFunction()->ratioToTrainingGaussian_A(particles);
-
+    //double A = system->getWaveFunction()->ratioToTrainingGaussian_A(particles);
+//cout << "A=" << A << endl;
     // I am a terrible person
     system->getParticles() = std::move(particles);
 
@@ -124,7 +125,7 @@ void PretrainSampler::sample(bool acceptedStep, System *system)
 }
 
 // Legacy printout method. It's not actually needed, but kept until we changed to printOutputToTerminal(bool verbose) in all the places it is used.
-void PretrainSampler::printOutputToTerminal(System &system, bool verbose)
+void PretrainSampler::printOutputToTerminal(PretrainSystem &system, bool verbose)
 {
     // storeSystemParameters(&system); //This is also redundant since code in system.cpp ensures it's been called.
     printOutputToTerminal(verbose);
@@ -142,7 +143,7 @@ void PretrainSampler::printOutputToTerminal(bool verbose)
     }
 
     cout << endl;
-    cout << "  -- System info -- " << endl;
+    cout << "  -- Pre-training System info -- " << endl;
     cout << " Number of particles  : " << m_numberOfParticles << endl;
     cout << " Number of dimensions : " << m_numberOfDimensions << endl;
     cout << " Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << endl;
@@ -157,8 +158,8 @@ void PretrainSampler::printOutputToTerminal(bool verbose)
     }
     cout << endl;
     cout << "  -- Results -- " << endl;
-    cout << " Energy : " << m_observables[0] << endl;
-    cout << " Standard deviation Energy : " << m_observables[1] << endl;
+    cout << " A : " << m_observables[0] << endl;
+    cout << " Standard deviation A : " << m_observables[1] << endl;
     cout << " Computed gradient : " << m_observables[2] << endl;
     cout << endl;
 }
@@ -184,21 +185,24 @@ void PretrainSampler::computeObservables()
     //Result is derivative of K w.r.t. parameters, used for optmization.
     //Given by formula 2K (<AO_W>/<A> - <O_W>) where K=<A>^2/<A^2>
     m_observables[0] = m_cumulatives[0] / m_numberOfMetropolisSteps;
+    double A = m_observables[0];
+    double AMeanSquared = m_cumulatives[1] / m_numberOfMetropolisSteps;
     m_observables[1] = sqrt((m_cumulatives[1] / m_numberOfMetropolisSteps - m_observables[0] * m_observables[0]) / m_numberOfMetropolisSteps);
-
-    double K = fabs(m_observables[0] * m_observables[0] / m_observables[1]);
-
+//cout << "m_observables[0]=" << m_observables[0] << "m_cumulatives: " << m_cumulatives[0] << " " << m_cumulatives[1] << " " << m_numberOfMetropolisSteps << endl;
+    double K = fabs(A*A / AMeanSquared);
+//cout << "K=" << K << " m_numberOfMetropolisSteps " << m_numberOfMetropolisSteps << endl;
     for (size_t i = 0; i < m_numberOfParameters; i++)
     {
         double AO_W = m_cumulatives[2 + m_numberOfParameters + i] / m_numberOfMetropolisSteps;
         double O_W = m_cumulatives[2 + i] / m_numberOfMetropolisSteps;
-        double A = m_observables[0];
         double parentesis = AO_W / A - O_W;
+  //      cout << "AO_W=" << AO_W << " O_W=" << O_W << " parentesis=" << parentesis << endl;
         m_observables[2 + i] = 2 * K * parentesis;
+        //m_observables[2 + i] = - m_observables[2 + i]; //We want to maximize the quantity K.
     }
 }
 
-void PretrainSampler::storeSystemParameters(class System *system)
+void PretrainSampler::storeSystemParameters(class PretrainSystem *system)
 {
     m_wavefunction_parameters = system->getWaveFunction()->getParameters();
 }
