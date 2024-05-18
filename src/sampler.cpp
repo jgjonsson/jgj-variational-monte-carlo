@@ -99,8 +99,7 @@ void Sampler::sample(bool acceptedStep, System *system)
     //..
     auto particles = std::move(system->getParticles());
     auto gradients = system->getWaveFunction()->computeLogPsiDerivativeOverParameters(particles);
-    // I am a terrible person
-    system->getParticles() = std::move(particles);
+    system->setParticles(std::move(particles));
 
     m_cumulatives[0] += localEnergy;
     m_cumulatives[1] += localEnergy * localEnergy;
