@@ -29,6 +29,7 @@ public:
     double computeLocalEnergy();
     std::unique_ptr<class WaveFunction> &getWaveFunction() { return m_waveFunction; }
     std::vector<std::unique_ptr<class Particle>> &getParticles() { return m_particles; }
+    void setParticles(std::vector<std::unique_ptr<class Particle>> particles);
 
 private:
     size_t m_numberOfParticles = 0;
