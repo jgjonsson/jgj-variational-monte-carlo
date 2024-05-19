@@ -147,7 +147,7 @@ int main(int argc, char **argv)
     std::vector<double> inputs = {0.1, 0.2, 0.3, 0.4};
     
     // Convert the vector of doubles to VectorXdual
-    VectorXdual inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
+    //VectorXdual inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
 cout << "junit 1" << endl;
     // Call the feedForwardDual2 function
     //dual outputDual = looseNeuralNetwork->feedForwardDual2(inputsDual);
@@ -195,6 +195,24 @@ auto gradientSymbolicCachedFunctionParameters = looseNeuralNetwork->getTheGradie
         cout << value << " ";
     }
     cout << endl;
+
+    //Calculate Laplacian of log of wave function
+    double lap = looseNeuralNetwork->getTheLaplacianVectorWrtInputs(inputs);
+    double lapTotal = looseNeuralNetwork->laplacianOfLogarithmWrtInputs(inputs);
+    //Do the same numerically
+    double lapNumeric = looseNeuralNetwork->calculateNumericalLaplacianWrtInput(inputs);
+
+    //Calculate dot product of gradientNumeric with itself
+    //double gradSqr = gradientNumeric * gradientNumeric;
+    double gradSqr = std::inner_product(gradientNumericInputs.begin(), gradientNumericInputs.end(), gradientNumericInputs.begin(), 0.0);
+
+    //Print those 2 for comparision
+    cout << "Laplacian calculated with automatic diff: " << lap << endl;
+    cout << "Laplacian calculated with numerical methods: " << lapNumeric << endl;
+
+    cout << "Total laplacian of log of a wave function with automatic diff:" << lapTotal << endl;
+    cout << "Total laplacian of log of a wave function with numerical methods:" << lapNumeric+gradSqr << endl;
+
 /*
 	double lap = looseNeuralNetwork->computeLocalLaplasian(particles);
 	cout << " ------------------------------ " << endl;

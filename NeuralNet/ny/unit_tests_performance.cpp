@@ -247,6 +247,8 @@ if(verbose){
    }      cout << endl;
    cout << "Numeric gradient on inputs took " << elapsedNumeric.count() << " ms." << endl;
 
+double interactionGradSquared = std::inner_product(gradientNumericReverse.begin(), gradientNumericReverse.end(), gradientNumericReverse.begin(), 0.0);
+cout << "Old gradient squared " << interactionGradSquared << endl;
 
 }
 /*
