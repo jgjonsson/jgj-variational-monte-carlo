@@ -81,21 +81,21 @@ std::vector<double> optimizeAndUpdateParameters(std::vector<double>& params, std
     {
         gradient[param_num] = combinedSampler->getObservables()[2 + param_num];
     }
-    auto NewParams = adamOptimizer.adamOptimization(params, gradient);
-    double sum = 0.0;
-    for (size_t i = 0; i < params.size(); ++i) {
-        double diff = NewParams[i] - params[i];
-        sum += diff * diff;
-    }
-    double meanSquareDifference = sum / params.size();
+    auto newParams = adamOptimizer.adamOptimization(params, gradient);
 
     if (verbose)
     {
+        double sum = 0.0;
+        for (size_t i = 0; i < params.size(); ++i) {
+            double diff = newParams[i] - params[i];
+            sum += diff * diff;
+        }
+        double meanSquareDifference = sum / params.size();
         cout << "Iteration " << count << " ";
+        cout << " Total change: " << meanSquareDifference << endl;
     }
-    cout << " Total change: " << meanSquareDifference << endl;
 
-    return NewParams;
+    return newParams;
 }
 
 int main(int argc, char **argv)
@@ -162,12 +162,12 @@ int main(int argc, char **argv)
 
     size_t numberOfSteadyStateStepsBigComputation = numberOfMetropolisSteps / numThreads;
     size_t numberOfEquilibrationStepsBigComputation = numberOfEquilibrationSteps/ numThreads;
-    cout << "Final large computation run. Equilibrium steps: " << numberOfSteadyStateStepsBigComputation << " Steady state steps: " << numberOfEquilibrationStepsBigComputation << endl;
+    cout << "Final large computation run. Equilibrium steps: " << numberOfEquilibrationStepsBigComputation << " Steady state steps: " << numberOfSteadyStateStepsBigComputation << endl;
     auto finalCombinedSampler = runParallellMonteCarloSimulation(parameter_seed, numberOfEquilibrationStepsBigComputation, numberOfSteadyStateStepsBigComputation, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers);
 
     // Output information from the simulation
-    //finalCombinedSampler->printOutputToTerminal(false);
-    finalCombinedSampler->printOutputToTerminal(verbose);
+    finalCombinedSampler->printOutputToTerminal(false);
+    //finalCombinedSampler->printOutputToTerminal(verbose);
 
     //Write energies to file, to be used by blocking method script.
     one_columns_to_csv("energies.csv", finalCombinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
