@@ -16,7 +16,6 @@ using namespace Eigen;
 
 class NeuralNetworkReverse {
 public:
-    ArrayXvar parametersDual;
     std::vector<double> parameters;
     int inputSize;
     int hiddenSize;
@@ -34,16 +33,23 @@ public:
 
     double calculateNumericalLaplacianWrtInput(std::vector<double>& inputs);
     double getTheLaplacianVectorWrtInputs(std::vector<double> &inputs);
-    double getTheLaplacianVectorWrtInputs2(std::vector<double> &inputs);
+    //double getTheLaplacianVectorWrtInputs2(std::vector<double> &inputs);
     double getTheLaplacianFromGradient(std::vector<double> &inputs);
     double laplacianOfLogarithmWrtInputs(std::vector<double> &inputs);
 
     void backpropagate(std::vector<double> inputs, double targetOutput, double learningRate);
 
 private:
+    //Storing parameters in multiple different forms, to allow fast feed forward calculation and automatic differentiation.
+    ArrayXvar parametersDual;
+
     int weightsSize;
-    ArrayXvar inputLayerWeights;
-    ArrayXvar hiddenLayerWeights;
-    ArrayXvar hiddenLayerBiases;
+    ArrayXvar inputLayerWeightsVar;
+    ArrayXvar hiddenLayerWeightsVar;
+    ArrayXvar hiddenLayerBiasesVar;
+
+    std::vector<double> inputLayerWeightsDouble;
+    std::vector<double> hiddenLayerWeightsDouble;
+    std::vector<double> hiddenLayerBiasesDouble;
 
 };
