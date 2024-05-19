@@ -126,14 +126,14 @@ void Sampler::printOutputToTerminal(System &system, bool verbose)
 void Sampler::printOutputToTerminal(bool verbose)
 {
     auto p = m_wavefunction_parameters.size();
-    if (!verbose)
+    /*if (!verbose)
     {
         for (const auto &x : m_wavefunction_parameters)
             cout << x << " ";
         for (const auto &x : m_observables)
             cout << x << " ";
         return;
-    }
+    }*/
 
     cout << endl;
     cout << "  -- System info -- " << endl;
@@ -148,6 +148,11 @@ void Sampler::printOutputToTerminal(bool verbose)
     for (size_t i = 0; i < p; i++)
     {
         cout << " Parameter " << i + 1 << " : " << m_wavefunction_parameters.at(i) << endl;
+        if(i == 5 && ! verbose)
+        {
+            cout << "..." << endl;
+            break;
+        }
     }
     cout << endl;
     cout << "  -- Results -- " << endl;
