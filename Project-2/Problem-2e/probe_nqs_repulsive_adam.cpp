@@ -21,7 +21,7 @@
 
 using namespace std;
 
-std::unique_ptr<Sampler> runParallellMonteCarloSimulation(unsigned int globalSeed, size_t numberOfMetropolisSteps, size_t MC_reduction, bool converged, size_t max_iterations, size_t count, int numThreads, double stepLength, size_t numberOfDimensions, size_t numberOfParticles, std::vector<double> params, double omega, double inter_strength, size_t rbs_M, size_t rbs_N, double hard_core_size, std::unique_ptr<Sampler> samplers[]) {
+std::unique_ptr<Sampler> runParallellMonteCarloSimulation(unsigned int globalSeed, size_t numberOfEquilibrationStepsPerEpoch, size_t numberOfSteadyStateStepsPerEpoch, size_t count, int numThreads, double stepLength, size_t numberOfDimensions, size_t numberOfParticles, std::vector<double> params, double omega, double inter_strength, size_t rbs_M, size_t rbs_N, double hard_core_size, std::unique_ptr<Sampler> samplers[]) {
 
     // Random number setup in the way recommended for parallell computing, at https://github.com/anderkve/FYS3150/blob/master/code_examples/random_number_generation/main_rng_in_class_omp.cpp
     //  Use the system clock to get a base seed
@@ -35,8 +35,8 @@ std::unique_ptr<Sampler> runParallellMonteCarloSimulation(unsigned int globalSee
         unsigned int my_seed = base_seed + thread_id;
         auto rng = std::make_unique<Random>(my_seed);
 
-        size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged | count == max_iterations - 1 ? MC_reduction : 1);
-        numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
+        //size_t numberOfSteadyStateStepsPerEpoch = numberOfMetropolisSteps / MC_reduction * (converged | count == max_iterations - 1 ? MC_reduction : 1);
+        //numberOfSteadyStateStepsPerEpoch /= numThreads; // Split by number of threads.
 
         std::unique_ptr<Sampler> sampler;
         std::unique_ptr<System> system;
@@ -59,16 +59,16 @@ std::unique_ptr<Sampler> runParallellMonteCarloSimulation(unsigned int globalSee
             std::make_unique<MetropolisHastings>(std::move(rng)),
             // Move the vector of particles to system
             std::move(particles));
-
+//cout << "Equilibrium steps: " << numberOfEquilibrationStepsPerEpoch << " Steady state steps: " << numberOfSteadyStateStepsPerEpoch << endl;
         // Run steps to equilibrate particles
         auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
             stepLength,
-            numberOfMetropolisStepsPerGradientIteration);
+            numberOfEquilibrationStepsPerEpoch);
 
         // Run the Metropolis algorithm
         samplers[thread_id] = system->runMetropolisSteps(
             stepLength,
-            numberOfMetropolisStepsPerGradientIteration);
+            numberOfSteadyStateStepsPerEpoch);
     }
 
     // Create a new Sampler object containing the average of all the others.
@@ -143,28 +143,32 @@ int main(int argc, char **argv)
     // Let's perform optimization here; Gradient descent to be used
 
     std::vector<double> learning_rate; // deduced automatically
-    //double parameter_tolerance = 1e-2;
-    size_t max_iterations = fixed_number_optimization_runs + 1; // 1e2;  //TODO: hack for converge condition on set number of iterations
-    bool converged = false;
-
-    int numThreads = 14;
+    
+    int numThreads = 20;//1;//14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
     //Initialize Adam optimizer
     AdamOptimizer adamOptimizer(params.size(), fixed_learning_rate);
 
+    size_t numberOfSteadyStateStepsPerEpoch = numberOfMetropolisSteps / MC_reduction / numThreads;
+    size_t numberOfEquilibrationStepsPerEpoch = numberOfEquilibrationSteps/ MC_reduction / numThreads;
 
-    std::unique_ptr<Sampler> finalCombinedSampler;
-    for (size_t count = 0; count < max_iterations; ++count)
+    cout << "Optimization run. Equilibrium steps: " << numberOfEquilibrationStepsPerEpoch << " Steady state steps: " << numberOfSteadyStateStepsPerEpoch << endl;
+
+    for (size_t count = 0; count < fixed_number_optimization_runs; ++count)
     {
-        //auto combinedSampler
-         finalCombinedSampler= runParallellMonteCarloSimulation(parameter_seed, numberOfMetropolisSteps, MC_reduction, converged, max_iterations, count, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers);
-        params = optimizeAndUpdateParameters(params, finalCombinedSampler, adamOptimizer, verbose, count);
-        //finalCombinedSampler = combinedSampler;
+        auto combinedSampler = runParallellMonteCarloSimulation(parameter_seed, numberOfEquilibrationStepsPerEpoch, numberOfSteadyStateStepsPerEpoch, count, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers);
+        params = optimizeAndUpdateParameters(params, combinedSampler, adamOptimizer, verbose, count);
     }
 
+    size_t numberOfSteadyStateStepsBigComputation = numberOfMetropolisSteps / numThreads;
+    size_t numberOfEquilibrationStepsBigComputation = numberOfEquilibrationSteps/ numThreads;
+    cout << "Final large computation run. Equilibrium steps: " << numberOfSteadyStateStepsBigComputation << " Steady state steps: " << numberOfEquilibrationStepsBigComputation << endl;
+    auto finalCombinedSampler= runParallellMonteCarloSimulation(parameter_seed, numberOfEquilibrationStepsBigComputation, numberOfSteadyStateStepsBigComputation, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers);
+
     // Output information from the simulation
+    //finalCombinedSampler->printOutputToTerminal(false);
     finalCombinedSampler->printOutputToTerminal(verbose);
 
     //Write energies to file, to be used by blocking method script.
