@@ -161,11 +161,13 @@ cout << "This round " << count << " of TRAINING gets " << numberOfMetropolisStep
 
         auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
             stepLength,
-            numberOfEquilibrationStepsPerIteration);//numberOfMetropolisStepsPerGradientIteration / numberOfEquilibrationSteps);
+            1000);
+            //numberOfEquilibrationStepsPerIteration);//numberOfMetropolisStepsPerGradientIteration / numberOfEquilibrationSteps);
 
         samplers[thread_id] = system->runMetropolisSteps(
             stepLength,
-            numberOfMetropolisStepsPerGradientIteration);
+            10000);
+            //numberOfMetropolisStepsPerGradientIteration);
     }
 
     return std::unique_ptr<Sampler>(new Sampler(samplers, numThreads));
@@ -268,6 +270,8 @@ double beta = 2.82843; // beta is the second parameter for now.
     //Algoritm for sampling. Ex: METROPOLIS, METROPOLIS_HASTINGS (brute force and importance samling respectively)
     auto algoritmChoice = argc > 8 ? argv[8] : "METROPOLIS";
 
+    auto parametersInputFile = argc > 9 ? argv[9] : "";
+
     size_t numberOfEquilibrationSteps = numberOfMetropolisSteps / 5;
     double omega = 1.0; // Oscillator frequency.             // Frequency ratio
     double hard_core_size = 0.0043 / sqrt(omega);
@@ -310,51 +314,25 @@ double beta = 2.82843; // beta is the second parameter for now.
 
     int max_iterations_pre_training = 500;
 ////// Ok, lets try get some pre-training going
-    for (size_t count = 0; count < max_iterations_pre_training; ++count)
+
+    if(parametersInputFile && parametersInputFile[0] != '\0')
+    //if(parametersInputFile)
     {
-        auto combinedPretrainSampler = runPreTrainParallelMonteCarloSimulation(count, numberOfMetropolisSteps, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, rbs_M, rbs_N, numberOfEquilibrationSteps, omega, alpha, beta, params, algoritmChoice);
-        params = optimizeParameters(params, combinedPretrainSampler, adamOptimizerPretrain);
-        /*
-        auto gradient = std::vector<double>(params.size());
-        cout << "Params size " << params.size() << endl;
-        for (size_t param_num = 0; param_num < params.size(); ++param_num)
+        cout << "Reading parameters from file " << parametersInputFile << endl;
+        params = csv_to_one_column(parametersInputFile);
+    }
+    else
+    {
+        for (size_t count = 0; count < max_iterations_pre_training; ++count)
         {
-            gradient[param_num] = combinedPretrainSampler->getObservables()[2 + param_num];
+            auto combinedPretrainSampler = runPreTrainParallelMonteCarloSimulation(count, numberOfMetropolisSteps, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, rbs_M, rbs_N, numberOfEquilibrationSteps, omega, alpha, beta, params, algoritmChoice);
+            params = optimizeParameters(params, combinedPretrainSampler, adamOptimizerPretrain);
         }
-        // Update the parameter using Adam optimization
-        auto NewParams = adamOptimizer.adamOptimization(params, gradient);
-        / *double sum = 0.0;
-        for (size_t i = 0; i < params.size(); ++i) {
-            double diff = fabs(NewParams[i] - params[i]);
-            sum += diff * diff;
-        }
-        double meanSquareDifference = sum / params.size();* /
-        params = NewParams;
-
-        combinedPretrainSampler->printOutputToTerminalMini(verbose);
-
-        cout << "Num params: " << params.size() << " Parameters:" << endl;
-        std::streamsize original_precision = std::cout.precision(); // Save original precision
-        std::cout << std::setprecision(4) << std::fixed;
-        //cout << "Alpha: " << params[params.size()-1] << ", ";
-        for (int i = 0; / *i < 8 &&* / i < params.size(); ++i) {
-            std::cout << params[i] << " ";
-        }
-        std::cout.precision(original_precision); // Restore original precision
-
-        std::cout << std::endl;
-        //cout << "Tolerance " << parameter_tolerance << " Adam MSE Total change: " << meanSquareDifference << endl;
-        auto energyEstimate = combinedPretrainSampler->getObservables()[0];
-        cout << "Energy estimate: " << energyEstimate << endl;
-        KPreTraining.push_back(energyEstimate);
-        epochsPreTraining.push_back(count);
-        //alphasTraining.push_back(params[params.size()-1]);*/
-
+        one_columns_to_csv("NNparams1.csv", params, ",", 0, 6);
+        two_columns_to_csv("K_pure.csv", epochsPreTraining, KPreTraining, ",", 0, 6);
     }
 
-    one_columns_to_csv("NNparams1.csv", params, ",", 0, 6);
-    two_columns_to_csv("K_pure.csv", epochsPreTraining, KPreTraining, ",", 0, 6);
-
+/*
     //Do the same except for calling runNonInteractingParallelMonteCarloSimulation
     for(size_t count = 0; count < max_iterations_pre_training; ++count)
     {
@@ -363,7 +341,7 @@ double beta = 2.82843; // beta is the second parameter for now.
     }
 
     one_columns_to_csv("NNparams2.csv", params, ",", 0, 6);
-
+*/
     adamOptimizer.reset();
 //////////////
     for (size_t count = 0; count < max_iterations; ++count)
