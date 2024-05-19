@@ -75,7 +75,7 @@ std::unique_ptr<Sampler> runParallellMonteCarloSimulation(unsigned int globalSee
     return std::unique_ptr<Sampler>(new Sampler(samplers, numThreads));
 }
 
-std::vector<double> optimizeAndUpdateParameters(std::vector<double>& params, std::unique_ptr<Sampler>& combinedSampler, AdamOptimizer& adamOptimizer, bool verbose, double& parameter_tolerance, size_t count) {
+std::vector<double> optimizeAndUpdateParameters(std::vector<double>& params, std::unique_ptr<Sampler>& combinedSampler, AdamOptimizer& adamOptimizer, bool verbose, size_t count) {
     auto gradient = std::vector<double>(params.size());
     for (size_t param_num = 0; param_num < params.size(); ++param_num)
     {
@@ -91,11 +91,9 @@ std::vector<double> optimizeAndUpdateParameters(std::vector<double>& params, std
 
     if (verbose)
     {
-        cout << "Iteration " << count << endl;
-        cout << endl;
+        cout << "Iteration " << count << " ";
     }
-
-    cout << "Tolerance " << parameter_tolerance << " Total change: " << meanSquareDifference << endl;
+    cout << " Total change: " << meanSquareDifference << endl;
 
     return NewParams;
 }
@@ -139,20 +137,15 @@ int main(int argc, char **argv)
     size_t MC_reduction = 100; // Number of MC steps to reduce by at intermediate steps
 
     double inter_strength = 1.0; // Strength of interaction.
-                                 /*
-                                 //Other parameters we used in project 1 that we might want to add back in.
-                                 */
     double stepLength = 0.1;     // Metropolis step length.
     bool verbose = true;         // Verbosity of output
 
     // Let's perform optimization here; Gradient descent to be used
 
     std::vector<double> learning_rate; // deduced automatically
-    double parameter_tolerance = 1e-2;
+    //double parameter_tolerance = 1e-2;
     size_t max_iterations = fixed_number_optimization_runs + 1; // 1e2;  //TODO: hack for converge condition on set number of iterations
     bool converged = false;
-
-    std::unique_ptr<Sampler> combinedSampler;
 
     int numThreads = 14;
     omp_set_num_threads(numThreads);
@@ -161,42 +154,21 @@ int main(int argc, char **argv)
     //Initialize Adam optimizer
     AdamOptimizer adamOptimizer(params.size(), fixed_learning_rate);
 
+
+    std::unique_ptr<Sampler> finalCombinedSampler;
     for (size_t count = 0; count < max_iterations; ++count)
     {
-        combinedSampler = runParallellMonteCarloSimulation(parameter_seed, numberOfMetropolisSteps, MC_reduction, converged, max_iterations, count, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers);
-        params = optimizeAndUpdateParameters(params, combinedSampler, adamOptimizer, verbose, parameter_tolerance, count);
-        /*
-        // Extract the gradient
-        auto gradient = std::vector<double>(params.size());
-        for (size_t param_num = 0; param_num < params.size(); ++param_num)
-        {
-            gradient[param_num] = combinedSampler->getObservables()[2 + param_num];
-        }
-        auto NewParams = adamOptimizer.adamOptimization(params, gradient);
-        double sum = 0.0;
-        for (size_t i = 0; i < params.size(); ++i) {
-            double diff = NewParams[i] - params[i];
-            sum += diff * diff;
-        }
-        double meanSquareDifference = sum / params.size();
-        params = NewParams;
-
-        if (verbose)
-        {
-            cout << "Iteration " << count << endl;
-            // cout << "Predictions: ";
-            // combinedSampler->printOutputToTerminal();
-            cout << endl;
-        }
-
-        cout << "Tolerance " << parameter_tolerance << " Total change: " << meanSquareDifference << endl;
-        */
+        //auto combinedSampler
+         finalCombinedSampler= runParallellMonteCarloSimulation(parameter_seed, numberOfMetropolisSteps, MC_reduction, converged, max_iterations, count, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers);
+        params = optimizeAndUpdateParameters(params, finalCombinedSampler, adamOptimizer, verbose, count);
+        //finalCombinedSampler = combinedSampler;
     }
+
     // Output information from the simulation
-    combinedSampler->printOutputToTerminal(verbose);
+    finalCombinedSampler->printOutputToTerminal(verbose);
 
     //Write energies to file, to be used by blocking method script.
-    one_columns_to_csv("energies.csv", combinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
+    one_columns_to_csv("energies.csv", finalCombinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
 
     return 0;
 }
