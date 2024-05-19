@@ -142,8 +142,8 @@ int main(int argc, char **argv)
 
     // Let's perform optimization here; Gradient descent to be used
 
-    std::vector<double> learning_rate; // deduced automatically
-    
+    //std::vector<double> learning_rate; // deduced automatically
+
     int numThreads = 20;//1;//14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
@@ -153,9 +153,7 @@ int main(int argc, char **argv)
 
     size_t numberOfSteadyStateStepsPerEpoch = numberOfMetropolisSteps / MC_reduction / numThreads;
     size_t numberOfEquilibrationStepsPerEpoch = numberOfEquilibrationSteps/ MC_reduction / numThreads;
-
     cout << "Optimization run. Equilibrium steps: " << numberOfEquilibrationStepsPerEpoch << " Steady state steps: " << numberOfSteadyStateStepsPerEpoch << endl;
-
     for (size_t count = 0; count < fixed_number_optimization_runs; ++count)
     {
         auto combinedSampler = runParallellMonteCarloSimulation(parameter_seed, numberOfEquilibrationStepsPerEpoch, numberOfSteadyStateStepsPerEpoch, count, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers);
@@ -165,7 +163,7 @@ int main(int argc, char **argv)
     size_t numberOfSteadyStateStepsBigComputation = numberOfMetropolisSteps / numThreads;
     size_t numberOfEquilibrationStepsBigComputation = numberOfEquilibrationSteps/ numThreads;
     cout << "Final large computation run. Equilibrium steps: " << numberOfSteadyStateStepsBigComputation << " Steady state steps: " << numberOfEquilibrationStepsBigComputation << endl;
-    auto finalCombinedSampler= runParallellMonteCarloSimulation(parameter_seed, numberOfEquilibrationStepsBigComputation, numberOfSteadyStateStepsBigComputation, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers);
+    auto finalCombinedSampler = runParallellMonteCarloSimulation(parameter_seed, numberOfEquilibrationStepsBigComputation, numberOfSteadyStateStepsBigComputation, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers);
 
     // Output information from the simulation
     //finalCombinedSampler->printOutputToTerminal(false);
