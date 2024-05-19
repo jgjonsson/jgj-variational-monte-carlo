@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+std::vector<double> csv_to_one_column(const std::string& fpath);
+
 /// @brief Write a csv file with the given data column by column, 1 column.
 /// @param fpath The path to the file to write
 /// @param x First column of data
