@@ -1,7 +1,8 @@
 #pragma once
 #include <memory>
+//#include "../include/sampler.h"
 
-class PretrainSampler
+class PretrainSampler// : public Sampler
 {
 public:
     PretrainSampler(

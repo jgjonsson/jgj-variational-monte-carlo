@@ -75,3 +75,6 @@ double System::computeLocalEnergy()
     return m_hamiltonian->computeLocalEnergy(*m_waveFunction, m_particles);
 }
 
+void System::setParticles(std::vector<std::unique_ptr<class Particle>> particles) {
+    m_particles = std::move(particles);
+}

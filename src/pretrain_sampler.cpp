@@ -98,16 +98,13 @@ void PretrainSampler::sample(bool acceptedStep, PretrainSystem *system)
      */
     auto localEnergy = system->computeLocalEnergy();
     //..
+
+    //The A in eqs. (6) and (7) in the Saito's article.
     double A = system->getRationToTrainTargetWaveFunction();
     auto particles = std::move(system->getParticles());
     auto gradients = system->getWaveFunction()->computeLogPsiDerivativeOverParameters(particles);
 
-    //The A in eqs. (6) and (7) in the Saito's article.
-    //double A = system->getWaveFunction()->ratioToTrainingGaussian_A(particles);
-//cout << "A=" << A << endl;
-    // I am a terrible person
-    system->getParticles() = std::move(particles);
-    //system->setParticles(std::move(particles));
+    system->setParticles(std::move(particles));
 
     m_cumulatives[0] += fabs(A);
     m_cumulatives[1] += A*A;
