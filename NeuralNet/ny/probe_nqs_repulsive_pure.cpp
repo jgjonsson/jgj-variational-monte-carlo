@@ -265,7 +265,7 @@ double beta = 2.82843; // beta is the second parameter for now.
     size_t numberOfMetropolisSteps = argc > 6 ? stoi(argv[6]) : 1e6;
 
 	//Type of Hamiltonian to use, ie interaction or not, and shape of potential. Ex: HARMONIC, HARMONIC_CYLINDRIC_INTERACTION
-    auto hamiltonianChoice = argc > 7 ? argv[7] : "HARMONIC";
+    auto hamiltonianChoice = argc > 7 ? argv[7] : "INTERACTION";
 
     //Algoritm for sampling. Ex: METROPOLIS, METROPOLIS_HASTINGS (brute force and importance samling respectively)
     auto algoritmChoice = argc > 8 ? argv[8] : "METROPOLIS";
@@ -295,7 +295,7 @@ double beta = 2.82843; // beta is the second parameter for now.
     std::unique_ptr<Sampler> combinedSampler;
     std::unique_ptr<PretrainSampler> combinedPretrainSampler;
 
-    int numThreads = 18;//20;//20;//12;//14;
+    int numThreads = 20;//18;//20;//20;//12;//14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
     std::unique_ptr<PretrainSampler> pretrainSamplers[numThreads] = {};
@@ -308,7 +308,7 @@ double beta = 2.82843; // beta is the second parameter for now.
     //std::vector<double> alphasTraining{};
 
     //Initialize Adam optimizer
-    AdamOptimizer adamOptimizerPretrain(params.size(), 0.01);
+    AdamOptimizer adamOptimizerPretrain(params.size(), 0.05);
     AdamOptimizer adamOptimizer(params.size(), fixed_learning_rate);
     bool hasResetAdamAtEndOfAdiabaticChange = false;
 
@@ -363,6 +363,12 @@ double adiabaticFactorStart = 0.001;
 double adiabaticFactor = count*count*adiabaticFactorStart;
 adiabaticFactor = std::min(1.0, adiabaticFactor);
 //adiabaticFactor = 1.0;//If we want to test without adiabatic change
+//If argv[7] was not "INTERACTION" put adiabaticFactor to 0.0
+//cout << "Hamiltonian choice is " << hamiltonianChoice << " which is " << (hamiltonianChoice != "INTERACTION") << " or " << (strcmp(hamiltonianChoice.c_str(), "INTERACTION") != 0) << endl;
+//if(strcmp(hamiltonianChoice.c_str(), "INTERACTION") != 0)
+if(("NO_INTERACTION" == hamiltonianChoice)){
+    adiabaticFactor = 0.0;
+}
 cout << "Iteration " << BLUE << count+1 << RESET << " Adiabatic factor: " << BLUE << adiabaticFactor << RESET << endl;
 
         //size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged | count == max_iterations - 1 ? MC_reduction : 1);
@@ -484,7 +490,7 @@ cout << "Finished parallel region" << endl;
     combinedSampler->printOutputToTerminal(verbose);
 
     //Write energies to file, to be used by blocking method script.
-    //one_columns_to_csv("energies.csv", combinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
+    one_columns_to_csv("energies_nn.csv", combinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
 
     //one_columns_to_csv("energiesTraining.csv", energiesTraining, ",", 0, 6);
     two_columns_to_csv("energiesTraining_pure.csv", epochsTraining, energiesTraining, ",", 0, 6);
