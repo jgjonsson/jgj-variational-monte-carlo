@@ -137,7 +137,7 @@ int main(int argc, char **argv)
     size_t MC_reduction = 100; // Number of MC steps to reduce by at intermediate steps
 
     double inter_strength = 1.0; // Strength of interaction.
-    double stepLength = 0.1;     // Metropolis step length.
+    double stepLength = 0.4;     // Metropolis step length.
     bool verbose = true;         // Verbosity of output
 
     // Let's perform optimization here; Gradient descent to be used
