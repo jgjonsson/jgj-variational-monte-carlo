@@ -40,7 +40,8 @@ size_t System::runEquilibrationSteps(
 
 std::unique_ptr<class Sampler> System::runMetropolisSteps(
     double stepLength,
-    size_t numberOfMetropolisSteps)
+    size_t numberOfMetropolisSteps,
+    bool skipSamplingGradients)
 {
     auto sampler = std::make_unique<Sampler>(
         m_numberOfParticles,

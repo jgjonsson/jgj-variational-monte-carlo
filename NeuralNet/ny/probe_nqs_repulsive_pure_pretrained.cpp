@@ -114,7 +114,7 @@ cout << "This round " << count << " of TRAINING gets " << numberOfMetropolisStep
 */
 
 
-std::unique_ptr<Sampler> runParallellMonteCarloSimulation(unsigned int globalSeed, size_t numberOfEquilibrationStepsPerEpoch, size_t numberOfSteadyStateStepsPerEpoch, size_t count, int numThreads, double stepLength, size_t numberOfDimensions, size_t numberOfParticles, std::vector<double> params, double omega, double inter_strength, size_t rbs_M, size_t rbs_N, double hard_core_size, std::unique_ptr<Sampler> samplers[]) {
+std::unique_ptr<Sampler> runParallellMonteCarloSimulation(unsigned int globalSeed, size_t numberOfEquilibrationStepsPerEpoch, size_t numberOfSteadyStateStepsPerEpoch, size_t count, int numThreads, double stepLength, size_t numberOfDimensions, size_t numberOfParticles, std::vector<double> params, double omega, double inter_strength, size_t rbs_M, size_t rbs_N, double hard_core_size, std::unique_ptr<Sampler> samplers[], bool finalRunNoGradientNeeded) {
 
     // Random number setup in the way recommended for parallell computing, at https://github.com/anderkve/FYS3150/blob/master/code_examples/random_number_generation/main_rng_in_class_omp.cpp
     //  Use the system clock to get a base seed
@@ -164,7 +164,8 @@ auto omega=1.0; //TODO: REmove this and remove variable from NN
         // Run the Metropolis algorithm
         samplers[thread_id] = system->runMetropolisSteps(
             stepLength,
-            numberOfSteadyStateStepsPerEpoch);
+            numberOfSteadyStateStepsPerEpoch,
+            finalRunNoGradientNeeded);
     }
 
     // Create a new Sampler object containing the average of all the others.
@@ -344,11 +345,18 @@ if(("NO_INTERACTION" == hamiltonianChoice)){
         double inter_strength = (count*2.0)/fixed_number_optimization_runs;
         inter_strength = std::min(1.0, inter_strength);
         cout << "Iteration " << BLUE << count+1 << RESET << " Adiabatically set interaction strength: " << BLUE << inter_strength << RESET << endl;
-        auto combinedSampler = runParallellMonteCarloSimulation(parameter_seed, numberOfEquilibrationStepsPerEpoch, numberOfSteadyStateStepsPerEpoch, count, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers);
+        auto combinedSampler = runParallellMonteCarloSimulation(parameter_seed, numberOfEquilibrationStepsPerEpoch, numberOfSteadyStateStepsPerEpoch, count, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers, false);
         params = optimizeAndUpdateParameters(params, combinedSampler, adamOptimizer, verbose, count);
         combinedSampler->printOutputToTerminalMini(verbose);
+
+        //For plots with Python scripts
+        auto energyEstimate = combinedSampler->getObservables()[0];
+        energiesTraining.push_back(energyEstimate);
+        epochsTraining.push_back(count);
+
         if(inter_strength==1.0 && !hasResetAdamAtEndOfAdiabaticChange)
         {
+            //Imortand to make Adam not keep going up (by keeping momemtum) when ramp up of interaction stops.
             cout << "Resetting Adam optimizer" << endl;
             adamOptimizer.reset();
             hasResetAdamAtEndOfAdiabaticChange = true;
@@ -358,7 +366,7 @@ if(("NO_INTERACTION" == hamiltonianChoice)){
     size_t numberOfSteadyStateStepsBigComputation = numberOfMetropolisSteps / numThreads;
     size_t numberOfEquilibrationStepsBigComputation = numberOfEquilibrationSteps/ numThreads;
     cout << "Final large computation run. Equilibrium steps: " << numberOfEquilibrationStepsBigComputation << " Steady state steps: " << numberOfSteadyStateStepsBigComputation << endl;
-    auto finalCombinedSampler = runParallellMonteCarloSimulation(parameter_seed, numberOfEquilibrationStepsBigComputation, numberOfSteadyStateStepsBigComputation, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers);
+    auto finalCombinedSampler = runParallellMonteCarloSimulation(parameter_seed, numberOfEquilibrationStepsBigComputation, numberOfSteadyStateStepsBigComputation, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers, false);
 /*
         combinedSampler->printOutputToTerminalMini(verbose);
 
@@ -391,7 +399,7 @@ if(("NO_INTERACTION" == hamiltonianChoice)){
     //combinedSampler->printOutputToTerminal(verbose);
 
     //Write energies to file, to be used by blocking method script.
-    one_columns_to_csv("energies_nn2.csv", combinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
+    one_columns_to_csv("energies_nn2.csv", finalCombinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
 
     //one_columns_to_csv("energiesTraining.csv", energiesTraining, ",", 0, 6);
     two_columns_to_csv("energies_plot_pure.csv", epochsTraining, energiesTraining, ",", 0, 6);
