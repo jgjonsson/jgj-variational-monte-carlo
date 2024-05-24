@@ -27,6 +27,11 @@ NeuralNetworkReverse::NeuralNetworkReverse(std::vector<double> parameters, int i
     hiddenLayerWeightsVar = parametersDual.segment(inputSize * hiddenSize, hiddenSize);
     hiddenLayerBiasesVar = parametersDual.tail(hiddenSize);
 
+    inputLayerWeightsMatrix = Eigen::Map<Eigen::Matrix<var, Eigen::Dynamic, Eigen::Dynamic>>(inputLayerWeightsVar.data(), hiddenSize, inputSize).matrix();
+
+    //Eigen::Map<Eigen::Matrix<var, Eigen::Dynamic, Eigen::Dynamic>> inputLayerWeightsMatrix(inputLayerWeights.data(), hiddenSize, inputSize);
+    //Eigen::Matrix<var, Eigen::Dynamic, Eigen::Dynamic> weightMatrix = inputLayerWeightsMatrix.matrix();
+
     inputLayerWeightsDouble = std::vector<double>(parameters.begin(), parameters.begin() + inputSize * hiddenSize);
     hiddenLayerWeightsDouble = std::vector<double>(parameters.begin() + inputSize * hiddenSize, parameters.begin() + weightsSize);
     hiddenLayerBiasesDouble = std::vector<double>(parameters.begin() + weightsSize, parameters.begin() + weightsSize + hiddenSize);
@@ -73,6 +78,25 @@ var feedForwardVarVectorized(ArrayXvar parameters, ArrayXvar inputsVar, int inpu
     }
 
     var finalOutput = hiddenOutputs.matrix().dot(hiddenLayerWeights.matrix());
+
+    return finalOutput;
+}
+
+var feedForwardVarVectorizedFastest(
+        const Eigen::Matrix<var, Eigen::Dynamic, Eigen::Dynamic>& inputLayerWeightsMatrix,
+        const ArrayXvar& hiddenLayerWeightsVar,
+        const ArrayXvar& hiddenLayerBiasesVar,
+        const VectorXvar& inputsVar,
+        int inputSize, int hiddenSize) {
+    auto hiddenOutputsBeforeActivation = inputLayerWeightsMatrix * inputsVar.matrix() + hiddenLayerBiasesVar.matrix();
+
+    ArrayXvar hiddenOutputs(hiddenSize);
+    for(int i = 0; i < hiddenOutputs.size(); i++) {
+        hiddenOutputs[i] = tanh(hiddenOutputsBeforeActivation[i]);
+    }
+    //auto hiddenOutputs = hiddenOutputsBeforeActivation.unaryExpr([](const var& x) { return tanh(x); });
+
+    var finalOutput = hiddenOutputs.matrix().dot(hiddenLayerWeightsVar.matrix());
 
     return finalOutput;
 }
@@ -266,12 +290,44 @@ std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtParameters(std:
     return dydx_vec;
 }
 
+std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtParametersVectorized(std::vector<double> &inputs)
+{
+    VectorXvar xInputs = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
+
+    auto feedForwardWrapper = [&](const VectorXvar& kalle) {
+        return feedForwardVarVectorized(kalle, xInputs, inputSize, hiddenSize);
+    };
+
+    var y = feedForwardWrapper(parametersDual); // the output variable y
+    VectorXd dydx = gradient(y, parametersDual);        // evaluate the gradient vector dy/dx
+
+    std::vector<double> dydx_vec(dydx.data(), dydx.data() + dydx.size());
+
+    return dydx_vec;
+}
+
 std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtInputs(std::vector<double> &inputs)
 {
     VectorXvar x = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
 
     auto feedForwardWrapper = [&](const VectorXvar& inputsDual) {
         return feedForwardXvarParametersOptimized(inputLayerWeightsVar, hiddenLayerWeightsVar, hiddenLayerBiasesVar, inputsDual, inputSize, hiddenSize);
+    };
+
+    var y = feedForwardWrapper(x); // the output variable y
+    VectorXd dydx = gradient(y, x);        // evaluate the gradient vector dy/dx
+
+    std::vector<double> dydx_vec(dydx.data(), dydx.data() + dydx.size());
+
+    return dydx_vec;
+}
+
+std::vector<double> NeuralNetworkReverse::getTheGradientVectorWrtInputsVectorized(std::vector<double> &inputs)
+{
+    VectorXvar x = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<var>().array();
+
+    auto feedForwardWrapper = [&](const VectorXvar& inputsDual) {
+        return feedForwardVarVectorizedFastest(inputLayerWeightsMatrix, hiddenLayerWeightsVar, hiddenLayerBiasesVar, inputsDual, inputSize, hiddenSize);
     };
 
     var y = feedForwardWrapper(x); // the output variable y

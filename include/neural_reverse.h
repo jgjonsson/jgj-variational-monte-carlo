@@ -31,6 +31,11 @@ public:
     std::vector<double> getTheGradientVectorWrtInputs(std::vector<double> &inputs);
     std::vector<double> getTheGradientVectorWrtParameters(std::vector<double> &inputs);
 
+    //Is it faster with Eigen3 vector operations?
+    std::vector<double> getTheGradientVectorWrtInputsVectorized(std::vector<double> &inputs);
+    std::vector<double> getTheGradientVectorWrtParametersVectorized(std::vector<double> &inputs);
+    //std::vector<double> getTheGradientVectorWrtInputsVectorized(std::vector<double> &inputs)
+
     double calculateNumericalLaplacianWrtInput(std::vector<double>& inputs);
     double getTheLaplacianVectorWrtInputs(std::vector<double> &inputs);
     //double getTheLaplacianVectorWrtInputs2(std::vector<double> &inputs);
@@ -47,6 +52,7 @@ private:
     ArrayXvar inputLayerWeightsVar;
     ArrayXvar hiddenLayerWeightsVar;
     ArrayXvar hiddenLayerBiasesVar;
+    Eigen::Matrix<var, Eigen::Dynamic, Eigen::Dynamic> inputLayerWeightsMatrix;
 
     std::vector<double> inputLayerWeightsDouble;
     std::vector<double> hiddenLayerWeightsDouble;
