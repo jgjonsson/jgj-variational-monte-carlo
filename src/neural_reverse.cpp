@@ -56,6 +56,27 @@ inline double leaky_relu(double x) {
     return std::max(0.01 * x, x);
 }
 
+var feedForwardVarVectorized(ArrayXvar parameters, ArrayXvar inputsVar, int inputSize, int hiddenSize) {
+    int weightsSize = inputSize * hiddenSize + hiddenSize;
+    ArrayXvar inputLayerWeights = parameters.segment(0, inputSize * hiddenSize);
+    ArrayXvar hiddenLayerWeights = parameters.segment(inputSize * hiddenSize, hiddenSize);
+    ArrayXvar hiddenLayerBiases = parameters.segment(inputSize * hiddenSize + hiddenSize, hiddenSize);
+
+    // Reshape inputLayerWeights into a matrix
+    Eigen::Map<Eigen::Matrix<var, Eigen::Dynamic, Eigen::Dynamic>> inputLayerWeightsMatrix(inputLayerWeights.data(), hiddenSize, inputSize);
+    Eigen::Matrix<var, Eigen::Dynamic, Eigen::Dynamic> matrasse = inputLayerWeightsMatrix.matrix();
+    auto hiddenOutputsBeforeActivation = inputLayerWeightsMatrix.matrix() * inputsVar.matrix() + hiddenLayerBiases.matrix();
+
+    ArrayXvar hiddenOutputs(hiddenSize);
+    for(int i = 0; i < hiddenOutputs.size(); i++) {
+        hiddenOutputs[i] = tanh(hiddenOutputsBeforeActivation[i]);
+    }
+
+    var finalOutput = hiddenOutputs.matrix().dot(hiddenLayerWeights.matrix());
+
+    return finalOutput;
+}
+
 var feedForwardXvar(const ArrayXvar& parameters, const ArrayXvar& inputs, int inputSize, int hiddenSize) {
 
     int weightsSize = inputSize * hiddenSize + hiddenSize;
