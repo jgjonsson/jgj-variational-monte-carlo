@@ -45,5 +45,5 @@ def block(x):
     return s[k]/2**(d-k)
 
 
-x = loadtxt("energies_nn.csv")
+x = loadtxt("energies_nn2.csv")
 print("Standard error = %g" % block(x)**0.5)
