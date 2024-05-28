@@ -114,7 +114,7 @@ cout << "This round " << count << " of PRE-TRAINING gets " << numberOfMetropolis
 
     return std::unique_ptr<PretrainSampler>(new PretrainSampler(pretrainSamplers, numThreads));
 }
-
+/*
 std::unique_ptr<Sampler> runNonInteractingParallelMonteCarloSimulation(
     size_t count,
     size_t numberOfMetropolisSteps,
@@ -172,6 +172,7 @@ cout << "This round " << count << " of TRAINING gets " << numberOfMetropolisStep
 
     return std::unique_ptr<Sampler>(new Sampler(samplers, numThreads));
 }
+*/
 
 std::vector<double> optimizeParameters(std::vector<double>& params, std::unique_ptr<PretrainSampler>& combinedPretrainSampler, AdamOptimizer& adamOptimizer) {
     auto gradient = std::vector<double>(params.size());
@@ -199,7 +200,7 @@ std::vector<double> optimizeParameters(std::vector<double>& params, std::unique_
 
     return NewParams;
 }
-
+/*
 std::vector<double> optimizeParameters(std::vector<double>& params, std::unique_ptr<Sampler>& combinedSampler, AdamOptimizer& adamOptimizer) {
     auto gradient = std::vector<double>(params.size());
     for (size_t param_num = 0; param_num < params.size(); ++param_num)
@@ -226,7 +227,7 @@ std::vector<double> optimizeParameters(std::vector<double>& params, std::unique_
 
     return NewParams;
 }
-
+*/
 int main(int argc, char **argv)
 {
     // This program is for experimenting with learning rate and number of hidden layers.
@@ -349,153 +350,14 @@ double beta = 2.82843; // beta is the second parameter for now.
 
     one_columns_to_csv("NNparams2.csv", params, ",", 0, 6);
 */
-    adamOptimizer.reset();
-//////////////
-    for (size_t count = 0; count < max_iterations; ++count)
-    {
-        converged = count == fixed_number_optimization_runs; // TODO: hack for converge condition on set number of iterations
-
-        // Random number setup in the way recommended for parallell computing, at https://github.com/anderkve/FYS3150/blob/master/code_examples/random_number_generation/main_rng_in_class_omp.cpp
-        //  Use the system clock to get a base seed
-        unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
-
-double adiabaticFactorStart = 0.001;
-double adiabaticFactor = count*count*adiabaticFactorStart;
-adiabaticFactor = std::min(1.0, adiabaticFactor);
-//adiabaticFactor = 1.0;//If we want to test without adiabatic change
-//If argv[7] was not "INTERACTION" put adiabaticFactor to 0.0
-//cout << "Hamiltonian choice is " << hamiltonianChoice << " which is " << (hamiltonianChoice != "INTERACTION") << " or " << (strcmp(hamiltonianChoice.c_str(), "INTERACTION") != 0) << endl;
-//if(strcmp(hamiltonianChoice.c_str(), "INTERACTION") != 0)
-if(("NO_INTERACTION" == hamiltonianChoice)){
-    adiabaticFactor = 0.0;
-}
-cout << "Iteration " << BLUE << count+1 << RESET << " Adiabatic factor: " << BLUE << adiabaticFactor << RESET << endl;
-
-        //size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / MC_reduction * (converged | count == max_iterations - 1 ? MC_reduction : 1);
-        size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / fixed_number_optimization_runs;
-        cout << "This round of optimization gets " << numberOfMetropolisStepsPerGradientIteration << " MC steps, split on " << numThreads << " threads.";
-        numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
-        cout << " so " << numberOfMetropolisStepsPerGradientIteration << " per thread. " ;
-#pragma omp parallel shared(samplers, count) // Start parallel region.
-        {
-            int thread_id = omp_get_thread_num();
-
-            // Seed the generator with a seed that is unique for this thread
-            unsigned int my_seed = base_seed + thread_id;
-            auto rng = std::make_unique<Random>(my_seed);
-
-
-            //std::unique_ptr<Sampler> sampler;
-            std::unique_ptr<System> system;
-
-            // Initialize particles
-            auto particles = setupRandomUniformInitialStateWithRepulsion(stepLength, hard_core_size, numberOfDimensions, numberOfParticles, *rng);
-            /*
-            auto particles = setupRandomUniformInitialState(
-                stepLength,
-                numberOfDimensions,
-                numberOfParticles,
-                *rng);
-*/
-            // Construct a unique pointer to a new System
-            system = std::make_unique<System>(
-                // Construct unique_ptr to Hamiltonian
-                std::make_unique<CoulombHamiltonian>(omega, adiabaticFactor*inter_strength),
-                // Construct unique_ptr to wave function
-                std::make_unique<PureNeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega, alpha, beta, adiabaticFactor),
-                // Construct unique_ptr to solver, and move rng
-                //std::make_unique<MetropolisHastings>(std::move(rng)),
-                //std::make_unique<Metropolis>(std::move(rng)),
-                createSolverFromArgument(algoritmChoice, std::move(rng)),
-                // Move the vector of particles to system
-                std::move(particles));
-//cout << "numberOfMetropolisStepsPerGradientIteration is " << numberOfMetropolisStepsPerGradientIteration << endl;
-            // Run steps to equilibrate particles
-            auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
-                stepLength,
-                numberOfMetropolisStepsPerGradientIteration);
-
-            // Run the Metropolis algorithm
-            samplers[thread_id] = system->runMetropolisSteps(
-                stepLength,
-                numberOfMetropolisStepsPerGradientIteration);
-        }
-cout << "Finished parallel region" << endl;
-        // Create a new Sampler object containing the average of all the others.
-        //combinedSampler = std::unique_ptr<Sampler>(samplers[0]);//
-        combinedSampler = std::unique_ptr<Sampler>(new Sampler(samplers, numThreads));
-/*if (!samplers.empty()) {
-    combinedSampler = samplers[0];
-} else {
-    // Handle the case where samplers is empty
-}*/
-        // TODO: Code below contains a mess with commented out code, from tolerance test previously used.
-        // As it stands right now it will always run the set number of optimization, and
-        if (converged)
-            break;
-//if(count%2==1){ //Temporary try to only update parameters every 2 step, to investigate how much MC spreads with parameters unchanged
-        // Extract the gradient
-        auto gradient = std::vector<double>(params.size());
-        for (size_t param_num = 0; param_num < params.size(); ++param_num)
-        {
-            gradient[param_num] = combinedSampler->getObservables()[2 + param_num];
-        }
-        //Try to adress the fact that the same learning rate is not good for alpha as for the neural network parameters.
-        //double suppressAlphaChange = 0.1; // Set your value
-        //gradient.back() *= suppressAlphaChange;
-
-        //double alphaBefore = params[params.size()-1];
-        // Update the parameter using Adam optimization
-        auto NewParams = adamOptimizer.adamOptimization(params, gradient);
-        double sum = 0.0;
-        for (size_t i = 0; i < params.size(); ++i) {
-            double diff = fabs(NewParams[i] - params[i]);
-            sum += diff * diff;
-        }
-        double meanSquareDifference = sum / params.size();
-        params = NewParams;
-
-        //cout << "Old alpha " << alphaBefore << " New alpha " << params[params.size()-1] << " Overridde alpha" << alphaBefore - 0.01 * gradient[params.size()-1] << endl;
-        //Trying to override Adams for alpha with fixed learning rate to see if it helps.
-        //params[params.size()-1] = alphaBefore - 0.01 * gradient[params.size()-1];
-        //params[params.size()-1] = 0.5; //Whatever, fix it to 0.5, see what happens.
-//}
-        combinedSampler->printOutputToTerminalMini(verbose);
-
-        cout << "Num params: " << params.size() << " Parameters:" << endl;
-        std::streamsize original_precision = std::cout.precision(); // Save original precision
-        std::cout << std::setprecision(4) << std::fixed;
-        //cout << "Alpha: " << params[params.size()-1] << ", ";
-        for (int i = 0; i < 8 && i < params.size(); ++i) {
-            std::cout << params[i] << " ";
-        }
-        std::cout.precision(original_precision); // Restore original precision
-
-        std::cout << std::endl;
-        //cout << "Tolerance " << parameter_tolerance << " Adam MSE Total change: " << meanSquareDifference << endl;
-        auto energyEstimate = combinedSampler->getObservables()[0];
-        cout << "Energy estimate: " << energyEstimate << endl;
-        energiesTraining.push_back(energyEstimate);
-        epochsTraining.push_back(count);
-        //alphasTraining.push_back(params[params.size()-1]);
-
-        if(adiabaticFactor==1.0 && !hasResetAdamAtEndOfAdiabaticChange)
-        {
-            cout << "Resetting Adam optimizer" << endl;
-            adamOptimizer.reset();
-            hasResetAdamAtEndOfAdiabaticChange = true;
-        }
-    }
-    // Output information from the simulation
-    combinedSampler->printOutputToTerminal(verbose);
-
+    /*
     //Write energies to file, to be used by blocking method script.
     one_columns_to_csv("energies_nn.csv", combinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
 
     //one_columns_to_csv("energiesTraining.csv", energiesTraining, ",", 0, 6);
     two_columns_to_csv("energiesTraining_pure.csv", epochsTraining, energiesTraining, ",", 0, 6);
     //two_columns_to_csv("alphasTraining2.csv", epochsTraining, alphasTraining, ",", 0, 6);
-
+*/
 //    main3();
 
     return 0;
