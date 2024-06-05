@@ -41,7 +41,8 @@ size_t System::runEquilibrationSteps(
 std::unique_ptr<class Sampler> System::runMetropolisSteps(
     double stepLength,
     size_t numberOfMetropolisSteps,
-    bool skipSamplingGradients)
+    bool skipSamplingGradients,
+    int stepsPerSample)
 {
     auto sampler = std::make_unique<Sampler>(
         m_numberOfParticles,
@@ -54,6 +55,12 @@ std::unique_ptr<class Sampler> System::runMetropolisSteps(
     {
         /* Call solver method to do a single Monte-Carlo step.
          */
+        if(stepsPerSample>1){
+            for(int j=0; j<stepsPerSample-1; j++){
+                bool acceptedStep = m_solver->step(stepLength, *m_waveFunction, m_particles);
+            }
+        }
+
         bool acceptedStep = m_solver->step(stepLength, *m_waveFunction, m_particles);
 
         /* Here you should sample the energy (and maybe other things) using the
@@ -61,7 +68,7 @@ std::unique_ptr<class Sampler> System::runMetropolisSteps(
          */
         // ...like what?
 
-        sampler->sample(acceptedStep, this);
+        sampler->sample(acceptedStep, this, skipSamplingGradients);
     }
 
     sampler->computeObservables();

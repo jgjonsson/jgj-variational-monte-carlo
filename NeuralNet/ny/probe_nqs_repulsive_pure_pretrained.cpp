@@ -71,13 +71,23 @@ std::unique_ptr<Sampler> runParallellMonteCarloSimulation(unsigned int globalSee
         std::unique_ptr<Sampler> sampler;
         std::unique_ptr<System> system;
 
+        std::vector<std::unique_ptr<Particle>> particles;
         // Initialize particles
-        auto particles = setupRandomUniformInitialStateWithRepulsion(
+        if(inter_strength==0){
+            particles = setupRandomUniformInitialState(
+            stepLength,
+            numberOfDimensions,
+            numberOfParticles,
+            *rng);
+        }else{
+             particles = setupRandomUniformInitialStateWithRepulsion(
             stepLength,
             hard_core_size,
             numberOfDimensions,
             numberOfParticles,
             *rng);
+        }
+
 auto alpha=0.5;  //TODO: REmove this and remove variable from NN
 auto beta=2.82843; //TODO: REmove this and remove variable from NN
 auto omega=1.0; //TODO: REmove this and remove variable from NN
@@ -102,7 +112,8 @@ auto omega=1.0; //TODO: REmove this and remove variable from NN
         samplers[thread_id] = system->runMetropolisSteps(
             stepLength,
             numberOfSteadyStateStepsPerEpoch,
-            finalRunNoGradientNeeded);
+            finalRunNoGradientNeeded,
+            3);
     }
 
     // Create a new Sampler object containing the average of all the others.
@@ -155,11 +166,11 @@ int main(int argc, char **argv)
 
     // Start with all parameters as random values
     int parameter_seed = 2023;//111;//2023;         // For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
-    double parameterGuessSpread = 0.001; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
+    //double parameterGuessSpread = 0.001; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
-    params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
+    //params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
 
-double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
+double alpha = 0.2;//m_parameters[0]; // alpha is the first and only parameter for now.
 double beta = 2.82843; // beta is the second parameter for now.
 
     // We're experimenting with what learning rate works best.
@@ -172,7 +183,7 @@ double beta = 2.82843; // beta is the second parameter for now.
     auto hamiltonianChoice = argc > 7 ? argv[7] : "INTERACTION";
 
     //Algoritm for sampling. Ex: METROPOLIS, METROPOLIS_HASTINGS (brute force and importance samling respectively)
-    auto algoritmChoice = argc > 8 ? argv[8] : "METROPOLIS";
+    auto algoritmChoice = argc > 8 ? argv[8] : "METROPOLIS_HASTINGS";
 
     auto parametersInputFile = argc > 9 ? argv[9] : "";
 
@@ -193,20 +204,20 @@ double beta = 2.82843; // beta is the second parameter for now.
 
     std::vector<double> learning_rate; // deduced automatically
     double parameter_tolerance = 1e-2;
-    size_t max_iterations = fixed_number_optimization_runs + 1; // 1e2;  //TODO: hack for converge condition on set number of iterations
+    //size_t max_iterations = fixed_number_optimization_runs + 1; // 1e2;  //TODO: hack for converge condition on set number of iterations
     bool converged = false;
 
     std::unique_ptr<Sampler> combinedSampler;
     std::unique_ptr<PretrainSampler> combinedPretrainSampler;
 
-    int numThreads = 20;//18;//20;//20;//12;//14;
+    int numThreads = 18;//20;//18;//20;//20;//12;//14;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
     std::unique_ptr<PretrainSampler> pretrainSamplers[numThreads] = {};
 
     //For collecting energies during training and print to energiesTraining.csv for plotting.
-    std::vector<double> KPreTraining{};
-    std::vector<double> epochsPreTraining{};
+    //std::vector<double> KPreTraining{};
+    //std::vector<double> epochsPreTraining{};
     std::vector<double> energiesTraining{};
     std::vector<double> epochsTraining{};
     //std::vector<double> alphasTraining{};
@@ -233,7 +244,11 @@ double beta = 2.82843; // beta is the second parameter for now.
     cout << "Optimization run. Equilibrium steps: " << numberOfEquilibrationStepsPerEpoch << " Steady state steps: " << numberOfSteadyStateStepsPerEpoch << endl;
     for (size_t count = 0; count < fixed_number_optimization_runs; ++count)
     {
-        double inter_strength = (count*2.0)/fixed_number_optimization_runs;
+        double stepsBeforeInteraction = fixed_number_optimization_runs / 4;
+        double stepsGradualInteraction = fixed_number_optimization_runs / 4;
+        double inter_strength = (count-stepsBeforeInteraction)/stepsGradualInteraction;
+        cout << "inter_strength: " << inter_strength << " count:" << count << " stepsBeforeInteraction:" << stepsBeforeInteraction << " stepsGradualInteraction:" << stepsGradualInteraction << endl;
+        inter_strength = std::max(0.0, inter_strength);
         inter_strength = std::min(1.0, inter_strength);
         cout << "Iteration " << BLUE << count+1 << RESET << " Adiabatically set interaction strength: " << BLUE << inter_strength << RESET << endl;
         auto combinedSampler = runParallellMonteCarloSimulation(parameter_seed, numberOfEquilibrationStepsPerEpoch, numberOfSteadyStateStepsPerEpoch, count, numThreads, stepLength, numberOfDimensions, numberOfParticles, params, omega, inter_strength, rbs_M, rbs_N, hard_core_size, samplers, false);
@@ -247,7 +262,7 @@ double beta = 2.82843; // beta is the second parameter for now.
 
         if(inter_strength==1.0 && !hasResetAdamAtEndOfAdiabaticChange)
         {
-            //Imortand to make Adam not keep going up (by keeping momemtum) when ramp up of interaction stops.
+            //Important to make Adam not keep going up (by keeping momemtum) when ramp up of interaction stops.
             cout << "Resetting Adam optimizer" << endl;
             adamOptimizer.reset();
             hasResetAdamAtEndOfAdiabaticChange = true;
@@ -264,10 +279,10 @@ double beta = 2.82843; // beta is the second parameter for now.
     //combinedSampler->printOutputToTerminal(verbose);
 
     string fileSuffix = to_string(numberOfDimensions) + "_" + to_string(numberOfParticles) + "_"+ to_string(rbs_N);
-    string energies_plot_filename = "energies_plot_pure_" + fileSuffix  + ".csv";
+    string energies_plot_filename = "energies_plot_pure_" + fileSuffix  + "z.csv";
 
     //Write energies to file, to be used by blocking method script.
-    one_columns_to_csv("energies_nn2.csv", finalCombinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
+    one_columns_to_csv("energies_nn2z.csv", finalCombinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
 
     //one_columns_to_csv("energiesTraining.csv", energiesTraining, ",", 0, 6);
     two_columns_to_csv(energies_plot_filename, epochsTraining, energiesTraining, ",", 0, 6);

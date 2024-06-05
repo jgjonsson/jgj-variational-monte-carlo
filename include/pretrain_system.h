@@ -25,7 +25,9 @@ public:
 
     std::unique_ptr<class PretrainSampler> runMetropolisSteps(
         double stepLength,
-        size_t numberOfMetropolisSteps);
+        size_t numberOfMetropolisSteps,
+        bool skipSamplingGradients = false,
+        int stepsPerSample=1);
 
     double computeLocalEnergy();
     std::unique_ptr<class WaveFunction> &getWaveFunction() { return m_waveFunction; }

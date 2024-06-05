@@ -103,12 +103,14 @@ cout << "This round " << count << " of PRE-TRAINING gets " << numberOfMetropolis
 
         auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
             stepLength,
-            1000);
+            3000);
             //numberOfEquilibrationStepsPerIteration);//numberOfMetropolisStepsPerGradientIteration / numberOfEquilibrationSteps);
 
         pretrainSamplers[thread_id] = system->runMetropolisSteps(
             stepLength,
-            10000);
+            10000,
+            0,
+            3);
             //numberOfMetropolisStepsPerGradientIteration);
     }
 
@@ -260,7 +262,7 @@ double beta = 2.82843; // beta is the second parameter for now.
     //params.push_back(alpha);//No alpha in neural network now!!
 
     // We're experimenting with what learning rate works best.
-    double fixed_learning_rate = argc > 5 ? stod(argv[5]) : 0.01;
+    double fixed_learning_rate = argc > 5 ? stod(argv[5]) : 0.05;
 
     // Number of MCMC cycles for the large calculation after optimization
     size_t numberOfMetropolisSteps = argc > 6 ? stoi(argv[6]) : 1e6;
@@ -308,13 +310,6 @@ double beta = 2.82843; // beta is the second parameter for now.
     std::vector<double> epochsTraining{};
     //std::vector<double> alphasTraining{};
 
-    //Initialize Adam optimizer
-    AdamOptimizer adamOptimizerPretrain(params.size(), 0.05);
-    AdamOptimizer adamOptimizer(params.size(), fixed_learning_rate);
-    bool hasResetAdamAtEndOfAdiabaticChange = false;
-
-    int max_iterations_pre_training = 500;
-////// Ok, lets try get some pre-training going
 
     if(parametersInputFile && parametersInputFile[0] != '\0')
     //if(parametersInputFile)
@@ -322,8 +317,18 @@ double beta = 2.82843; // beta is the second parameter for now.
         cout << "Reading parameters from file " << parametersInputFile << endl;
         params = csv_to_one_column(parametersInputFile);
     }
-    else
+    //Initialize Adam optimizer
+    AdamOptimizer adamOptimizerPretrain(params.size(), fixed_learning_rate);
+    //AdamOptimizer adamOptimizer(params.size(), 0.5);//fixed_learning_rate);
+    bool hasResetAdamAtEndOfAdiabaticChange = false;
+
+    int max_iterations_pre_training = fixed_number_optimization_runs;//500;
+////// Ok, lets try get some pre-training going
+    //else
     {
+    //print number of optimization runs, and learning rate
+        cout << "Number of optimization runs: " << max_iterations_pre_training << endl;
+        cout << "Learning rate: " << fixed_learning_rate << endl;
         for (size_t count = 0; count < max_iterations_pre_training; ++count)
         {
             auto combinedPretrainSampler = runPreTrainParallelMonteCarloSimulation(count, numberOfMetropolisSteps, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, rbs_M, rbs_N, numberOfEquilibrationSteps, omega, alpha, beta, params, algoritmChoice);

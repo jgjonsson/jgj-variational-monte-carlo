@@ -46,7 +46,9 @@ size_t PretrainSystem::runEquilibrationSteps(
 
 std::unique_ptr<class PretrainSampler> PretrainSystem::runMetropolisSteps(
     double stepLength,
-    size_t numberOfMetropolisSteps)
+    size_t numberOfMetropolisSteps,
+    bool skipSamplingGradients,
+    int stepsPerSample)
 {
     auto sampler = std::make_unique<PretrainSampler>(
         m_numberOfParticles,
@@ -56,7 +58,13 @@ std::unique_ptr<class PretrainSampler> PretrainSystem::runMetropolisSteps(
         numberOfMetropolisSteps);
 
     for (size_t i = 0; i < numberOfMetropolisSteps; i++)
-    {
+    {/*
+        if(stepsPerSample>1){
+            for(int j=0; j<stepsPerSample-1; j++){
+                bool acceptedStep = m_solver->step(stepLength, *m_waveFunction, m_particles);
+            }
+        }*/
+        runEquilibrationSteps(stepLength, stepsPerSample-1);
         /* Call solver method to do a single Monte-Carlo step.
          */
         bool acceptedStep = m_solver->step(stepLength, *m_targetWaveFunction, m_particles);
@@ -65,8 +73,9 @@ std::unique_ptr<class PretrainSampler> PretrainSystem::runMetropolisSteps(
          * sampler instance of the PretrainSampler class.
          */
         // ...like what?
-
-        sampler->sample(acceptedStep, this);
+        //if(i%stepsPerSample==0){
+            sampler->sample(acceptedStep, this);
+        //}
     }
 
     sampler->computeObservables();

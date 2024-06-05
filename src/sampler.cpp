@@ -90,23 +90,25 @@ Sampler::Sampler(std::unique_ptr<Sampler> *samplers, int numberSamplers)
     // cout << "Previous two energies " << samplers[0]->m_observables[0] << " and " << samplers[1]->m_observables[0] << " avareged to  " << m_observables[0]  << endl;
 }
 
-void Sampler::sample(bool acceptedStep, System *system)
+void Sampler::sample(bool acceptedStep, System *system, bool skipSamplingGradients)
 {
     /* Here you should sample all the interesting things you want to measure.
      * Note that there are (way) more than the single one here currently.
      */
     auto localEnergy = system->computeLocalEnergy();
-    //..
-    auto particles = std::move(system->getParticles());
-    auto gradients = system->getWaveFunction()->computeLogPsiDerivativeOverParameters(particles);
-    system->setParticles(std::move(particles));
 
     m_cumulatives[0] += localEnergy;
     m_cumulatives[1] += localEnergy * localEnergy;
-    for (size_t i = 0; i < m_numberOfParameters; i++)
-    {
-        m_cumulatives[2 + i] += gradients[i];
-        m_cumulatives[2 + m_numberOfParameters + i] += gradients[i] * localEnergy;
+    //..
+    if(!skipSamplingGradients){
+        auto particles = std::move(system->getParticles());
+        auto gradients = system->getWaveFunction()->computeLogPsiDerivativeOverParameters(particles);
+        system->setParticles(std::move(particles));
+        for (size_t i = 0; i < m_numberOfParameters; i++)
+        {
+            m_cumulatives[2 + i] += gradients[i];
+            m_cumulatives[2 + m_numberOfParameters + i] += gradients[i] * localEnergy;
+        }
     }
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
