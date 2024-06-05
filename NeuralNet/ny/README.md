@@ -59,5 +59,50 @@ time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure.out 2 2 16 3 0.002 11100000 hej
 #Big big but sadly failed
 time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure_pretrained.out 3 10 20 100 0.002 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_3_10_20.csv
 
-python3 NeuralNet/ny/plot_training_energies.py --datafile K_pretrain_3_10_20.csv --savefig output_K_3_10_20.pdf --ylabel "K"
-python3 NeuralNet/ny/plot_training_energies.py --datafile K_pretrain_2_2_16.csv --savefig output_K_2_2_16.pdf --ylabel "K"
+python3 NeuralNet/ny/NeuralNet/ny/plot_training_k.py --datafile K_pretrain_3_10_20.csv --savefig output_K_3_10_20.pdf --ylabel "K"
+python3 NeuralNet/ny/NeuralNet/ny/plot_training_k.py --datafile K_pretrain_2_2_16.csv --savefig output_K_2_2_16.pdf --ylabel "K"
+
+
+time ./bin/NeuralNet/ny/do_pretrain_twolayer.out 2 2 12 3 0.002 11100000 hej METROPOLIS_HASTINGS
+
+3D forsok
+fail...
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure_pretrained.out 3 5 12 250 0.002 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_3_5_12.csv
+
+1D forsok
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure_pretrained.out 1 5 12 250 0.002 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_1_5_12.csv
+python3 NeuralNet/ny/NeuralNet/ny/plot_training_k.py --datafile K_pretrainpretrain_1_5_12.csv --savefig output_K_1_5_12.pdf --ylabel "K"
+
+
+python3 NeuralNet/ny/plot_training_k.py --datafile K_pretrain_1_8_12.csv --savefig output_K_1_8_12.pdf --ylabel "K"
+python3 NeuralNet/ny/plot_1-K_log.py --datafile K_pretrain_1_8_12.csv --savefig output_K_1_8_12_log.pdf --ylabel "K"
+python3 NeuralNet/ny/plot_1-K_log.py --datafile K_pretrain_1_5_12.csv --savefig output_K_1_5_12_log.pdf --ylabel "K"
+
+
+#2-layer
+time ./bin/NeuralNet/ny/do_pretrain_twolayer.out 2 2 12 3 0.002 11100000 hej METROPOLIS_HASTINGS
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure_pretrained_two_layer.out 2 2 12 250 0.002 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_2_2_12_twolayer.csv
+
+So this failed
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure_pretrained_two_layer.out 2 2 12 250 0.002 41100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_2_2_12_twolayer.csv
+
+Ok, does it help to retrain
+time ./bin/NeuralNet/ny/do_pretrain_twolayer.out 2 2 12 3 0.002 11100000 hej METROPOLIS_HASTINGS NNparams_pretrain_2_2_12_twolayer_halfbaked.csv
+
+python3 NeuralNet/ny/plot_training_k.py --datafile K_pretrain_2_2_12_twolayer.csv --savefig output_K_2_"_twolayer_2.pdf --ylabel "K"
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure_pretrained_two_layer.out 2 2 12 250 0.002 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_2_2_12_twolayer.csv
+
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure.out 3 5 12 3 0.002 11100000 hej METROPOLIS_HASTINGS NNparams_pretrain_3_5_12_halfbaked.csv
+
+python3 NeuralNet/ny/plot_1-K_log.py --datafile K_pretrain_3_5_12.csv --savefig output_K_3_5_12b_log.pdf --ylabel "K"
+python3 NeuralNet/ny/plot_1-K_log.py --datafile K_pretrain_3_5_12_halfbaked.csv --savefig output_3_5_12c_log.pdf --ylabel "K"
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure_pretrained.out 3 5 12 250 0.002 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_3_5_12.csv
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure.out 3 5 12 3 0.1 11100000 hej METROPOLIS_HASTINGS NNparams_pretrain_3_5_12_halfbaked2.csv
+
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure.out 3 5 30 500 0.1 11100000 hej METROPOLIS_HASTINGS
+mv K_pretrain_3_5_30.csv K_pretrain_3_5_30_halfbaked.csv
+mv NNparams_pretrain_3_5_30.csv NNparams_pretrain_3_5_30_halfbaked.csv
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure.out 3 5 30 1000 0.01 11100000 hej METROPOLIS_HASTINGS NNparams_pretrain_3_5_30_halfbaked.csv
+
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure_pretrained.out 3 5 30 250 0.002 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_3_5_30.csv
+
