@@ -20,32 +20,6 @@ NeuralNetworkTwoLayers::NeuralNetworkTwoLayers(std::vector<double> parameters, i
 {
     parametersVar = Eigen::Map<VectorXd>(parameters.data(), parameters.size()).cast<var>().array();
     cacheWeightsAndBiases(parameters);
-/*
-    //Set up variables for all the sizes of weights and biases.
-    int inputLayerWeightsSize = inputSize * hiddenSize;
-    int hiddenLayerWeightsSize = hiddenSize * hiddenSize;
-    int secondHiddenLayerWeightsSize = hiddenSize;
-    int allWeightsSize = inputLayerWeightsSize + hiddenLayerWeightsSize + secondHiddenLayerWeightsSize;
-    int hiddenLayerBiasesSize = hiddenSize;
-    int secondHiddenLayerBiasesSize = hiddenSize;
-
-
-   // weightsSize = hiddenSize*hiddenSize;//inputSize * hiddenSize + hiddenSize;
-//cout << "Banan " << parameters.size() << " of " << weightsSize << endl;
-
-    inputLayerWeightsDouble = std::vector<double>(parameters.begin(), parameters.begin() + inputLayerWeightsSize);
-    hiddenLayerWeightsDouble = std::vector<double>(parameters.begin() + inputLayerWeightsSize, parameters.begin() + inputLayerWeightsSize + hiddenLayerWeightsSize);
-    secondHiddenLayerWeightsDouble = std::vector<double>(parameters.begin() + inputLayerWeightsSize + hiddenLayerWeightsSize, parameters.begin() + allWeightsSize);
-    hiddenLayerBiasesDouble = std::vector<double>(parameters.begin() + allWeightsSize, parameters.begin() + allWeightsSize + secondHiddenLayerWeightsSize);
-    secondHiddenLayerBiasesDouble = std::vector<double>(parameters.begin() + allWeightsSize + secondHiddenLayerWeightsSize, parameters.end());
-
-    inputLayerWeightsVar = parametersVar.head(inputLayerWeightsSize);
-    hiddenLayerWeightsVar = parametersVar.segment(inputLayerWeightsSize, hiddenLayerWeightsSize);
-    secondHiddenLayerWeightsVar = parametersVar.segment(inputLayerWeightsSize + hiddenLayerWeightsSize, secondHiddenLayerWeightsSize);
-    cout << "Hax " << endl;
-    hiddenLayerBiasesVar = parametersVar.segment(allWeightsSize, hiddenLayerBiasesSize);
-    secondHiddenLayerBiasesVar = parametersVar.tail(hiddenSize);
-    cout << "Banarna " << endl;*/
 }
 
 void NeuralNetworkTwoLayers::cacheWeightsAndBiases(std::vector<double> parameters) {
@@ -89,7 +63,7 @@ inline double leaky_relu(double x) {
 }
 
 var feedForwardXvarTwoLayer(const ArrayXvar& parameters, const ArrayXvar& inputs, int inputSize, int hiddenSize) {
-cout << "Apa " << endl;
+
     int inputLayerWeightsSize = inputSize * hiddenSize;
     int hiddenLayerWeightsSize = hiddenSize * hiddenSize;
     int secondHiddenLayerWeightsSize = hiddenSize;
@@ -97,36 +71,13 @@ cout << "Apa " << endl;
     int hiddenLayerBiasesSize = hiddenSize;
     int secondHiddenLayerBiasesSize = hiddenSize;
 
-
-cout << "inputLayerWeights.size() = " << inputLayerWeightsSize << endl;
-cout << "hiddenLayerWeights.size() = " << hiddenLayerWeightsSize << endl;
-cout << "secondHiddenLayerWeights.size() = " << secondHiddenLayerWeightsSize << endl;
-cout << "hiddenLayerBiases.size() = " << hiddenLayerBiasesSize << endl;
-cout << "secondHiddenLayerBiases.size() = " << secondHiddenLayerBiasesSize << endl;
-
-/*
-    inputLayerWeightsDouble = std::vector<double>(parameters.begin(), parameters.begin() + inputLayerWeightsSize);
-    hiddenLayerWeightsDouble = std::vector<double>(parameters.begin() + inputLayerWeightsSize, parameters.begin() + inputLayerWeightsSize + hiddenLayerWeightsSize);
-    secondHiddenLayerWeightsDouble = std::vector<double>(parameters.begin() + inputLayerWeightsSize + hiddenLayerWeightsSize, parameters.begin() + allWeightsSize);
-
-    hiddenLayerBiasesDouble = std::vector<double>(parameters.begin() + allWeightsSize, parameters.begin() + allWeightsSize + secondHiddenLayerWeightsSize);
-    secondHiddenLayerBiasesDouble = std::vector<double>(parameters.begin() + allWeightsSize + secondHiddenLayerWeightsSize, parameters.end());
-    */
     ArrayXvar inputLayerWeights = parameters.head(inputLayerWeightsSize);
     ArrayXvar hiddenLayerWeights = parameters.segment(inputLayerWeightsSize, hiddenLayerWeightsSize);
     ArrayXvar secondHiddenLayerWeights = parameters.segment(inputLayerWeightsSize + hiddenLayerWeightsSize, secondHiddenLayerWeightsSize);
     ArrayXvar hiddenLayerBiases = parameters.segment(allWeightsSize, hiddenLayerBiasesSize);
     ArrayXvar secondHiddenLayerBiases = parameters.tail(hiddenSize);
 
-    /*
-    int weightsSize = weightsSize = hiddenSize*hiddenSize;//inputSize * hiddenSize + hiddenSize;
-    ArrayXvar inputLayerWeights = parameters.head(inputSize * hiddenSize);
-    ArrayXvar hiddenLayerWeights = parameters.segment(inputSize * hiddenSize, hiddenSize*hiddenSize);
-    ArrayXvar hiddenLayerBiases = parameters.segment(inputSize * hiddenSize+hiddenSize*hiddenSize, hiddenSize);
-    ArrayXvar secondHiddenLayerWeights = parameters.segment(inputSize * hiddenSize+hiddenSize*hiddenSize + hiddenSize, hiddenSize * hiddenSize);
-    ArrayXvar secondHiddenLayerBiases = parameters.tail(hiddenSize);
-    */
-cout << "Apanson " << endl;
+
     ArrayXvar hiddenOutputs(hiddenLayerBiases.size());
     for(int i = 0; i < hiddenLayerBiases.size(); i++) {
         var output = 0.0;
@@ -164,14 +115,6 @@ const ArrayXvar& secondHiddenLayerWeights,
 const ArrayXvar& hiddenLayerBiases,
 const ArrayXvar& secondHiddenLayerBiases,
 const ArrayXvar& inputs, int inputSize, int hiddenSize) {
-
-//Print length of all parameters:
-cout << "inputLayerWeights.size() = " << inputLayerWeights.size() << endl;
-cout << "hiddenLayerWeights.size() = " << hiddenLayerWeights.size() << endl;
-cout << "secondHiddenLayerWeights.size() = " << secondHiddenLayerWeights.size() << endl;
-cout << "hiddenLayerBiases.size() = " << hiddenLayerBiases.size() << endl;
-cout << "secondHiddenLayerBiases.size() = " << secondHiddenLayerBiases.size() << endl;
-
 
     ArrayXvar hiddenOutputs(hiddenLayerBiases.size());
     for(int i = 0; i < hiddenLayerBiases.size(); i++) {
@@ -264,7 +207,7 @@ std::vector<double> NeuralNetworkTwoLayers::getTheGradientVectorWrtInputs(std::v
     VectorXd dydx = gradient(y, x);        // evaluate the gradient vector dy/dx
 
     std::vector<double> dydx_vec(dydx.data(), dydx.data() + dydx.size());
-cout << "I am the one layer  << "<< endl;
+
     return dydx_vec;
 }
 
