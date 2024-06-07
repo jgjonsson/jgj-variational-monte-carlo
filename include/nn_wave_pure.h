@@ -43,6 +43,7 @@ public:
     //Used for pre-training to make the neural network target the gaussian distribution.
     double ratioToTrainingGaussian_A(std::vector<std::unique_ptr<class Particle>> &particles);
 
+    //std::vector<double> generateRandomParameterSet(size_t rbs_M, size_t rbs_N, int randomSeed, double spread);
 
 protected:
     double gradientSquaredOfLnWaveFunction(vec x);
