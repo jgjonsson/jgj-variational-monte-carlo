@@ -165,6 +165,7 @@ cout << "junit 1" << endl;
         std::cout << "The values are not the same." << std::endl;
     }
 */
+
 auto gradientSymbolicCachedFunctionInputs = looseNeuralNetwork->getTheGradientVectorWrtInputs(inputs);
 auto gradientSymbolicCachedFunctionParameters = looseNeuralNetwork->getTheGradientVectorWrtParameters(inputs);
 

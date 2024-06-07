@@ -290,10 +290,10 @@ double beta = 2.82843; // beta is the second parameter for now.
 
     // Let's perform optimization here; Gradient descent to be used
 
-    std::vector<double> learning_rate; // deduced automatically
-    double parameter_tolerance = 1e-2;
-    size_t max_iterations = fixed_number_optimization_runs + 1; // 1e2;  //TODO: hack for converge condition on set number of iterations
-    bool converged = false;
+    //std::vector<double> learning_rate; // deduced automatically
+    //double parameter_tolerance = 1e-2;
+
+    //bool converged = false;
 
     std::unique_ptr<Sampler> combinedSampler;
     std::unique_ptr<PretrainSampler> combinedPretrainSampler;
@@ -337,7 +337,7 @@ double beta = 2.82843; // beta is the second parameter for now.
             epochsPreTraining.push_back(count);
         }
 
-        string fileSuffix = to_string(numberOfDimensions) + "_" + to_string(numberOfParticles) + "_"+ to_string(rbs_N);
+        string fileSuffix = to_string(numberOfDimensions) + "_" + to_string(numberOfParticles) + "_"+ to_string(rbs_N) + "_"+ to_string(fixed_learning_rate);
         string paramFilename = "NNparams_pretrain_" + fileSuffix  + ".csv";
         string kFilename = "K_pretrain_" + fileSuffix + ".csv";
         one_columns_to_csv(paramFilename, params, ",", 0, 6);

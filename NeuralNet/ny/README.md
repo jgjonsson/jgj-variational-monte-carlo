@@ -106,3 +106,13 @@ time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure.out 3 5 30 1000 0.01 11100000 h
 
 time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure_pretrained.out 3 5 30 250 0.002 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_3_5_30.csv
 
+python3 NeuralNet/ny/plot_training_energies.py --datafile energies_plot_pure_3_5_30z.csv --savefig output_energy_train_3_5_30z_250.pdf --ylabel "E"
+
+
+#Tilbake til
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure.out 2 2 20 3 0.1 11100000 hej METROPOLIS_HASTINGS
+time ./bin/NeuralNet/ny/probe_nqs_repulsive_pure_pretrained.out 2 2 20 250 0.002 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_2_2_20_0.1_relu.csv
+
+NNparams_pretrain_2_2_20_0.100000.csv
+
+

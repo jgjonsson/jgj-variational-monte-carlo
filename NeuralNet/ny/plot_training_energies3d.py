@@ -17,11 +17,11 @@ df = pd.read_csv(args.datafile, sep=',', header=None, names=['Epoch nr', args.yl
 plt.plot(df['Epoch nr'], df[args.ylabel])
 
 # Add a thin red line at y=3
-plt.axhline(y=3, color='r', linewidth=0.5)
+#plt.axhline(y=3, color='r', linewidth=0.5)
 #plt.axhline(y=3, color='r', linewidth=1)
 
 # Set y-axis limits
-#plt.ylim(2, 3.5)
+plt.ylim(2, 75)
 
 plt.xlabel('Epoch nr')
 plt.ylabel(args.ylabel)
