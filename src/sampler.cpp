@@ -11,6 +11,17 @@
 using std::cout;
 using std::endl;
 
+// Define some ANSI escape codes for colors
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+
 //This just needs to be a reasonable number to pick a fraction of samples for error analysis.
 //Making it a fixed parameter here. 100 was suggested in lecture.
 const size_t howOftenStoreSampleForBlocking = 100;
@@ -79,24 +90,25 @@ Sampler::Sampler(std::unique_ptr<Sampler> *samplers, int numberSamplers)
     // cout << "Previous two energies " << samplers[0]->m_observables[0] << " and " << samplers[1]->m_observables[0] << " avareged to  " << m_observables[0]  << endl;
 }
 
-void Sampler::sample(bool acceptedStep, System *system)
+void Sampler::sample(bool acceptedStep, System *system, bool skipSamplingGradients)
 {
     /* Here you should sample all the interesting things you want to measure.
      * Note that there are (way) more than the single one here currently.
      */
     auto localEnergy = system->computeLocalEnergy();
-    //..
-    auto particles = std::move(system->getParticles());
-    auto gradients = system->getWaveFunction()->computeLogPsiDerivativeOverParameters(particles);
-    // I am a terrible person
-    system->getParticles() = std::move(particles);
 
     m_cumulatives[0] += localEnergy;
     m_cumulatives[1] += localEnergy * localEnergy;
-    for (size_t i = 0; i < m_numberOfParameters; i++)
-    {
-        m_cumulatives[2 + i] += gradients[i];
-        m_cumulatives[2 + m_numberOfParameters + i] += gradients[i] * localEnergy;
+    //..
+    if(!skipSamplingGradients){
+        auto particles = std::move(system->getParticles());
+        auto gradients = system->getWaveFunction()->computeLogPsiDerivativeOverParameters(particles);
+        system->setParticles(std::move(particles));
+        for (size_t i = 0; i < m_numberOfParameters; i++)
+        {
+            m_cumulatives[2 + i] += gradients[i];
+            m_cumulatives[2 + m_numberOfParameters + i] += gradients[i] * localEnergy;
+        }
     }
     m_stepNumber++;
     m_numberOfAcceptedSteps += acceptedStep;
@@ -116,14 +128,14 @@ void Sampler::printOutputToTerminal(System &system, bool verbose)
 void Sampler::printOutputToTerminal(bool verbose)
 {
     auto p = m_wavefunction_parameters.size();
-    if (!verbose)
+    /*if (!verbose)
     {
         for (const auto &x : m_wavefunction_parameters)
             cout << x << " ";
         for (const auto &x : m_observables)
             cout << x << " ";
         return;
-    }
+    }*/
 
     cout << endl;
     cout << "  -- System info -- " << endl;
@@ -138,12 +150,29 @@ void Sampler::printOutputToTerminal(bool verbose)
     for (size_t i = 0; i < p; i++)
     {
         cout << " Parameter " << i + 1 << " : " << m_wavefunction_parameters.at(i) << endl;
+        if(i == 5 && ! verbose)
+        {
+            cout << "..." << endl;
+            break;
+        }
     }
     cout << endl;
     cout << "  -- Results -- " << endl;
     cout << " Energy : " << m_observables[0] << endl;
     cout << " Standard deviation Energy : " << m_observables[1] << endl;
     cout << " Computed gradient : " << m_observables[2] << endl;
+    cout << endl;
+}
+
+
+void Sampler::printOutputToTerminalMini(bool verbose)
+{
+    auto p = m_wavefunction_parameters.size();
+    cout << " Number of Metropolis steps run : 10^" << std::log10(m_numberOfMetropolisSteps) << endl;
+    cout << " Ratio of accepted steps: "
+        << RED <<  ((double)m_numberOfAcceptedSteps) / ((double)m_numberOfMetropolisSteps)
+        << RESET << endl;
+    cout << " Energy : " << YELLOW << m_observables[0] << RESET << endl;
     cout << endl;
 }
 

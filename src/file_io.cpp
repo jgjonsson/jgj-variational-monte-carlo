@@ -6,7 +6,7 @@
 #include <vector>
 #include <stdexcept>
 #include <iomanip>
-
+#include <sstream>
 
 void one_columns_to_csv(const std::string& fpath, const std::vector<double>& x, const std::string& separator, bool index, size_t digits)
 {
@@ -18,6 +18,25 @@ void one_columns_to_csv(const std::string& fpath, const std::vector<double>& x, 
             file << i << separator;
         file << x[i] << '\n';
     }
+}
+
+std::vector<double> csv_to_one_column(const std::string& fpath) {
+    std::vector<double> values;
+    std::ifstream file(fpath);
+    if(file.is_open()) {
+        double value;
+        while(file >> value) {
+            values.push_back(value);
+        }
+        file.close();
+    } else {
+        std::stringstream ss;
+        ss << "Unable to open file: " << fpath;
+        throw std::invalid_argument(ss.str());
+        //throw std::invalid_argument(std::format("Unable to open file: {}", fpath));
+        //throw std::invalid_argument("Unable to open file: " + fpath);
+    }
+    return values;
 }
 
 void two_columns_to_csv(const std::string& fpath, const std::vector<double>& x, const std::vector<double>& y, const std::string& separator, bool index, size_t digits)

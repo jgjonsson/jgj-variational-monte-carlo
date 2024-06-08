@@ -12,9 +12,10 @@ public:
         size_t numberOfMetropolisSteps);
     Sampler(std::unique_ptr<Sampler>* samplers, int numberSamplers);
 
-    void sample(bool acceptedStep, class System *system);
+    void sample(bool acceptedStep, class System *system, bool skipSamplingGradients = false);
     void printOutputToTerminal(class System &system, bool verbose = false);
     void printOutputToTerminal(bool verbose = false);
+    void printOutputToTerminalMini(bool verbose);
     // Invoked automatically after sampling
     void computeObservables();
     void storeSystemParameters(class System *system);
