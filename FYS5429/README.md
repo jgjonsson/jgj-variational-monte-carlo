@@ -11,4 +11,5 @@ Run RBS for 2 dimensions, 2 particles, 20 hidden nodes, 600 epochs, learning rat
 ```
 time ../bin/FYS5429/rbm/probe_nqs_rbm_repulsive_adam.out 2 2 20 600 0.01 50000000
 ```
+To give an idea what run time to expect, this takes about 20 minutes on a 2.5 GHz Intel Core 13th gen i7, with 14 cores - 20 logical cores.
 
