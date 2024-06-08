@@ -42,7 +42,8 @@ vmc
 
 # Text files
 *.txt
-*.csv
+#Enabling csv again because we want to keep parameter files that are decently short and take very long time to generate.y
+#*.csv
 
 # archive files
 *.zip
@@ -50,3 +51,7 @@ vmc
 
 # plots
 *.pdf
+
+# IntelliJ, project folder
+.idea
+
