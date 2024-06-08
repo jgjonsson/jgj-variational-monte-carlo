@@ -56,6 +56,11 @@ time ../bin/FYS5429/neuralnetwork/probe_nqs_repulsive_nn_train.out 2 2 16 250 0.
 ```
 For this 16 nodes example, expect 30min pretraining and 100min training. It's on the lower end and might not converge well.
 
+Here is another example that take significantly longer to run, but should match the best results in the report:
+```
+time ../bin/FYS5429/neuralnetwork/pretrain.out 2 2 30 500 0.05 3100000 INTERACTION METROPOLIS_HASTINGS
+time ../bin/FYS5429/neuralnetwork/probe_nqs_repulsive_nn_train.out 2 2 30 500 0.01 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_2_2_30_0.050000.csv
+```
 
 Example for 5 particles in 3D (bosonic interaction and cyllindrical trap) with 30 hidden nodes - similar but not exactly the run used in report:
 ```
@@ -67,4 +72,9 @@ time ../bin/FYS5429/neuralnetwork/probe_nqs_repulsive_nn_train.out 3 5 30 250 0.
 ```
 make -C .. app=FYS5429/neuralnetwork_twolayer/pretrain_twolayer
 make -C .. app=FYS5429/neuralnetwork_twolayer/probe_nqs_repulsive_nn_train_two_layer
+```
+Example for running:
+```
+time ../bin/FYS5429/neuralnetwork_twolayer/pretrain_twolayer.out 2 2 16 100 0.05 3100000 INTERACTION METROPOLIS_HASTINGS
+time ../bin/FYS5429/neuralnetwork_twolayer/probe_nqs_repulsive_nn_train_two_layer.out 2 2 16 250 0.01 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_2_2_16_0.050000.csv
 ```
