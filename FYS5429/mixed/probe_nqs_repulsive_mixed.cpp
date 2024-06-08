@@ -9,8 +9,6 @@
 #include <cstdlib>
 #include <iomanip>
 
-//#include <autodiff/forward/dual.hpp>
-//#include <autodiff/forward/dual/eigen.hpp>
 
 #include "../../include/system.h"
 #include "../../include/gaussianjastrow.h"
@@ -24,7 +22,6 @@
 #include "../../include/particle.h"
 #include "../../include/sampler.h"
 #include "../../include/file_io.h"
-//#include "../../include/nn_wave.h"
 #include "../../include/nn_wave_mixed.h"
 #include "../../include/adam.h"
 
@@ -271,69 +268,5 @@ cout << "Finished parallel region" << endl;
     two_columns_to_csv("energiesTraining2.csv", epochsTraining, energiesTraining, ",", 0, 6);
     two_columns_to_csv("alphasTraining2.csv", epochsTraining, alphasTraining, ",", 0, 6);
 
-//    main3();
-
     return 0;
 }
-
-/*
-int main3() {
-    srand((unsigned) time(NULL)); // Initialize random seed
-
-    int inputNodes = 4;
-    int hiddenNodes = 4;
-
-    std::vector<double> randNumbers;
-    //int totalNumbers = 4 * 4 + 4 + 1 + 4 + 4 * 4 + 1; // Total number of weights and biases for the neural network
-    int totalNumbers = inputNodes * hiddenNodes + hiddenNodes + 1 + inputNodes + hiddenNodes * inputNodes + 1; // Total number of weights and biases for the neural network
-    //double targetOutput = 0.714;
-    double targetOutput = 0.612;
-    double learningRate = 0.0005;
-
-    for(int i = 0; i < totalNumbers; i++) {
-        double randNumber = static_cast<double>(rand()) / RAND_MAX / 1000;
-        randNumbers.push_back(randNumber);
-    }
-
-    NeuralNetwork neuralNetwork(randNumbers, inputNodes, hiddenNodes);
-
-    std::vector<double> inputs = {0.1, 0.2, 0.3, 0.4};
-
-
-    for(int i = 0; i < 50000; i++) { // Training for 1000 iterations
-        double output = neuralNetwork.feedForward(inputs);
-        neuralNetwork.backpropagate(inputs, targetOutput, learningRate);
-        if(i % 1000 == 0) { // Print the output every 100 iterations
-            std::cout << "Iteration: " << i << " Output: " << output << std::endl;
-        }
-    }
-
-
-
-    neuralNetwork.printParameters2();
-
-    double output = neuralNetwork.feedForward(inputs);
-    std::cout << "Output: " << output << std::endl;
-
-    VectorXdual inputsDual = Eigen::Map<VectorXd>(inputs.data(), inputs.size()).cast<dual>();
-
-
-    dual outputDual = neuralNetwork.feedForwardDual2(inputsDual);
-    std::cout << "Output Dual: " << outputDual << std::endl;
-
-    std::cout << "Before autodiff" << std::endl;
-    std::function<VectorXdual(VectorXdual, VectorXdual)>  gradientFunction = neuralNetwork.getGradientFunction();
-    std::cout << "After autodiff" << std::endl;
-    VectorXdual theGradient = gradientFunction(neuralNetwork.parametersDual, inputsDual);
-
-    std::cout << "After eval diff" << std::endl;
-    //auto theGradient = neuralNetwork.getGradient(inputsDual);
-    cout << "Gradient: " << theGradient.transpose() << endl;
-//    neuralNetwork.printParameters();
-//        std::cout << "Sweet: " << output << std::endl;
-
-
-    return 0;
-}
-
-*/

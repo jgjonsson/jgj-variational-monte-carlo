@@ -27,7 +27,7 @@
 #include "../../include/pretrain_sampler.h"
 #include "../../include/file_io.h"
 #include "../../include/simplegaussian.h"
-#include "../../include/nn_wave.h"
+//#include "../../include/nn_wave.h"
 #include "../../include/nn_wave_pure.h"
 #include "../../include/adam.h"
 
@@ -82,9 +82,9 @@ std::unique_ptr<PretrainSampler> runPreTrainParallelMonteCarloSimulation(
 
     std::unique_ptr<PretrainSampler> pretrainSamplers[numThreads] = {};
 
-cout << "This round " << count << " of PRE-TRAINING gets " << numberOfMetropolisStepsPerGradientIteration << " MC steps, split on " << numThreads << " threads.";
+cout << "This round " << count << " of PRE-TRAINING gets " << 10000 << " iterations.";
         numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
-        cout << " so " << numberOfMetropolisStepsPerGradientIteration << " per thread. " << endl ;
+        //cout << " so " << numberOfMetropolisStepsPerGradientIteration << " per thread. " << endl ;
 
 #pragma omp parallel shared(pretrainSamplers, count)
     {
@@ -116,65 +116,7 @@ cout << "This round " << count << " of PRE-TRAINING gets " << numberOfMetropolis
 
     return std::unique_ptr<PretrainSampler>(new PretrainSampler(pretrainSamplers, numThreads));
 }
-/*
-std::unique_ptr<Sampler> runNonInteractingParallelMonteCarloSimulation(
-    size_t count,
-    size_t numberOfMetropolisSteps,
-    size_t fixed_number_optimization_runs,
-    size_t numThreads,
-    double stepLength,
-    size_t numberOfDimensions,
-    size_t numberOfParticles,
-    size_t rbs_M,
-    size_t rbs_N,
-    size_t numberOfEquilibrationSteps,
-    double omega,
-    double alpha,
-    double beta,
-    std::vector<double>& params,
-    const std::string& algoritmChoice)
-{
-    unsigned int base_seed = chrono::system_clock::now().time_since_epoch().count();
-    size_t numberOfMetropolisStepsPerGradientIteration = numberOfMetropolisSteps / fixed_number_optimization_runs;
-    size_t numberOfEquilibrationStepsPerIteration = numberOfEquilibrationSteps/ fixed_number_optimization_runs;
-    numberOfMetropolisStepsPerGradientIteration /= numThreads;
-    numberOfEquilibrationStepsPerIteration  /= numThreads;
 
-    std::unique_ptr<Sampler> samplers[numThreads] = {};
-
-cout << "This round " << count << " of TRAINING gets " << numberOfMetropolisStepsPerGradientIteration << " MC steps, split on " << numThreads << " threads.";
-        numberOfMetropolisStepsPerGradientIteration /= numThreads; // Split by number of threads.
-        cout << " so " << numberOfMetropolisStepsPerGradientIteration << " per thread. " << endl ;
-
-#pragma omp parallel shared(samplers, count)
-    {
-        int thread_id = omp_get_thread_num();
-        unsigned int my_seed = base_seed + thread_id;
-        auto rng = std::make_unique<Random>(my_seed);
-
-        auto particles = setupRandomUniformInitialState(stepLength,numberOfDimensions,numberOfParticles,*rng);
-
-        auto system = std::make_unique<System>(
-            std::make_unique<HarmonicOscillator>(omega),
-            std::make_unique<PureNeuralNetworkWavefunction>(rbs_M, rbs_N, params, omega, alpha, beta, 0.0),
-            //createSolverFromArgument(algoritmChoice, std::move(rng)),
-            std::make_unique<Metropolis>(std::move(rng)),
-            std::move(particles));
-
-        auto acceptedEquilibrationSteps = system->runEquilibrationSteps(
-            stepLength,
-            1000);
-            //numberOfEquilibrationStepsPerIteration);//numberOfMetropolisStepsPerGradientIteration / numberOfEquilibrationSteps);
-
-        samplers[thread_id] = system->runMetropolisSteps(
-            stepLength,
-            10000);
-            //numberOfMetropolisStepsPerGradientIteration);
-    }
-
-    return std::unique_ptr<Sampler>(new Sampler(samplers, numThreads));
-}
-*/
 
 std::vector<double> optimizeParameters(std::vector<double>& params, std::unique_ptr<PretrainSampler>& combinedPretrainSampler, AdamOptimizer& adamOptimizer) {
     auto gradient = std::vector<double>(params.size());
@@ -202,34 +144,7 @@ std::vector<double> optimizeParameters(std::vector<double>& params, std::unique_
 
     return NewParams;
 }
-/*
-std::vector<double> optimizeParameters(std::vector<double>& params, std::unique_ptr<Sampler>& combinedSampler, AdamOptimizer& adamOptimizer) {
-    auto gradient = std::vector<double>(params.size());
-    for (size_t param_num = 0; param_num < params.size(); ++param_num)
-    {
-        gradient[param_num] = combinedSampler->getObservables()[2 + param_num];
-    }
-    // Update the parameter using Adam optimization
-    auto NewParams = adamOptimizer.adamOptimization(params, gradient);
-    params = NewParams;
 
-    combinedSampler->printOutputToTerminalMini(true);
-
-    std::cout << "Num params: " << params.size() << " Parameters:" << std::endl;
-    std::streamsize original_precision = std::cout.precision(); // Save original precision
-    std::cout << std::setprecision(4) << std::fixed;
-    for (int i = 0; i < params.size(); ++i) {
-        std::cout << params[i] << " ";
-    }
-    std::cout.precision(original_precision); // Restore original precision
-
-    std::cout << std::endl;
-    auto energyEstimate = combinedSampler->getObservables()[0];
-    std::cout << "Energy estimate: " << energyEstimate << std::endl;
-
-    return NewParams;
-}
-*/
 int main(int argc, char **argv)
 {
     // This program is for experimenting with learning rate and number of hidden layers.
@@ -254,7 +169,7 @@ int main(int argc, char **argv)
     int parameter_seed = 2023;//111;//2023;         // For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
     double parameterGuessSpread = 0.001; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
-    params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
+    params = NeuralNetworkOneLayer::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
 
 double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
 double beta = 2.82843; // beta is the second parameter for now.
@@ -345,25 +260,6 @@ double beta = 2.82843; // beta is the second parameter for now.
         two_columns_to_csv(kFilename, epochsPreTraining, KPreTraining, ",", 0, 6);
     }
 
-/*
-    //Do the same except for calling runNonInteractingParallelMonteCarloSimulation
-    for(size_t count = 0; count < max_iterations_pre_training; ++count)
-    {
-        auto combinedPretrainSampler = runNonInteractingParallelMonteCarloSimulation(count, numberOfMetropolisSteps, fixed_number_optimization_runs, numThreads, stepLength, numberOfDimensions, numberOfParticles, rbs_M, rbs_N, numberOfEquilibrationSteps, omega, alpha, beta, params, algoritmChoice);
-        params = optimizeParameters(params, combinedPretrainSampler, adamOptimizer);
-    }
-
-    one_columns_to_csv("NNparams2.csv", params, ",", 0, 6);
-*/
-    /*
-    //Write energies to file, to be used by blocking method script.
-    one_columns_to_csv("energies_nn.csv", combinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
-
-    //one_columns_to_csv("energiesTraining.csv", energiesTraining, ",", 0, 6);
-    two_columns_to_csv("energiesTraining_pure.csv", epochsTraining, energiesTraining, ",", 0, 6);
-    //two_columns_to_csv("alphasTraining2.csv", epochsTraining, alphasTraining, ",", 0, 6);
-*/
-//    main3();
 
     return 0;
 }

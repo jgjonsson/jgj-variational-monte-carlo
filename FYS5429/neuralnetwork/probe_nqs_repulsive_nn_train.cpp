@@ -21,10 +21,7 @@
 #include "../../include/random.h"
 #include "../../include/particle.h"
 #include "../../include/sampler.h"
-#include "../../include/pretrain_sampler.h"
 #include "../../include/file_io.h"
-#include "../../include/simplegaussian.h"
-#include "../../include/nn_wave.h"
 #include "../../include/nn_wave_pure.h"
 #include "../../include/adam.h"
 

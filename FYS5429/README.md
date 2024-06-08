@@ -45,12 +45,26 @@ time ../bin/FYS5429/mixed/probe_nqs_repulsive_mixed.out 2 2 20 300 0.001 4100000
 
 Building the executable for pure generic Neural Network:
 ```
-make -C .. app=FYS5429/neuralnetwork/do_pretrain
+make -C .. app=FYS5429/neuralnetwork/pretrain
 make -C .. app=FYS5429/neuralnetwork/probe_nqs_repulsive_nn_train
 ```
 
 Example for running:
 ```
-time ../bin/FYS5429/neuralnetwork/do_pretrain.out 2 2 16 100 0.05 3100000 INTERACTION METROPOLIS_HASTINGS
+time ../bin/FYS5429/neuralnetwork/pretrain.out 2 2 16 100 0.05 3100000 INTERACTION METROPOLIS_HASTINGS
+time ../bin/FYS5429/neuralnetwork/probe_nqs_repulsive_nn_train.out 2 2 16 250 0.01 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_2_2_16_0.050000.csv
+```
+For this 16 nodes example, expect 30min pretraining and 100min training. It's on the lower end and might not converge well.
+
+
+Example for 5 particles in 3D (bosonic interaction and cyllindrical trap) with 30 hidden nodes - similar but not exactly the run used in report:
+```
+time ../bin/FYS5429/neuralnetwork/pretrain.out 3 5 12 0.05 11100000 INTERACTION METROPOLIS_HASTINGS
+time ../bin/FYS5429/neuralnetwork/probe_nqs_repulsive_nn_train.out 3 5 30 250 0.01 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_3_5_30.csv
 ```
 
+## Pure generic neural network with two layers
+```
+make -C .. app=FYS5429/neuralnetwork_twolayer/pretrain_twolayer
+make -C .. app=FYS5429/neuralnetwork_twolayer/probe_nqs_repulsive_nn_train_two_layer
+```

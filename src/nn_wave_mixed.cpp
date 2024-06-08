@@ -127,7 +127,7 @@ double MixedNeuralNetworkWavefunction::computeLocalLaplasian(std::vector<std::un
     if(fabs(laplacianOfLogarithmWrtInputs)>0.001){
     //cout << "Laplacian adding " << sum_laplasian << " with " << interactionLaplacian << " and " << interactionGradSquared << endl;
     //cout << "Laplacian adding " << sum_laplasian << " with " << interactionLaplacian + interactionGradSquared << endl;
-    cout << "Laplacian adding " << sum_laplasian << " with " << laplacianOfLogarithmWrtInputs << endl;
+    //cout << "Laplacian adding " << sum_laplasian << " with " << laplacianOfLogarithmWrtInputs << endl;
  }
     //sum_laplasian += interactionLaplacian + interactionGradSquared;
     sum_laplasian += laplacianOfLogarithmWrtInputs;
