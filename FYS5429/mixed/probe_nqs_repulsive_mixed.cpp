@@ -24,7 +24,7 @@
 #include "../../include/particle.h"
 #include "../../include/sampler.h"
 #include "../../include/file_io.h"
-#include "../../include/nn_wave.h"
+//#include "../../include/nn_wave.h"
 #include "../../include/nn_wave_mixed.h"
 #include "../../include/adam.h"
 
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     int parameter_seed = 2023;//111;//2023;         // For now, pick a hardcoded seed, so we get the same random number generator every run, since our goal is to compare settings.
     double parameterGuessSpread = 0.01; // Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
-    params = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
+    params = NeuralNetworkOneLayer::generateRandomParameterSet(rbs_M, rbs_N, parameter_seed, parameterGuessSpread);
 
 double alpha = 0.5;//m_parameters[0]; // alpha is the first and only parameter for now.
 double beta = 2.82843; // beta is the second parameter for now.

@@ -6,7 +6,8 @@
 #include "wavefunction.h"
 #include "particle.h"
 #include "random.h"
-#include "neural_reverse.h"
+#include "../include/neural_onelayer.h"
+//#include "neural_reverse.h"
 
 using namespace arma;
 
@@ -60,7 +61,7 @@ protected:
     double m_alpha;
     double m_beta;
     double m_adiabaticFactor;
-    NeuralNetworkReverse m_neuralNetwork;
+    NeuralNetworkOneLayer m_neuralNetwork;
 /*
     //Parameters for the wave function
     vec m_a;  //M parameters. The bias for visible layers.

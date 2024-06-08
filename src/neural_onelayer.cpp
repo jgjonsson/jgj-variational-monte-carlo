@@ -187,3 +187,28 @@ double NeuralNetworkOneLayer::laplacianOfLogarithmWrtInputs(std::vector<double> 
 
     return laplacian2+gradientSquared;
 }
+
+/** Generate random numbers for all parameters. This is meant to be used before the first step of Gradient descent.
+*/
+std::vector<double> NeuralNetworkOneLayer::generateRandomParameterSet(size_t rbs_M, size_t rbs_N, int randomSeed, double spread)
+{
+    //Using a normal distribution for initial guess.
+    //Based on code in https://github.com/CompPhysics/ComputationalPhysics2/blob/gh-pages/doc/pub/week13/ipynb/week13.ipynb
+    //although the spread is parameterized for us to investigate different values. In code example it was 0.001.
+    mt19937_64 generator;
+    generator.seed(randomSeed);
+    normal_distribution<double> distribution(0, spread);
+//double reduceSizeFactor = 0.1;
+    std::vector<double> parameters = std::vector<double>();
+    //size_t numberParameters = rbs_M+rbs_N+rbs_M*rbs_N;
+    int inputNodes = rbs_M;
+    int hiddenNodes = rbs_N;
+    //TODO: To many parameters, because we should not have weights and bias for all three layers. Let it be for now.
+    //int numberParameters = inputNodes * hiddenNodes + hiddenNodes + 1 + inputNodes + hiddenNodes * inputNodes + 1;
+    int numberParameters = inputNodes * hiddenNodes + hiddenNodes * 2;
+    for (size_t i = 0; i < numberParameters; i++){
+        parameters.push_back(distribution(generator));
+    }
+    return parameters;
+}
+

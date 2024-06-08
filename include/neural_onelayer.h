@@ -37,6 +37,8 @@ public:
     //double getTheLaplacianFromGradient(std::vector<double> &inputs);
     double laplacianOfLogarithmWrtInputs(std::vector<double> &inputs);
 
+    static std::vector<double> generateRandomParameterSet(size_t rbs_M, size_t rbs_N, int randomSeed, double spread);
+
     //void backpropagate(std::vector<double> inputs, double targetOutput, double learningRate);
 
 private:

@@ -7,7 +7,8 @@
 #include "../include/nn_wave_mixed.h"
 #include "../include/particle.h"
 #include "../include/random.h"
-#include "../include/neural_reverse.h"
+#include "../include/neural_onelayer.h"
+//#include "../include/neural_reverse.h"
 
 using namespace std;
 

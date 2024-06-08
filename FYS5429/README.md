@@ -2,6 +2,8 @@
 
 The following commands assume current directory is FYS5429 (if instead running from root of repo, remove -C .. or ../ respectively).
 
+## Restricted Boltzmann Machine (RBM)
+
 Building the executable for Restricted Boltzmann Machine (RBM) with Neural Quantum States (NQS) using Adam optimizer:
 ```
 make -C .. app=FYS5429/rbm/probe_nqs_rbm_repulsive_adam
@@ -12,10 +14,43 @@ Run RBS for 2 dimensions, 2 particles, 20 hidden nodes, 600 epochs, learning rat
 time ../bin/FYS5429/rbm/probe_nqs_rbm_repulsive_adam.out 2 2 20 600 0.01 54000000
 ```
 To give an idea what run time to expect, this takes about 20 minutes on a 2.5 GHz Intel Core 13th gen i7, with 14 cores - 20 logical cores.
+Other things like monte caro step length, and number of threads are hardcoded but can be changed by changing variables in the code.
 
 This creates the file energies.csv
 To run resampling to calculate statistical error, run:
 ```
 python3 blocking.py
+```
+
+The full table of results for 2 particles 2D can be obtained by running this, but replacing 20, 600 and 0.01 with other values. 
+
+Another example, to run 5 particles in 3D (bosonic interaction and cyllindrical trap) with 30 hidden nodes.
+```
+time ../bin/FYS5429/rbm/probe_nqs_rbm_repulsive_adam.out 3 5 30 600 0.01 54000000
+```
+
+## Mixed Neural Network with exact solution for non-interacting part
+
+Building the executable for Mixed Neural Network:
+```
+make -C .. app=FYS5429/mixed/probe_nqs_repulsive_mixed
+```
+
+Example for running:
+```
+time ../bin/FYS5429/mixed/probe_nqs_repulsive_mixed.out 2 2 20 300 0.001 41000000 INTERACTION METROPOLIS
+```
+
+## Pure generic neural network with one layer
+
+Building the executable for pure generic Neural Network:
+```
+make -C .. app=FYS5429/neuralnetwork/do_pretrain
+make -C .. app=FYS5429/neuralnetwork/probe_nqs_repulsive_nn_train
+```
+
+Example for running:
+```
+time ../bin/FYS5429/neuralnetwork/do_pretrain.out 2 2 16 100 0.05 3100000 INTERACTION METROPOLIS_HASTINGS
 ```
 

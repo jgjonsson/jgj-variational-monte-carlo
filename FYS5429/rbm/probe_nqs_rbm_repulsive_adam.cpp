@@ -140,11 +140,7 @@ int main(int argc, char **argv)
     double stepLength = 0.4;     // Metropolis step length.
     bool verbose = true;         // Verbosity of output
 
-    // Let's perform optimization here; Gradient descent to be used
-
-    //std::vector<double> learning_rate; // deduced automatically
-
-    int numThreads = 20;//1;//14;
+    int numThreads = 20;//1;
     omp_set_num_threads(numThreads);
     std::unique_ptr<Sampler> samplers[numThreads] = {};
 
