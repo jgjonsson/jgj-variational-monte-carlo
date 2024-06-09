@@ -1,26 +1,29 @@
 #pragma once
 #include <memory>
+//#include "../include/sampler.h"
 
-class Sampler
+class PretrainSampler// : public Sampler
 {
 public:
-    Sampler(
+    PretrainSampler(
         size_t numberOfParticles,
         size_t numberOfDimensions,
         size_t numberOfParameters,
         double stepLength,
         size_t numberOfMetropolisSteps);
-    Sampler(std::unique_ptr<Sampler>* samplers, int numberSamplers);
+    PretrainSampler(std::unique_ptr<PretrainSampler>* samplers, int numberSamplers);
 
-    void sample(bool acceptedStep, class System *system, bool skipSamplingGradients = false);
-    void printOutputToTerminal(class System &system, bool verbose = false);
+    void sample(bool acceptedStep, class PretrainSystem *system);
+    void printOutputToTerminal(class PretrainSystem &system, bool verbose = false);
     void printOutputToTerminal(bool verbose = false);
     void printOutputToTerminalMini(bool verbose);
     // Invoked automatically after sampling
     void computeObservables();
-    void storeSystemParameters(class System *system);
+    void storeSystemParameters(class PretrainSystem *system);
     const std::vector<double> &getObservables() const { return m_observables; }
     const std::vector<double> &getEnergyArrayForBlocking() const { return energy_array_for_blocking; }
+
+
 
 private:
     size_t m_stepNumber = 0;

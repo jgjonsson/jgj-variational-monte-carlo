@@ -1,38 +1,14 @@
-# Variational Monte Carlo solver for FYS4411
+# Variational Monte Carlo solver for FYS4411 and Neural Networks for FYS5429
 
-This repo contains the code for Project 1 and Project 2 on course [FYS4411 (spring 2023)](https://github.com/CompPhysics/ComputationalPhysics2).
-It's based on a fork of the initial code repo provided in that course, and further developed by Gabriel Jonsson and Pavlo Panasiuk.
+This repo contains code for Project 1 and Project 2 on course [FYS4411 (spring 2023)] which Gabriel Jonsson and Pavlo Panasiuk worked on, 
+as well as code for FYS5429 which Gabriel Jonsson worked on.
 
-As we reuse much of the code between the two projects, they are both located in the same source tree folder, with new files for project 2 mereley added.
-Latest on master will thus at the time of this writing show the most recent status of Project 2.
-If you want to go back to the state of Project 1 completion, run:
-```
-git checkout Project1
-```
+For content on course FYS4411, see [FYS4411 README](README_FYS4411.md), and subdirectories Project-1 and Project-2 for the respective projects.
 
-### Compiling the project using Make
+For content on course FYS5429, the code for this is mainly under directory FYS5429. See [FYS5429 README](FYS5429/README.md) for further instructions how to build and run the programs for this course.
 
-The Makefile is set up, such that each program is built separately.
-Programs for various sub-tasks in the project are organized in subfolders under Project1, while common code files are placed under src/ and include/
+The directories src and include contains all reusable source code components that are being used from both FYS4411 and FYS5429.
+Note that even though alot of work done on neural networks, only applicable to FYS5429 is still under src because it can potentially be reused for other projects.
+Also the way the Makefile is built, it limits all shared code to be under src and include (which is a bit of technical debt that would be good to sort out one day).
 
-In general the build command is like follows where app_name_no_ext.cpp is some source code file containing main function. (Simple running make without parameter does not produce executables in the current setting).
-
-In a Linux/Mac terminal this can be done by the following commands
-```bash
-make app=path_to_app/app_name_no_ext
-```
-and this can be executed with
-```bash
-./bin/path_to_app/app_name_no_ext.out
-```
-
-For one concrete example, the build command for main executable for sub-task 1g is:
-```
-make app=Project-1/Problem-1g/repulsive_hamiltonian
-```
-
-See README.md file in respective subfolder of Project1 for instructions how to build and run, with parameters relevant for the project report.
-
-#### Cleaning the directory
-Run `make clean` in the top-directory to clean up generated object files. For cleaning program binaries as well, specify the `app`-argument, e.g., `make clean app=path_to_app/app_name_no_ext`.
-
+Furthermore some reports in pdf for are saved under reports. This to enable to cite previous work in later reports, as the reports are not published anywhere else.
