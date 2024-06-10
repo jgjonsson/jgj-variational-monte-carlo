@@ -12,7 +12,6 @@
 #include "../../include/sampler.h"
 
 #include "../../include/neural.h"
-#include "../../include/nn_wave.h"
 #include "../../include/neural_reverse.h"
 #include "../../include/neural_onelayer.h"
 
