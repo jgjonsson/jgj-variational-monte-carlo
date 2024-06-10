@@ -2,7 +2,7 @@
 #include <cassert>
 #include <cmath> // for std::fabs
 
-#include "../../include/nn_wave.h"
+#include "../../include/nn_wave_pure.h"
 #include "../../include/particle.h"
 
 int main() {
@@ -30,8 +30,8 @@ int main() {
     double beta = 1.0;
     double adiabaticFactor = 1.0;
 
-    // Create an instance of NeuralNetworkWavefunction
-    NeuralNetworkWavefunction wavefunction(inputNodes, hiddenNodes, parameters, omega, alpha, beta, adiabaticFactor);
+    // Create an instance of PureNeuralNetworkWavefunction
+    PureNeuralNetworkWavefunction wavefunction(inputNodes, hiddenNodes, parameters, omega, alpha, beta, adiabaticFactor);
 
     // Create a vector of particles
     std::vector<std::unique_ptr<class Particle>> particles;
@@ -39,13 +39,13 @@ int main() {
         std::vector<double> position(numberOfDimensions, 1.0);
         particles.push_back(std::make_unique<Particle>(position));
     }
-
+/*
     for (size_t i = 0; i < numberOfParticles; ++i) {
         std::vector<double> quantumForce = wavefunction.computeQuantumForceOld(particles, i);
         for (size_t j = 0; j < numberOfDimensions; ++j) {
             std::cout << "Old q-force   " << i << " " << j << ": " << quantumForce[j] << std::endl;
         }
-    }
+    }*/
 
     for (size_t i = 0; i < numberOfParticles; ++i) {
         std::vector<double> quantumForce = wavefunction.computeQuantumForce(particles, i);
