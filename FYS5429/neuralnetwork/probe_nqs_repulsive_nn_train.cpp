@@ -276,10 +276,10 @@ double beta = 2.82843; // beta is the second parameter for now.
     //combinedSampler->printOutputToTerminal(verbose);
 
     string fileSuffix = to_string(numberOfDimensions) + "_" + to_string(numberOfParticles) + "_"+ to_string(rbs_N);
-    string energies_plot_filename = "energies_plot_pure_" + fileSuffix  + "z.csv";
+    string energies_plot_filename = "energies_plot_pure_" + fileSuffix  + ".csv";
 
     //Write energies to file, to be used by blocking method script.
-    one_columns_to_csv("energies_nn2z.csv", finalCombinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
+    one_columns_to_csv("energies.csv", finalCombinedSampler->getEnergyArrayForBlocking(), ",", 0, 6);
 
     //one_columns_to_csv("energiesTraining.csv", energiesTraining, ",", 0, 6);
     two_columns_to_csv(energies_plot_filename, epochsTraining, energiesTraining, ",", 0, 6);

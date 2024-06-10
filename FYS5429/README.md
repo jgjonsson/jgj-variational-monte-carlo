@@ -56,10 +56,22 @@ time ../bin/FYS5429/neuralnetwork/probe_nqs_repulsive_nn_train.out 2 2 16 250 0.
 ```
 For this 16 nodes example, expect 30min pretraining and 100min training. It's on the lower end and might not converge well.
 
-Here is another example that take significantly longer to run, but should match the best results in the report:
+Here is two other examples that take significantly longer to run, but should match the best results in the report:
 ```
 time ../bin/FYS5429/neuralnetwork/pretrain.out 2 2 30 500 0.05 3100000 INTERACTION METROPOLIS_HASTINGS
 time ../bin/FYS5429/neuralnetwork/probe_nqs_repulsive_nn_train.out 2 2 30 500 0.01 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_2_2_30_0.050000.csv
+```
+
+```
+time ../bin/FYS5429/neuralnetwork/pretrain.out 2 2 40 500 0.1 3100000 INTERACTION METROPOLIS_HASTINGS
+time ../bin/FYS5429/neuralnetwork/probe_nqs_repulsive_nn_train.out 2 2 40 500 0.01 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_2_2_40_0.100000.csv
+```
+
+Plotting K-values and energies from this run:
+```
+python3 plot_training_energies.py --datafile energies_plot_pure_2_2_40.csv --ylabel "<E> a.u." --savefig energies_plot_pure_2_2_40.pdf
+python3 plot_training_k.py --datafile K_pretrain_2_2_40_0.100000.csv --ylabel "K" --savefig k_plot_2_2_40.pdf
+python3 plot_1-K_log.py --datafile K_pretrain_2_2_40_0.100000.csv --ylabel "1-K" --savefig k-1_plot_2_2_40.pdf
 ```
 
 Example for 5 particles in 3D (bosonic interaction and cyllindrical trap) with 30 hidden nodes - similar but not exactly the run used in report:
@@ -77,4 +89,28 @@ Example for running:
 ```
 time ../bin/FYS5429/neuralnetwork_twolayer/pretrain_twolayer.out 2 2 16 100 0.05 3100000 INTERACTION METROPOLIS_HASTINGS
 time ../bin/FYS5429/neuralnetwork_twolayer/probe_nqs_repulsive_nn_train_two_layer.out 2 2 16 250 0.01 21100000 INTERACTION METROPOLIS_HASTINGS NNparams_pretrain_2_2_16_0.050000.csv
+```
+Warning: Extreamly slow - expect 10 hours just for pretraining. Then training does not even converge well.
+
+
+## Tests - unit tests and benchmark tests
+```
+make -C .. app=FYS5429/tests/benchmark_differentiation
+make -C .. app=FYS5429/tests/unit_tests
+make -C .. app=FYS5429/tests/unit_tests_backprop
+make -C .. app=FYS5429/tests/unit_tests_performance
+make -C .. app=FYS5429/tests/unit_tests_qforce
+make -C .. app=FYS5429/tests/unit_tests_reverse
+make -C .. app=FYS5429/tests/unit_tests_two_layer
+```
+
+Run tests:
+```
+../bin/FYS5429/tests/benchmark_differentiation.out
+../bin/FYS5429/tests/unit_tests.out
+../bin/FYS5429/tests/unit_tests_backprop.out
+../bin/FYS5429/tests/unit_tests_performance.out
+../bin/FYS5429/tests/unit_tests_qforce.out
+../bin/FYS5429/tests/unit_tests_reverse.out
+../bin/FYS5429/tests/unit_tests_two_layer.out
 ```
