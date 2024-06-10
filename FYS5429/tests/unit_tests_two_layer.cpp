@@ -12,7 +12,7 @@
 #include "../../include/sampler.h"
 
 #include "../../include/neural_twolayer.h"
-#include "../../include/nn_wave.h"
+//#include "../../include/nn_wave.h"
 
 using namespace std;
 

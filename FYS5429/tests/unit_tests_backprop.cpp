@@ -16,9 +16,8 @@
 #include "../../include/particle.h"
 #include "../../include/sampler.h"
 
-//#include "../../include/neural.h"
-#include "../../include/nn_wave.h"
 #include "../../include/neural_reverse.h"
+#include "../../include/neural_onelayer.h"
 
 // Define the 2D Gaussian function
 double gaussian2D(double x, double y) {
@@ -40,7 +39,7 @@ int main() {
     double parameterGuessSpread = 0.1;  //Standard deviation "spread" of the normal distribution that initial parameter guess is randomized as.
 
     //Start with all parameters as random values
-    auto randomParameters = NeuralNetworkWavefunction::generateRandomParameterSet(inputSize, hiddenSize, seed, parameterGuessSpread);
+    auto randomParameters = NeuralNetworkOneLayer::generateRandomParameterSet(inputSize, hiddenSize, seed, parameterGuessSpread);
 	//auto looseNeuralNetwork = std::make_unique<SimpleRBM>(rbs_M, rbs_N, randomParameters, omega);
 
 	//auto nnr = std::make_unique<NeuralNetworkReverse>(randomParameters, inputSize, hiddenSize);
