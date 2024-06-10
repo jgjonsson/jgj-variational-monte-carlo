@@ -12,8 +12,8 @@
 #include "../../include/sampler.h"
 
 #include "../../include/neural.h"
-#include "../../include/nn_wave.h"
 #include "../../include/neural_reverse.h"
+#include "../../include/neural_onelayer.h"
 
 using namespace std;
 
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 
 
     //Start with all parameters as random values
-    auto randomParameters = NeuralNetworkWavefunction::generateRandomParameterSet(rbs_M, rbs_N, seed, parameterGuessSpread);
+    auto randomParameters = NeuralNetworkOneLayer::generateRandomParameterSet(rbs_M, rbs_N, seed, parameterGuessSpread);
 	//auto looseNeuralNetwork = std::make_unique<SimpleRBM>(rbs_M, rbs_N, randomParameters, omega);
     auto start = std::chrono::high_resolution_clock::now();
 	auto looseNeuralNetwork = std::make_unique<NeuralNetworkSimple>(randomParameters, rbs_M, rbs_N);
